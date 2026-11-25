@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bk3n4p7qxb2et"
+path="res://.godot/imported/DoorFrame_Flat_Brick.obj-856f8e35baf6d055e8ef33166c3fc79b.mesh"
+
+[deps]
+
+files=["res://.godot/imported/DoorFrame_Flat_Brick.obj-856f8e35baf6d055e8ef33166c3fc79b.mesh"]
+
+source_file="res://assets/stylised assets/stylised assets/Medieval_Village_MegaKitStandard/Medieval Village MegaKit[Standard]/OBJ/DoorFrame_Flat_Brick.obj"
+dest_files=["res://.godot/imported/DoorFrame_Flat_Brick.obj-856f8e35baf6d055e8ef33166c3fc79b.mesh", "res://.godot/imported/DoorFrame_Flat_Brick.obj-856f8e35baf6d055e8ef33166c3fc79b.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

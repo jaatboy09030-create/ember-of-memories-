@@ -1,0 +1,8 @@
+# Godot cache / imports
+.godot/
+*.tmp
+# test screenshots
+_shots/
+# huge unused Poly Haven trees (>100 MB, GitHub limit)
+assets/polyhaven/pine_tree_01/
+assets/polyhaven/pine_sapling_medium/
