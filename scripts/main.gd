@@ -1,5 +1,5 @@
 extends Node3D
-## EMBER LETTERS - full grey-box.
+## UNSENT - full grey-box.
 ## The static level lives in scenes/level.tscn (instanced as "Level" in main.tscn) and
 ## can be edited in the editor. Key nodes are found by NAME, so don't rename:
 ##   WorldEnvironment, Light_<room>, Door_<name>, ScarfMesh, DrawingWall, StudyDoor,
@@ -27,6 +27,7 @@ var caption: Label
 var bar: ProgressBar
 var fade: ColorRect
 var title: Label
+var crosshair: Label
 var snow: GPUParticles3D
 
 var mats: Array = []          # [material, original colour] for desaturation
@@ -100,6 +101,9 @@ func _ready() -> void:
 	if "--minitest" in OS.get_cmdline_user_args():
 		_mini_test()
 		return
+	if "--doortest" in OS.get_cmdline_user_args():
+		_door_test()
+		return
 	if "--walktest" in OS.get_cmdline_user_args():
 		_walk_test()
 		return
@@ -109,7 +113,7 @@ func _ready() -> void:
 	if "--shots" in OS.get_cmdline_user_args():
 		_shot_tour()
 		return
-	_opening()
+	_title_screen()
 
 
 func _mat(c: Color, emission := 0.0) -> StandardMaterial3D:
@@ -207,20 +211,65 @@ func _door(door_name: String, pos: Vector3, along_x: bool) -> void:
 	_box(hs, Vector3(pos.x, 2.22, pos.z), trim, false)
 
 
+## Unlocks a door (story beat) and swings it open. From then on the player can close and
+## reopen it with E when standing at it.
+var door_state := {}  # name -> {d, hinge, start, open, far_t, tw}
+
+
 func _open_door(door_name: String) -> void:
 	if not doors.has(door_name):
 		return
 	var d: MeshInstance3D = doors[door_name]
 	doors.erase(door_name)
-	_sfx3d("door_creak", d.global_position + Vector3(0, 0.2, 0), -2.0)
-	# swing 100 degrees on the left hinge, into the room ahead
-	var along_x: bool = d.get_meta("along_x", absf(d.scale.x) >= 0.0 and (d.mesh as BoxMesh).size.x > 0.5)
+	var along_x: bool = d.get_meta("along_x", true)
 	var hinge := d.position + (Vector3(-0.65, 0, 0) if along_x else Vector3(0, 0, 0.65))
-	var start := d.position - hinge
+	door_state[door_name] = {"d": d, "hinge": hinge, "start": d.position - hinge, "open": false, "far_t": 0.0, "tw": null, "ang": 0.0, "met": false}
+	_swing_door(door_name, true)
+
+
+func _swing_door(door_name: String, open: bool) -> void:
+	var st: Dictionary = door_state[door_name]
+	var d: MeshInstance3D = st["d"]
+	st["open"] = open
+	st["far_t"] = 0.0
+	if st["tw"] and (st["tw"] as Tween).is_valid():
+		(st["tw"] as Tween).kill()
+	var a0: float = st["ang"]
+	var a1 := deg_to_rad(100.0) if open else 0.0
 	var tw := create_tween()
+	if open:
+		_sfx3d("door_creak", d.global_position + Vector3(0, 0.2, 0), -2.0)
+	else:
+		_sfx3d("door_creak", d.global_position + Vector3(0, 0.2, 0), -8.0)
 	tw.tween_method(func(a: float):
+		st["ang"] = a
 		d.rotation.y = a
-		d.position = hinge + start.rotated(Vector3.UP, a), 0.0, deg_to_rad(100.0), 1.8).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		d.position = (st["hinge"] as Vector3) + (st["start"] as Vector3).rotated(Vector3.UP, a), a0, a1, 1.6 if open else 1.3) 		.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT if open else Tween.EASE_IN)
+	if not open:
+		tw.tween_callback(func(): _sfx3d("door_slam", d.global_position, -16.0))
+	st["tw"] = tw
+
+
+## The unlocked door the player is standing at and facing (for the E prompt), or "".
+func _door_in_reach() -> String:
+	if not player or not player.can_move:
+		return ""
+	var best := ""
+	var best_d := 1.8
+	var fwd: Vector3 = player.facing()
+	var f2 := Vector2(fwd.x, fwd.z).normalized()
+	var pp := Vector2(player.global_position.x, player.global_position.z)
+	for n in door_state:
+		var st: Dictionary = door_state[n]
+		var c: Vector3 = (st["hinge"] as Vector3) + (st["start"] as Vector3)
+		var to := Vector2(c.x, c.z) - pp
+		var dist := to.length()
+		if st["open"] and dist < 0.75:
+			continue  # standing in the doorway: closing it would sweep through the player
+		if dist < best_d and f2.dot(to.normalized()) > 0.35:
+			best = n
+			best_d = dist
+	return best
 
 
 func _light(room: String, pos: Vector3, energy := 0.6) -> void:
@@ -405,29 +454,26 @@ func _build_exterior() -> void:
 	_collider(Vector3((12 + HOUSE_X1) * 0.5, 1, 0.3), Vector3(absf(12 - HOUSE_X1), 2, 0.3))
 	# Invisible boundary so the player stays in the garden / lane
 	for wpos in [[Vector3(-12, 1, 5.1), Vector3(0.3, 2, 9.8)], [Vector3(12, 1, 5.1), Vector3(0.3, 2, 9.8)],
-			[Vector3(-6.6, 1, 10), Vector3(10.8, 2, 0.3)], [Vector3(6.6, 1, 10), Vector3(10.8, 2, 0.3)],
+			[Vector3(-6.75, 1, 10), Vector3(10.5, 2, 0.3)], [Vector3(6.75, 1, 10), Vector3(10.5, 2, 0.3)],
 			[Vector3(0, 1, 19), Vector3(14, 2, 0.3)], [Vector3(-7, 1, 14.5), Vector3(0.3, 2, 9)], [Vector3(7, 1, 14.5), Vector3(0.3, 2, 9)]]:
 		_collider(wpos[0], wpos[1])
-	# Gate posts with lanterns, gate leaves left open
-	var post_m := _tmat("dark_wooden_planks", Color(0.95, 0.92, 0.88), 0.8)
-	for x in [-0.95, 0.95]:
-		_box(Vector3(0.22, 1.3, 0.22), Vector3(x, 0.65, 10), post_m)
-		_box(Vector3(0.3, 0.06, 0.3), Vector3(x, 1.33, 10), _mat(Color(0.95, 0.97, 1.0)), false)
+	# Garden gate (Sketchfab 'gate 45'): two hinged leaves between real posts
 	for side in [-1.0, 1.0]:
+		var post := _model("gate_post", Vector3(GATE_HALF * side + 0.07 * side, 0, 10.0), 0.0 if side > 0 else 180.0, false)
+		post.name = "GatePost" + ("L" if side < 0 else "R")
+		_collider(Vector3((GATE_HALF + 0.08) * side, 0.7, 10.0), Vector3(0.22, 1.4, 0.22))
 		var leaf := Node3D.new()
 		leaf.name = "GateL" if side < 0 else "GateR"
-		leaf.position = Vector3(0.85 * side, 0, 10.0)
+		leaf.position = Vector3(GATE_HALF * side, 0, 10.0)
 		leaf.rotation_degrees.y = -100.0 * side
 		add_child(leaf)
-		var gm := _mat(Color(0.86, 0.84, 0.8))
-		for k in 4:
-			_box(Vector3(0.08, 0.95, 0.03), Vector3(side * (0.12 + k * 0.2), 0.5, 0), gm, false, leaf)
-		for y in [0.3, 0.75]:
-			_box(Vector3(0.8, 0.06, 0.03), Vector3(side * 0.42, y, 0.02), gm, false, leaf)
-	# Mailbox
-	_box(Vector3(0.1, 1.0, 0.1), Vector3(2.0, 0.5, 10.6), post_m)
-	_box(Vector3(0.36, 0.28, 0.55), Vector3(2.0, 1.12, 10.6), _mat(Color(0.5, 0.16, 0.14)))
-	_box(Vector3(0.4, 0.05, 0.6), Vector3(2.0, 1.28, 10.6), _mat(Color(0.95, 0.97, 1.0)), false)
+		var lm := _model("gate_leaf_l" if side < 0 else "gate_leaf_r", Vector3.ZERO, 0.0, false)
+		remove_child(lm)
+		leaf.add_child(lm)
+		var w: float = (lm.get_meta("size") as Vector3).x
+		lm.position = Vector3(-side * w * 0.5, 0, 0)
+	# Mailbox by the gate
+	_model("mailbox_post", Vector3(2.2, 0, 10.6), 90.0, true)
 	# Street lamp outside the gate: the one warm light in the cold
 	_prop("street_lamp_02", Vector3(-2.1, 0, 11.0), 3.4, 0, false, 0.6)
 	var lamp := OmniLight3D.new()
@@ -458,42 +504,23 @@ func _build_exterior() -> void:
 
 
 func _fence(a: Vector2, b: Vector2, gaps: Array) -> void:
+	# Sketchfab picket fence: panels stretched to fit each run exactly, a post at every joint
 	var along_x := is_equal_approx(a.y, b.y)
-	var length := (b - a).length()
-	var count := int(length / 0.2)
-	var xforms: Array[Transform3D] = []
-	for i in count:
-		var t := (float(i) + 0.5) / count
-		var p := a.lerp(b, t)
-		var along := p.x if along_x else p.y
-		var skip := false
-		for g in gaps:
-			if absf(along - g) < 1.0:
-				skip = true
-		if skip:
-			continue
-		var h := 0.95 + 0.04 * sin(float(i) * 1.7)
-		xforms.append(Transform3D(Basis.from_scale(Vector3(0.09, h, 0.035)).rotated(Vector3.UP, 0.0 if along_x else PI * 0.5), Vector3(p.x, h * 0.5, p.y)))
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.mesh = BoxMesh.new()
-	mm.instance_count = xforms.size()
-	for i in xforms.size():
-		mm.set_instance_transform(i, xforms[i])
-	var mmi := MultiMeshInstance3D.new()
-	mmi.multimesh = mm
-	mmi.material_override = _mat(Color(0.86, 0.84, 0.8))
-	add_child(mmi)
-	# Rails + snow caps
 	var s0 := a.x if along_x else a.y
 	var s1 := b.x if along_x else b.y
-	for seg in _segments(s0, s1, gaps, 2.0):
-		var m: float = (seg[0] + seg[1]) * 0.5
+	for seg in _segments(s0, s1, gaps, GATE_HALF * 2.0 + 0.4):
 		var ln: float = seg[1] - seg[0]
-		var rail := Vector3(ln, 0.06, 0.04) if along_x else Vector3(0.04, 0.06, ln)
-		var rp := Vector3(m, 0, a.y) if along_x else Vector3(a.x, 0, m)
-		for y in [0.3, 0.75]:
-			_box(rail, Vector3(rp.x, y, rp.z), _mat(Color(0.8, 0.78, 0.74)), false)
+		var n := maxi(1, int(round(ln / 1.9)))
+		var step := ln / n
+		for i in n + 1:
+			var t: float = seg[0] + step * i
+			_model("fence_post", Vector3(t, 0, a.y) if along_x else Vector3(a.x, 0, t), 0.0, false, FENCE_S)
+		for i in n:
+			var c: float = seg[0] + step * (i + 0.5)
+			var pm := _model("fence_panel", Vector3(c, 0, a.y) if along_x else Vector3(a.x, 0, c), 0.0 if along_x else 90.0, false, FENCE_S)
+			if pm:
+				var native: float = (pm.get_meta("size") as Vector3).x
+				pm.scale = Vector3(step / native, FENCE_S, FENCE_S)
 
 
 func _collider(pos: Vector3, size: Vector3) -> void:
@@ -755,14 +782,9 @@ func _build_rooms() -> void:
 	var dark_wood := _mat(Color(0.3, 0.19, 0.12))
 
 	# LIVING: coat stand by the front door, the unravelled scarf on it
-	var stand := SCARF_STAND
-	_box(Vector3(0.06, 1.8, 0.06), stand + Vector3(0, 0.9, 0), dark_wood)
-	_box(Vector3(0.45, 0.04, 0.45), stand + Vector3(0, 0.02, 0), dark_wood, false)
-	for a in [0.0, 90.0, 180.0, 270.0]:
-		var peg := _box(Vector3(0.22, 0.03, 0.03), stand + Vector3(0, 1.72, 0), dark_wood, false)
-		peg.rotation_degrees = Vector3(0, a, 25)
-	scarf_mesh = _box(Vector3(0.2, 1.0, 0.04), stand + Vector3(0, 1.5, -0.08), Color(0.78, 0.16, 0.15), false)
-	scarf_mesh.name = "ScarfMesh"
+	var rack := _model("coat_rack_scarf", SCARF_STAND, 200.0, true)
+	rack.name = "CoatRack"
+	scarf_mesh = _find_scarf(rack)
 	_scarf_visual(0.0)
 	_box(Vector3(2.6, 0.015, 1.8), Vector3(1.2, 0.07, -2.8), _tmat("fabric_pattern_05", Color(0.85, 0.45, 0.38), 0.9), false)
 
@@ -795,24 +817,9 @@ func _build_rooms() -> void:
 
 	# PARENT ROOM: brick fireplace on the west wall, the face-down photo on the dresser
 	var fz := FIRE_Z
-	var brick := _tmat("brick_wall_02", Color.WHITE, 0.9)
-	_box(Vector3(0.75, 1.25, 2.0), Vector3(-7.0, 0.62, fz), brick)
-	_box(Vector3(0.5, 1.55, 1.5), Vector3(-7.15, 2.05, fz), brick, false)
-	_box(Vector3(0.95, 0.09, 2.2), Vector3(-6.95, 1.29, fz), dark_wood, false)  # mantel
-	_box(Vector3(0.1, 0.75, 1.1), Vector3(-6.6, 0.45, fz), _mat(Color(0.04, 0.035, 0.03)), false)  # firebox
-	_box(Vector3(0.9, 0.06, 2.3), Vector3(-6.7, 0.03, fz), _tmat("brick_wall_02", Color(0.6, 0.55, 0.5), 1.2), false)  # hearth
-	for i in 3:
-		var lg := MeshInstance3D.new()
-		var cm := CylinderMesh.new()
-		cm.top_radius = 0.06
-		cm.bottom_radius = 0.06
-		cm.height = 0.7
-		lg.mesh = cm
-		lg.material_override = _mat(Color(0.18, 0.12, 0.08))
-		lg.position = Vector3(-6.75 + i * 0.04, 0.12 + (0.1 if i == 2 else 0.0), fz + (i - 1) * 0.13)
-		lg.rotation_degrees = Vector3(90, 0, 0)
-		add_child(lg)
-	_box(Vector3(1.2, 0.015, 1.6), Vector3(-5.9, 0.07, fz), _tmat("fabric_pattern_05", Color(0.8, 0.55, 0.45), 1.0), false)
+	var fp := _model("fireplace_rustic", Vector3(HOUSE_X0 + 0.8, 0.06, fz), 90.0, true, 0.8)
+	fp.name = "Fireplace"
+	_box(Vector3(1.2, 0.015, 1.6), Vector3(-5.0, 0.07, fz), _tmat("fabric_pattern_05", Color(0.8, 0.55, 0.45), 1.0), false)
 	photo = Node3D.new()
 	photo.name = "Photo"
 	photo.position = Vector3(-2.95, 1.0, -8.3)
@@ -824,14 +831,10 @@ func _build_rooms() -> void:
 	_box(Vector3(0.06, 0.012, 0.14), Vector3(0.07, 0.03, 0.08), Color(0.8, 0.2, 0.2), false, photo)
 	fire_mesh = MeshInstance3D.new()
 	fire_mesh.name = "FireMesh"
-	var fm := SphereMesh.new()
-	fm.radius = 0.22
-	fm.height = 0.5
-	fire_mesh.mesh = fm
-	fire_mesh.material_override = _glow_mat(Color(1, 0.45, 0.1), 9.0)
-	fire_mesh.position = Vector3(-6.6, 0.32, fz)
+	fire_mesh.position = FIRE_POS
 	fire_mesh.visible = false
 	add_child(fire_mesh)
+	fire_mesh.add_child(_flames())
 	fire_light = OmniLight3D.new()
 	fire_light.name = "FireLight"
 	fire_light.position = Vector3(-6.1, 0.7, fz)
@@ -842,13 +845,49 @@ func _build_rooms() -> void:
 	add_child(fire_light)
 
 	# KITCHEN: counter run along the back wall, wall cupboard above
-	var counter_m := _tmat("dark_wooden_planks", Color(1.0, 0.95, 0.9), 0.8)
-	_box(Vector3(2.15, 0.9, 0.62), Vector3(4.85, 0.45, -4.17), counter_m)
-	_box(Vector3(2.2, 0.05, 0.66), Vector3(4.85, 0.92, -4.17), _mat(Color(0.88, 0.87, 0.84)), false)
-	_box(Vector3(1.4, 0.7, 0.35), Vector3(4.85, 1.85, -4.33), counter_m, false)
+	_model("kitchen_counter", Vector3(4.85, 0.06, -4.08), 0.0, true)
+	_model("kitchen_cupboard", Vector3(4.85, 1.55, -4.2), 0.0, false)
 
 
 ## Real model props (Poly Haven CC0). height = target height; collide adds a box collider.
+const GATE_HALF := 1.3   # half the gate opening (each leaf is 1.3 m)
+const FENCE_S := 0.76    # picket fence scale: ~1 m tall
+
+
+## Sketchfab model from res://assets/sketchfab/<file>.glb at real scale (stands on its origin).
+func _model(file: String, pos: Vector3, rot_deg := 0.0, collide := false, s := 1.0) -> Node3D:
+	var path := "res://assets/sketchfab/%s.glb" % file
+	if not ResourceLoader.exists(path):
+		push_warning("missing model " + path)
+		return null
+	var p := ModelFit.load_native(path)
+	p.name = file
+	p.position = pos
+	p.rotation_degrees.y = rot_deg
+	p.scale = Vector3.ONE * s
+	add_child(p)
+	if collide and p.has_meta("size"):
+		var size: Vector3 = p.get_meta("size")
+		var body := StaticBody3D.new()
+		var cs := CollisionShape3D.new()
+		var shape := BoxShape3D.new()
+		shape.size = size * Vector3(0.9, 1.0, 0.9)
+		cs.shape = shape
+		cs.position = Vector3(0, size.y * 0.5, 0)
+		body.add_child(cs)
+		p.add_child(body)
+	return p
+
+
+func _find_scarf(n: Node) -> MeshInstance3D:
+	if n == null:
+		return null
+	for mi in n.find_children("*", "MeshInstance3D", true, false):
+		if String(mi.name).begins_with("Scarf"):
+			return mi
+	return null
+
+
 func _prop(id: String, pos: Vector3, height: float, rot_deg := 0.0, collide := false, snow_amt := 0.0) -> Node3D:
 	var path := "res://assets/polyhaven/%s/%s.gltf" % [id, id]
 	if not ResourceLoader.exists(path):
@@ -941,7 +980,7 @@ func _place_props() -> void:
 		["tea_set_01", Vector3(4.5, 0.8, -2.1), 0, false],
 		["carrot_cake", Vector3(4.5, 0.8, -1.6), 0, false],
 		["food_pears_asian_01", Vector3(4.4, 0.8, -2.4), 0, false],
-		["painted_wooden_cabinet_02", Vector3(5.65, 0.06, -3.3), -90, true],
+		["painted_wooden_cabinet_02", Vector3(5.65, 0.06, -2.85), -90, true],
 		["wooden_bucket_01", Vector3(5.65, 0.06, -0.4), 0, false],
 		["wooden_crate_02", Vector3(3.45, 0.06, -0.4), 20, true],
 		["hanging_picture_frame_01", Vector3(3.1, 1.7, -3.6), 90, false],
@@ -966,14 +1005,10 @@ func _place_props() -> void:
 		["vintage_oil_lamp", Vector3(-2.85, 1.0, -8.75), 0, false],
 		["brass_vase_02", Vector3(-2.85, 1.0, -7.85), 0, false],
 		["dry_branches_medium_01", Vector3(-2.85, 1.2, -7.85), 0, false],
-		["Rockingchair_01", Vector3(-5.6, 0.06, -5.3), -110, true],
+		["Rockingchair_01", Vector3(-4.7, 0.06, -5.0), -110, true],
 		["spinning_wheel_01", Vector3(-3.3, 0.06, -5.15), 220, true],
 		["wicker_basket_02", Vector3(-4.0, 0.06, -5.0), 0, false],
 		["Ottoman_01", Vector3(-5.3, 0.06, -6.45), 0, true],
-		["brass_candleholders", Vector3(-6.95, 1.34, FIRE_Z - 0.75), 90, false],
-		["mantel_clock_01", Vector3(-6.95, 1.34, FIRE_Z), 90, false],
-		["ceramic_vase_01", Vector3(-6.95, 1.34, FIRE_Z + 0.75), 0, false],
-		["fancy_picture_frame_01", Vector3(-7.35, 2.0, FIRE_Z), 90, false],
 		["wooden_axe", Vector3(-6.3, 0.08, FIRE_Z - 1.15), 20, false],
 		["hanging_picture_frame_03", Vector3(-5.3, 1.95, -8.85), 0, false],
 		["fancy_picture_frame_02", Vector3(-2.65, 1.6, -5.4), -90, false],
@@ -1003,59 +1038,28 @@ func _place_props() -> void:
 	_settle_props()
 
 
-var _scarf_rows: Array = []
+var _scarf_mat: ShaderMaterial
+var _scarf_top := 0.0
+var _scarf_bot := 0.0
 
-## A real knitted scarf hanging from the stand: rows appear stitch by stitch.
+
+## The scarf on the coat rack is knitted back from the top down (8 of 30 rows remain at the start).
 func _scarf_visual(p: float) -> void:
-	if not scarf_mesh:
+	if not scarf_mesh or bake_mode or not scarf_mesh.is_inside_tree():
 		return
-	if _scarf_rows.is_empty() and not bake_mode and is_inside_tree():
-		scarf_mesh.visible = false
-		var knit := _tmat("fabric_pattern_05", Color(0.75, 0.16, 0.14), 6.0, 0.95)
-		var knit_dark := _tmat("fabric_pattern_05", Color(0.6, 0.11, 0.1), 6.0, 0.95)
-		var top: Vector3 = SCARF_STAND + Vector3(0.0, 1.72, -0.06)
-		for i in 30:
-			var row := MeshInstance3D.new()
-			var bm := CapsuleMesh.new()
-			bm.radius = 0.016
-			bm.height = 0.19
-			bm.radial_segments = 10
-			bm.rings = 2
-			row.mesh = bm
-			row.material_override = knit if i % 2 == 0 else knit_dark
-			row.position = top + Vector3(sin(float(i) * 0.55) * 0.012, -0.03 - float(i) * 0.031, sin(float(i) * 0.3) * 0.01)
-			row.rotation_degrees = Vector3(randf_range(-4, 4), 0, 90.0 + randf_range(-3, 3))
-			add_child(row)
-			_scarf_rows.append(row)
-		# loose yarn ball and needles below
-		var ball := MeshInstance3D.new()
-		var sm := SphereMesh.new()
-		sm.radius = 0.07
-		sm.height = 0.14
-		ball.mesh = sm
-		ball.material_override = knit
-		ball.position = SCARF_STAND + Vector3(0.25, 0.1, -0.15)
-		add_child(ball)
-		for k in 2:
-			var nd := MeshInstance3D.new()
-			var cm := CylinderMesh.new()
-			cm.top_radius = 0.004
-			cm.bottom_radius = 0.004
-			cm.height = 0.32
-			nd.mesh = cm
-			nd.material_override = _mat(Color(0.55, 0.42, 0.28))
-			nd.position = SCARF_STAND + Vector3(0.22 + k * 0.03, 0.12, -0.12)
-			nd.rotation_degrees = Vector3(70, 30 + k * 15, 0)
-			add_child(nd)
-		var lamp := OmniLight3D.new()
-		lamp.position = SCARF_STAND + Vector3(-0.4, 1.9, -0.6)
-		lamp.light_color = Color(0.85, 0.85, 1.0)
-		lamp.light_energy = 0.5
-		lamp.omni_range = 3.0
-		add_child(lamp)
-	var shown := int(round(p * 22.0)) + 8  # starts half-unravelled: 8 rows left
-	for i in _scarf_rows.size():
-		_scarf_rows[i].visible = i < shown
+	if _scarf_mat == null:
+		var base := scarf_mesh.get_active_material(0) as BaseMaterial3D
+		_scarf_mat = ShaderMaterial.new()
+		_scarf_mat.shader = load("res://shaders/scarf_reveal.gdshader")
+		if base and base.albedo_texture:
+			_scarf_mat.set_shader_parameter("albedo_tex", base.albedo_texture)
+			_scarf_mat.set_shader_parameter("has_tex", true)
+		scarf_mesh.set_surface_override_material(0, _scarf_mat)
+		var ab: AABB = scarf_mesh.global_transform * scarf_mesh.get_aabb()
+		_scarf_top = ab.end.y
+		_scarf_bot = ab.position.y
+	var frac := (8.0 + p * 22.0) / 30.0
+	_scarf_mat.set_shader_parameter("cut_y", _scarf_top - frac * (_scarf_top - _scarf_bot) - (0.01 if p >= 1.0 else 0.0))
 
 
 func _add(pos: Vector3, kind: String, cb: Callable, extra := {}) -> Dictionary:
@@ -1082,6 +1086,7 @@ func _process(delta: float) -> void:
 		return
 	if cutscene:
 		player.cam.look_at(cam_look)
+	_title_tick(delta)
 	_update_snow()
 	_update_mosaic()
 	var outside: bool = player.cam.global_position.z > -0.3
@@ -1114,6 +1119,12 @@ func _process(delta: float) -> void:
 	hint.visible = not d.is_empty()
 	bar.visible = false
 	if d.is_empty():
+		var dn := _door_in_reach()
+		if dn != "":
+			hint.visible = true
+			hint.text = "[ E ]  close" if door_state[dn]["open"] else "[ E ]  open"
+			if pressed:
+				_swing_door(dn, not door_state[dn]["open"])
 		return
 	match d.kind:
 		"press":
@@ -1488,6 +1499,7 @@ func _build_ui() -> void:
 	dot.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	layer.add_child(dot)
+	crosshair = dot
 
 	caption = Label.new()
 	caption.add_theme_font_size_override("font_size", 30)
@@ -1506,7 +1518,7 @@ func _build_ui() -> void:
 	layer.add_child(fade)
 
 	title = Label.new()
-	title.text = "EMBER LETTERS\n\nthank you for coming home"
+	title.text = "UNSENT\n\nthank you for coming home"
 	title.add_theme_font_size_override("font_size", 40)
 	title.add_theme_color_override("font_color", Color(1, 0.75, 0.45))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -1584,7 +1596,7 @@ func _bind_level(lvl: Node) -> void:
 			room_lights[n.substr(6)] = c
 		elif n.begins_with("Door_"):
 			doors[n.substr(5)] = c
-	scarf_mesh = lvl.get_node("ScarfMesh")
+	scarf_mesh = _find_scarf(lvl.get_node_or_null("CoatRack"))
 	drawing_wall = lvl.get_node("DrawingWall")
 	study_door = lvl.get_node("StudyDoor")
 	photo = lvl.get_node("Photo")
@@ -1649,6 +1661,8 @@ func _shot_tour() -> void:
 		["07_bedroom", Vector3(1.5, 0.1, -5.1), Vector3(4.6, 0.6, -8.2), 0.3],
 		["08_parent", Vector3(-3.0, 0.1, -5.1), Vector3(-6.4, 0.8, -7.4), 0.5],
 		["09_kitchen", Vector3(3.4, 0.1, -0.5), Vector3(5.0, 0.8, -3.6), 1.0],
+		["09b_fireplace", Vector3(-3.4, 0.1, -5.9), Vector3(-7.0, 0.7, -5.75), 0.5],
+		["09c_coatrack", Vector3(1.2, 0.1, -2.4), Vector3(0.95, 1.1, -0.42), 0.5],
 	]
 	var out := ProjectSettings.globalize_path("res://_shots")
 	for s in shots:
@@ -2026,7 +2040,7 @@ func _build_audio() -> void:
 	add_child(music)
 	amb_out = _loop_player("wind_loop", -6.0)
 	amb_in = _loop_player("house_tone_loop", -60.0)
-	_play_music("theme_broken", -10.0, 3.0)
+	_play_music("theme_piano" if _aud("theme_piano") else "theme_broken", -9.0, 3.0)
 
 
 func _loop_player(n: String, vol: float) -> AudioStreamPlayer:
@@ -2345,7 +2359,8 @@ const SCARF_STAND := Vector3(0.95, 0, -0.42)
 const FIRE_Z := -5.75
 const DESK_POS := Vector3(-4.6, 0, -4.15)
 const PHOTO_SPOT := Vector3(-3.6, 0, -8.3)
-const HEARTH_SPOT := Vector3(-6.0, 0, -5.75)
+const HEARTH_SPOT := Vector3(-5.2, 0, -5.75)
+const FIRE_POS := Vector3(-7.05, 0.32, -5.75)
 const STRUGGLE_SPOT := Vector3(-0.75, 0, -8.0)
 
 
@@ -2689,7 +2704,7 @@ func _close_gate() -> void:
 	clank.tween_callback(func():
 		_sfx3d("door_slam", Vector3(0, 1.0, 10.0), -10.0)
 		player.add_shake(0.08, 0.3))
-	_collider(Vector3(0, 1, 10), Vector3(1.9, 2, 0.25))
+	_collider(Vector3(0, 1, 10), Vector3(GATE_HALF * 2.0, 2, 0.25))
 
 
 # ---------------------------------------------------------------- MegaKit nature (Quaternius, CC0)
@@ -2806,3 +2821,419 @@ func _build_nature() -> void:
 					_nature("DeadTree_%d" % rng.randi_range(1, 5), Vector3(px, 0, pz), rng.randf_range(0.4, 0.6), rng.randf() * 360.0, 0.6)
 			z += 4.6
 		x += 4.6
+
+
+# ---------------------------------------------------------------- opening: "Unsent" (one continuous shot)
+# The title is the first frame of the game. The ember writes an unfinished line in the sky,
+# the words cool to ash, the name forms, and on a tap the ember falls to the gate and the
+# camera follows it down into the player's eyes. No cuts, no fades, music never restarts.
+const TITLE_CAM := Vector3(1.5, 6.5, 22.0)
+const TITLE_LOOK := Vector3(0.0, 2.6, 0.0)
+const TITLE_LINE := "I kept the fire going, in case you"
+const TITLE_NAME := "Unsent"
+var _title_on := false
+var _title_ready := false
+var _title_root: Node3D
+var _title_line: Array = []     # [Label3D, local x]
+var _title_name: Array = []
+var _title_ash: CPUParticles3D
+var _title_prompt: Label
+var _title_t := 0.0
+var _title_window: OmniLight3D
+var _title_keeps_pos := Vector3.ZERO
+
+
+func _hand_font() -> SystemFont:
+	var f := SystemFont.new()
+	f.font_names = PackedStringArray(["Ink Free", "Segoe Script", "Bradley Hand ITC", "cursive"])
+	return f
+
+
+func _serif_font(weight := 500) -> SystemFont:
+	var f := SystemFont.new()
+	f.font_names = PackedStringArray(["Cormorant Garamond", "Palatino Linotype", "Book Antiqua", "Georgia", "serif"])
+	f.font_weight = weight
+	return f
+
+
+## Lays out `text` as one Label3D per character (so each letter can ignite / cool / crumble alone).
+func _sky_text(text: String, font: Font, size: int, px: float, y: float, colors: Callable) -> Array:
+	var out: Array = []
+	var total := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+	for i in text.length():
+		var ch := text.substr(i, 1)
+		if ch == " ":
+			continue
+		var pre := font.get_string_size(text.substr(0, i), HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		var w := font.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, size).x
+		var l := Label3D.new()
+		l.text = ch
+		l.font = font
+		l.font_size = size
+		l.pixel_size = px
+		l.outline_size = 0
+		l.shaded = false
+		l.double_sided = true
+		l.render_priority = 10
+		l.alpha_cut = Label3D.ALPHA_CUT_OPAQUE_PREPASS  # writes depth, so depth of field keeps it sharp
+		l.alpha_scissor_threshold = 0.35
+		l.fixed_size = false
+		var x := (pre + w * 0.5 - total * 0.5) * px
+		l.position = Vector3(x, y, 0)
+		l.modulate = colors.call(i)
+		l.modulate.a = 0.0
+		_title_root.add_child(l)
+		out.append(l)
+	return out
+
+
+func _title_screen() -> void:
+	_title_on = true
+	_title_ready = false
+	player.can_move = false
+	player.cam_locked = true
+	player.look_scale = 0.0
+	cutscene = true
+	if crosshair:
+		crosshair.visible = false
+	_cinema(true, 0.0)
+	player.cam.global_position = TITLE_CAM
+	player.cam.fov = 45.0
+	cam_look = TITLE_LOOK
+	# A plane of words floating in the snow between the camera and the house, facing the camera
+	var d := (TITLE_LOOK - TITLE_CAM).normalized()
+	var center := TITLE_CAM + d * 9.0 + Vector3(0, 1.85, 0)
+	_title_root = Node3D.new()
+	_title_root.name = "TitleSky"
+	add_child(_title_root)
+	_title_root.global_position = center
+	_title_root.look_at(center + (center - TITLE_CAM), Vector3.UP)  # +Z (the readable side) faces the camera
+	_focus(9.0)
+
+	var warm := Color(1.9, 0.62, 0.16)
+	_title_line = _sky_text(TITLE_LINE, _hand_font(), 112, 0.0034, 0.55, func(_i): return warm)
+	var nfont := _serif_font(500)
+	_title_name = _sky_text(TITLE_NAME, nfont, 230, 0.0042, -0.45, func(_i): return Color(0.86, 0.89, 0.97))
+	# The ember rests just after the last letter, like a seal that was never pressed
+	var last_l: Label3D = _title_name[_title_name.size() - 1]
+	_title_keeps_pos = _title_root.to_global(last_l.position + Vector3(0.38, 0.05, 0.05))
+
+	# Ash: the cooled words flake away and drift upward, wrongly, like time running back
+	_title_ash = CPUParticles3D.new()
+	_title_ash.emitting = false
+	_title_ash.amount = 220
+	_title_ash.lifetime = 6.0
+	_title_ash.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	_title_ash.emission_box_extents = Vector3(2.9, 0.18, 0.05)
+	_title_ash.position = Vector3(0, 0.55, 0)
+	_title_ash.direction = Vector3(0, 1, 0)
+	_title_ash.spread = 35.0
+	_title_ash.initial_velocity_min = 0.05
+	_title_ash.initial_velocity_max = 0.25
+	_title_ash.gravity = Vector3(0.08, 0.12, 0)
+	_title_ash.damping_min = 0.02
+	_title_ash.damping_max = 0.05
+	_title_ash.scale_amount_min = 0.5
+	_title_ash.scale_amount_max = 1.3
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.028, 0.028)
+	var am := StandardMaterial3D.new()
+	am.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	am.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	am.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	am.vertex_color_use_as_albedo = true
+	am.no_depth_test = true
+	qm.material = am
+	_title_ash.mesh = qm
+	var ramp := Gradient.new()
+	ramp.set_color(0, Color(2.4, 1.0, 0.3, 0.0))
+	ramp.add_point(0.08, Color(1.6, 0.7, 0.25, 0.9))
+	ramp.add_point(0.35, Color(0.75, 0.76, 0.8, 0.75))
+	ramp.set_color(ramp.get_point_count() - 1, Color(0.85, 0.88, 0.95, 0.0))
+	_title_ash.color_ramp = ramp
+	_title_root.add_child(_title_ash)
+
+	# One window remembers being warm
+	_title_window = OmniLight3D.new()
+	_title_window.position = Vector3(1.9, 1.5, -0.9)
+	_title_window.light_color = Color(1.0, 0.6, 0.28)
+	_title_window.light_energy = 0.0
+	_title_window.omni_range = 4.0
+	add_child(_title_window)
+
+	# Prompt (screen space, the only flat UI)
+	_title_prompt = Label.new()
+	_title_prompt.text = "tap to continue"
+	var pf := FontVariation.new()
+	pf.base_font = _serif_font(400)
+	pf.spacing_glyph = 5
+	_title_prompt.add_theme_font_override("font", pf)
+	_title_prompt.add_theme_font_size_override("font_size", 22)
+	_title_prompt.add_theme_color_override("font_color", Color(1.0, 0.84, 0.62))
+	_title_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_title_prompt.anchor_right = 1.0
+	_title_prompt.anchor_top = 0.83
+	_title_prompt.anchor_bottom = 0.83
+	_title_prompt.modulate.a = 0.0
+	_title_prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fade.get_parent().add_child(_title_prompt)
+
+	# ---- the sequence
+	ember.follow = false
+	ember.anchor = Vector3.INF
+	ember.global_position = center + _title_root.global_basis * Vector3(0, 0.2, 0)
+	ember.scale = Vector3.ONE * 0.6
+	fade.color.a = 1.0
+	var tw := create_tween()
+	tw.tween_property(fade, "color:a", 0.0, 3.0)
+	tw.tween_interval(0.6)
+	# the ember drifts to where the line begins
+	var first: Label3D = _title_line[0]
+	tw.tween_property(ember, "global_position", _title_root.to_global(first.position + Vector3(-0.08, -0.05, 0.05)), 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	# ...and writes, letter by letter
+	for l in _title_line:
+		var lab := l as Label3D
+		var tip := _title_root.to_global(lab.position + Vector3(0.05, -0.04, 0.05))
+		tw.tween_property(ember, "global_position", tip, 0.1)
+		tw.parallel().tween_property(lab, "modulate:a", 1.0, 0.22)
+	# the pen hesitates where the next word should be... and never writes it
+	var last: Label3D = _title_line[_title_line.size() - 1]
+	var hes := _title_root.to_global(last.position + Vector3(0.22, -0.02, 0.05))
+	tw.tween_property(ember, "global_position", hes, 0.5).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(1.8)
+	tw.tween_callback(_title_cool)
+	if "--titleshot" in OS.get_cmdline_user_args():
+		var st := create_tween()
+		for k in [[2.4, "00a_ember"], [3.0, "00b_writing"], [2.6, "00c_unfinished"], [3.2, "00c2_cooling"]]:
+			st.tween_interval(k[0])
+			st.tween_callback(_save_shot.bind(k[1]))
+
+
+func _title_cool() -> void:
+	var cold := Color(0.5, 0.53, 0.6, 1.0)
+	var i := 0
+	for l in _title_line:
+		var lab := l as Label3D
+		var t := create_tween()
+		t.tween_interval(0.06 * i)
+		t.tween_property(lab, "modulate", cold, 1.1)
+		t.tween_interval(0.5 + randf() * 0.4)
+		t.tween_property(lab, "modulate:a", 0.0, 0.9)
+		t.parallel().tween_property(lab, "position:y", lab.position.y + 0.12, 0.9)
+		i += 1
+	var seq := create_tween()
+	seq.tween_interval(1.2)
+	seq.tween_callback(func(): _title_ash.emitting = true)
+	# the window: warm for a heartbeat, then grey again
+	seq.tween_property(_title_window, "light_energy", 3.0, 0.5)
+	seq.tween_interval(0.5)
+	seq.tween_property(_title_window, "light_energy", 0.0, 1.4)
+	seq.tween_callback(func(): _title_ash.emitting = false)
+	# the name forms out of the drifting ash
+	var order := range(_title_name.size())
+	order.shuffle()
+	var j := 0
+	for idx in order:
+		var lab: Label3D = _title_name[idx]
+		var target_y := lab.position.y
+		lab.position.y -= 0.12
+		var t := create_tween()
+		t.tween_interval(1.6 + 0.09 * j)
+		t.tween_property(lab, "modulate:a", 1.0, 1.1)
+		t.parallel().tween_property(lab, "position:y", target_y, 1.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		j += 1
+	seq.tween_property(ember, "global_position", _title_keeps_pos, 2.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	seq.tween_interval(0.6)
+	seq.tween_callback(func(): _title_ready = true)
+	seq.tween_property(_title_prompt, "modulate:a", 1.0, 1.0)
+	if "--titleshot" in OS.get_cmdline_user_args():
+		seq.tween_interval(1.5)
+		seq.tween_callback(func(): _save_shot("00d_title"))
+		seq.tween_interval(0.3)
+		seq.tween_callback(_title_continue)
+
+
+func _title_tick(delta: float) -> void:
+	_title_t += delta
+	if _title_prompt and _title_ready:
+		_title_prompt.modulate.a = 0.3 + 0.55 * (0.5 + 0.5 * sin(_title_t * 2.0))
+	if _title_on and _title_ready and _title_window:
+		# every so often, the window remembers
+		var w := maxf(sin(_title_t * 0.37) * sin(_title_t * 0.91), 0.0)
+		_title_window.light_energy = pow(w, 6.0) * 3.0
+
+
+func _input(event: InputEvent) -> void:
+	if not _title_on:
+		return
+	var go: bool = (event is InputEventKey and event.pressed and not event.echo) \
+		or (event is InputEventMouseButton and event.pressed) \
+		or (event is InputEventScreenTouch and event.pressed) \
+		or (event is InputEventJoypadButton and event.pressed)
+	if go:
+		get_viewport().set_input_as_handled()
+		if _title_ready:
+			_title_continue()
+
+
+func _title_continue() -> void:
+	if not _title_on:
+		return
+	_title_on = false
+	_title_ready = false
+	_sfx("ember_chime", -8.0)
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	create_tween().tween_property(_title_prompt, "modulate:a", 0.0, 0.6)
+	create_tween().tween_property(_title_window, "light_energy", 0.0, 0.6)
+	# the name crumbles into the snow
+	_title_ash.position = Vector3(0, -0.35, 0)
+	_title_ash.gravity = Vector3(0.1, -0.15, 0)
+	_title_ash.restart()
+	_title_ash.emitting = true
+	for l in _title_name:
+		var lab := l as Label3D
+		var t := create_tween()
+		t.tween_interval(randf() * 0.7)
+		t.tween_property(lab, "modulate", Color(0.55, 0.58, 0.65, 0.0), 1.2)
+		t.parallel().tween_property(lab, "position:y", lab.position.y - 0.2, 1.2)
+	# the ember falls toward the gate, the camera follows it down, into the eyes
+	var gate := Vector3(0, 1.3, 10.0)
+	var e0 := ember.global_position
+	var mid := Vector3(0.3, 3.2, 13.5)
+	var fall := create_tween()
+	fall.tween_method(func(t: float):
+		var a := e0.lerp(mid, t)
+		var b := mid.lerp(gate, t)
+		ember.global_position = a.lerp(b, t), 0.0, 1.0, 4.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	fall.parallel().tween_property(ember, "scale", Vector3.ONE, 4.2)
+	fall.tween_callback(func(): ember.anchor = gate)
+	var eye: Vector3 = player.head_position() + player.facing() * 0.12
+	var cam := create_tween()
+	var look0 := cam_look
+	cam.tween_method(func(t: float): cam_look = look0.lerp(ember.global_position, smoothstep(0.0, 1.0, t)), 0.0, 1.0, 1.6)
+	cam.tween_callback(func(): _focus(14.0))
+	cam.parallel().tween_property(player.cam, "global_position", Vector3(0.6, 2.4, 17.0), 5.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	cam.parallel().tween_method(func(_t: float): cam_look = cam_look.lerp(ember.global_position, 0.12), 0.0, 1.0, 5.2)
+	cam.tween_property(player.cam, "global_position", eye, 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	cam.parallel().tween_property(self, "cam_look", eye + Vector3(0, -0.1, -5.0), 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	cam.parallel().tween_property(player.cam, "fov", 70.0, 2.4)
+	cam.tween_callback(_title_handover)
+	if "--titleshot" in OS.get_cmdline_user_args():
+		var st := create_tween()
+		for k in [[1.2, "00e_crumble"], [2.0, "00f_fall"], [2.4, "00g_descend"], [2.8, "00h_eyes"], [2.5, "00i_play"]]:
+			st.tween_interval(k[0])
+			st.tween_callback(_save_shot.bind(k[1]))
+		st.tween_interval(0.3)
+		st.tween_callback(func(): get_tree().quit())
+
+
+func _title_handover() -> void:
+	_play_music("theme_broken", -10.0, 4.0)  # the piano belongs to the opening only
+	_cinema(false, 1.8)
+	_focus(-1.0)
+	cutscene = false
+	player.cam_locked = false
+	player.can_move = true
+	create_tween().tween_property(player, "look_scale", 1.0, 2.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	if crosshair:
+		crosshair.visible = true
+		crosshair.modulate.a = 0.0
+		create_tween().tween_property(crosshair, "modulate:a", 1.0, 2.0)
+	var t := create_tween()
+	t.tween_interval(4.0)
+	t.tween_callback(func():
+		if _title_root:
+			_title_root.queue_free()
+			_title_root = null
+		if _title_window:
+			_title_window.queue_free()
+			_title_window = null
+		if _title_prompt:
+			_title_prompt.queue_free()
+			_title_prompt = null)
+
+
+func _save_shot(n: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://_shots"))
+	get_viewport().get_texture().get_image().save_png("res://_shots/%s.png" % n)
+	print("SHOT ", n)
+
+
+
+## Hearth flames: soft additive billboards rising and fading (lit by the relight sequence).
+func _flames() -> GPUParticles3D:
+	var f := GPUParticles3D.new()
+	f.name = "Flames"
+	f.amount = 46
+	f.lifetime = 0.85
+	f.local_coords = false
+	var pm := ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(0.12, 0.03, 0.3)
+	pm.direction = Vector3(0, 1, 0)
+	pm.spread = 12.0
+	pm.initial_velocity_min = 0.35
+	pm.initial_velocity_max = 0.7
+	pm.gravity = Vector3(0, 0.6, 0)
+	pm.scale_min = 0.6
+	pm.scale_max = 1.2
+	var sc := Curve.new()
+	sc.add_point(Vector2(0, 0.5))
+	sc.add_point(Vector2(0.25, 1.0))
+	sc.add_point(Vector2(1, 0.15))
+	var sct := CurveTexture.new()
+	sct.curve = sc
+	pm.scale_curve = sct
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.85, 0.45, 0.0))
+	g.add_point(0.12, Color(1.0, 0.7, 0.3, 0.95))
+	g.add_point(0.5, Color(1.0, 0.38, 0.08, 0.7))
+	g.set_color(g.get_point_count() - 1, Color(0.6, 0.12, 0.02, 0.0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = g
+	pm.color_ramp = gt
+	f.process_material = pm
+	var q := QuadMesh.new()
+	q.size = Vector2(0.32, 0.42)
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.vertex_color_use_as_albedo = true
+	var rg := Gradient.new()
+	rg.set_color(0, Color(1, 1, 1, 1))
+	rg.set_color(1, Color(1, 1, 1, 0))
+	var rt := GradientTexture2D.new()
+	rt.gradient = rg
+	rt.fill = GradientTexture2D.FILL_RADIAL
+	rt.fill_from = Vector2(0.5, 0.6)
+	rt.fill_to = Vector2(0.5, 0.0)
+	m.albedo_texture = rt
+	m.albedo_color = Color(2.2, 2.2, 2.2)
+	q.material = m
+	f.draw_pass_1 = q
+	return f
+
+
+func _door_test() -> void:
+	_title_on = false
+	cutscene = false
+	player.cam_locked = false
+	player.global_position = Vector3(0, 0.1, 1.2)  # on the porch, facing the front door
+	_open_door("front")
+	var t := create_tween()
+	t.tween_interval(2.5)
+	t.tween_callback(func():
+		print("DOOR open after unlock: ", snappedf(rad_to_deg(door_state["front"]["ang"]), 1), "  in reach: ", _door_in_reach())
+		_swing_door("front", false))
+	t.tween_interval(2.0)
+	t.tween_callback(func():
+		print("DOOR after E (close): ", snappedf(rad_to_deg(door_state["front"]["ang"]), 1))
+		_swing_door("front", true))
+	t.tween_interval(2.0)
+	t.tween_callback(func(): print("DOOR after E (open): ", snappedf(rad_to_deg(door_state["front"]["ang"]), 1)))
+	t.tween_callback(func(): player.global_position = Vector3(0, 0.1, -3.5))
+	t.tween_interval(3.0)
+	t.tween_callback(func(): print("DOOR after walking away (should stay open): ", snappedf(rad_to_deg(door_state["front"]["ang"]), 1)))
+	t.tween_callback(func(): get_tree().quit())

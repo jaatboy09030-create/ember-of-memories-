@@ -19,6 +19,7 @@ const WALK_PATH := "res://assets/mixamo/player_walk.fbx"
 
 var can_move := true
 var cam_locked := false
+var look_scale := 1.0  # eased 0 -> 1 when control is handed over after a cinematic
 var cam: Camera3D
 var pivot: Node3D       # yaw: body + view direction (local +Z = forward)
 var pitch := 0.0
@@ -132,8 +133,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	if event is InputEventMouseMotion and can_move and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		target_yaw -= event.relative.x * MOUSE_SENS
-		target_pitch = clampf(target_pitch - event.relative.y * MOUSE_SENS, -1.25, 1.25)
+		target_yaw -= event.relative.x * MOUSE_SENS * look_scale
+		target_pitch = clampf(target_pitch - event.relative.y * MOUSE_SENS * look_scale, -1.25, 1.25)
 
 
 # ---------------------------------------------------------------- helpers used by main.gd
