@@ -438,22 +438,11 @@ func _build_exterior() -> void:
 	lamp.shadow_enabled = true
 	lamp.light_volumetric_fog_energy = 2.0
 	add_child(lamp)
-	# Pine trees around the house and the lane
-	var pines := [Vector3(-10.5, 0, 6.5), Vector3(10.5, 0, 7.0), Vector3(-17, 0, -3), Vector3(17, 0, -7),
-		Vector3(-12, 0, 17), Vector3(12, 0, 18), Vector3(-19, 0, 10), Vector3(19, 0, 11)]
-	for i in pines.size():
-		_pine(pines[i], 6.0 + float(i % 3) * 1.3, float(i) * 47.0)
-	for p in [Vector3(-7.5, 0, 8.0), Vector3(7.0, 0, 8.2), Vector3(-5.5, 0, 5.0), Vector3(9.0, 0, 3.0), Vector3(-10.0, 0, 2.5)]:
-		_pine(p, 2.2, p.x * 30.0)
+	_build_nature()
 	_prop("tree_stump_01", Vector3(5.5, 0, 3.0), 0.45, 20, false, 1.0)
 	_prop("garden_gnome", Vector3(3.0, 0, 6.0), 0.4, 200, false, 0.7)
 	_prop("wooden_crate_01", Vector3(-5.5, 0, 1.0), 0.5, 15, false, 1.0)
-	# More garden: shrubs along the house, picnic table, saplings, snow drifts
-	for sp in [[Vector3(-3.0, 0, 0.9), "shrub_02"], [Vector3(3.2, 0, 0.9), "shrub_03"], [Vector3(-8.5, 0, 0.8), "shrub_02"], [Vector3(6.5, 0, 0.9), "shrub_03"], [Vector3(10.5, 0, 0.8), "shrub_02"]]:
-		_prop(sp[1], sp[0], 0.9, sp[0].x * 40.0, false, 0.9)
 	_prop("wooden_picnic_table", Vector3(-7.5, 0, 5.5), 0.8, 20, true, 1.0)
-	for p2 in [Vector3(9.5, 0, 8.5), Vector3(-10.0, 0, 8.6), Vector3(4.5, 0, 8.8)]:
-		_prop("pine_sapling_small", p2, 0.9, p2.x * 13.0, false, 0.9)
 	_prop("tree_stump_02", Vector3(-9.0, 0, 2.5), 0.4, 70, false, 1.0)
 	_snow_drifts()
 	var mist := FogVolume.new()
@@ -1606,6 +1595,14 @@ func _bind_level(lvl: Node) -> void:
 	_collect_mats(lvl)
 	for p in get_tree().get_nodes_in_group("memory_prop"):
 		var pid := String(p.name)
+		if p.has_meta("foliage"):
+			outdoor_heavy.append(p)
+			var keep_shadow: bool = p.get_meta("shadow", false)
+			for gi in p.find_children("*", "GeometryInstance3D", true, false):
+				(gi as GeometryInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if keep_shadow else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				(gi as GeometryInstance3D).visibility_range_end = 80.0
+			_foliage_mat(p, float(p.get_meta("snow", 0.0)), p.get_meta("tint", Color.WHITE))
+			continue
 		if pid.begins_with("pine") or pid.begins_with("shrub") or pid.begins_with("tree_stump") or pid.begins_with("wooden_picnic"):
 			outdoor_heavy.append(p)
 			for gi in p.find_children("*", "GeometryInstance3D", true, false):
@@ -2693,3 +2690,119 @@ func _close_gate() -> void:
 		_sfx3d("door_slam", Vector3(0, 1.0, 10.0), -10.0)
 		player.add_shake(0.08, 0.3))
 	_collider(Vector3(0, 1, 10), Vector3(1.9, 2, 0.25))
+
+
+# ---------------------------------------------------------------- MegaKit nature (Quaternius, CC0)
+const NATURE_DIR := "res://assets/stylised assets/stylised assets/Stylized_Nature_MegaKitStandard/glTF/"
+
+
+func _nature(n: String, pos: Vector3, s: float, rot := 0.0, snow_amt := 0.8, trunk_r := 0.0, shadow := false, tint := Color.WHITE) -> Node3D:
+	var path := NATURE_DIR + n + ".gltf"
+	if not ResourceLoader.exists(path):
+		push_warning("missing nature " + path)
+		return null
+	var p := ModelFit.load_native(path)
+	p.name = "nature_" + n
+	p.add_to_group("memory_prop", true)
+	p.set_meta("foliage", true)
+	p.set_meta("snow", snow_amt)
+	p.set_meta("shadow", shadow)
+	p.set_meta("tint", tint)
+	p.position = pos
+	p.rotation_degrees.y = rot
+	p.scale = Vector3.ONE * s
+	add_child(p)
+	if not bake_mode:
+		_foliage_mat(p, snow_amt, tint)
+	if trunk_r > 0.0:
+		var body := StaticBody3D.new()
+		var cs := CollisionShape3D.new()
+		var cyl := CylinderShape3D.new()
+		cyl.radius = trunk_r / s
+		cyl.height = 2.5 / s
+		cs.shape = cyl
+		cs.position.y = 1.25 / s
+		body.add_child(cs)
+		p.add_child(body)
+	return p
+
+
+func _foliage_mat(node: Node, snow_amt: float, tint: Color) -> void:
+	var shader: Shader = load("res://shaders/foliage_snow.gdshader")
+	for mi in node.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.mesh == null:
+			continue
+		for i in m.mesh.get_surface_count():
+			var bm := m.get_active_material(i) as BaseMaterial3D
+			if bm == null:
+				continue
+			var nm := String(bm.resource_name)
+			var leafy := nm.contains("Lea") or nm.contains("Grass") or nm.contains("Flower")
+			var sm := ShaderMaterial.new()
+			sm.shader = shader
+			sm.set_shader_parameter("tint", bm.albedo_color * tint)
+			if bm.albedo_texture:
+				sm.set_shader_parameter("albedo_tex", bm.albedo_texture)
+				sm.set_shader_parameter("has_tex", true)
+			if bm.normal_enabled and bm.normal_texture:
+				sm.set_shader_parameter("normal_tex", bm.normal_texture)
+				sm.set_shader_parameter("has_normal", true)
+			sm.set_shader_parameter("alpha_cut", 0.5 if bm.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED else 0.0)
+			sm.set_shader_parameter("sway", 1.0 if leafy else 0.0)
+			sm.set_shader_parameter("snow", snow_amt * (0.85 if leafy else 0.6))
+			m.set_surface_override_material(i, sm)
+
+
+func _build_nature() -> void:
+	# Garden: a few full-grown pines framing the house, young ones by the fence
+	_nature("Pine_3", Vector3(-10.3, 0, 7.0), 0.85, 20, 0.85, 0.3, true)
+	_nature("Pine_1", Vector3(10.2, 0, 6.8), 0.8, 140, 0.85, 0.3, true)
+	_nature("Pine_5", Vector3(9.9, 0, 2.2), 0.62, 70, 0.85, 0.25, true)
+	_nature("Pine_2", Vector3(-10.4, 0, 2.0), 0.66, 200, 0.85, 0.25, true)
+	_nature("Pine_3", Vector3(-7.6, 0, 8.6), 0.3, 50, 0.9, 0.12, true)
+	_nature("Pine_4", Vector3(7.3, 0, 8.7), 0.22, 10, 0.9, 0.12, true)
+	_nature("Pine_2", Vector3(4.6, 0, 8.9), 0.24, 300, 0.9, 0.12, true)
+	# Bushes tucked against the front wall (snow-laden)
+	for b in [[-3.1, 30.0, 0.55], [3.3, 110.0, 0.5], [-6.1, 200.0, 0.6], [4.9, 280.0, 0.45]]:
+		_nature("Bush_Common", Vector3(b[0], 0, 0.95), b[2], b[1], 1.0, 0.0, true)
+	# Rocks half-buried in snow, pebbles at the path edge
+	_nature("Rock_Medium_1", Vector3(6.8, -0.12, 5.0), 0.35, 30, 1.0, 0.45)
+	_nature("Rock_Medium_2", Vector3(-3.9, -0.1, 7.6), 0.3, 160, 1.0, 0.4)
+	_nature("Rock_Medium_3", Vector3(8.7, -0.1, 9.0), 0.25, 250, 1.0, 0.0)
+	for k in 8:
+		var side := -1.0 if k % 2 == 0 else 1.0
+		_nature("Pebble_Round_%d" % (k % 5 + 1), Vector3(side * (1.0 + 0.08 * (k % 3)), -0.03, 1.8 + k * 1.05), 0.55, k * 53.0, 1.0)
+	# Dry winter grass poking through the snow along the fence
+	var straw := Color(0.95, 0.78, 0.5)
+	var tufts := [Vector3(-11.4, 0, 9.4), Vector3(-9.2, 0, 9.6), Vector3(-4.8, 0, 9.5), Vector3(-2.3, 0, 9.6),
+		Vector3(2.6, 0, 9.5), Vector3(5.7, 0, 9.6), Vector3(11.3, 0, 9.3), Vector3(11.5, 0, 4.5),
+		Vector3(-11.5, 0, 4.8), Vector3(-11.4, 0, 1.2), Vector3(11.4, 0, 1.0), Vector3(1.4, 0, 4.0), Vector3(-1.5, 0, 6.6)]
+	for i in tufts.size():
+		_nature("Grass_Wispy_Short" if i % 2 == 0 else "Grass_Common_Short", tufts[i], 0.32, i * 41.0, 0.35, 0.0, false, straw)
+	# The lane outside the gate
+	_nature("Pine_4", Vector3(-5.6, 0, 14.2), 0.7, 90, 0.85, 0.3, true)
+	_nature("Pine_1", Vector3(5.9, 0, 16.8), 0.75, 15, 0.85, 0.3, true)
+	_nature("DeadTree_2", Vector3(4.9, 0, 12.3), 0.42, 120, 0.6, 0.2, true)
+	_nature("Bush_Common", Vector3(-3.3, 0, 12.9), 0.5, 60, 1.0)
+	_nature("Bush_Common", Vector3(3.5, 0, 17.6), 0.55, 190, 1.0)
+	_nature("Rock_Medium_2", Vector3(-4.6, -0.1, 18.0), 0.3, 10, 1.0)
+	# The forest beyond: a ring of pines and bare trees for depth (deterministic)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2026
+	var x := -38.0
+	while x <= 38.0:
+		var z := -21.0
+		while z <= 36.0:
+			var px := x + rng.randf_range(-1.6, 1.6)
+			var pz := z + rng.randf_range(-1.6, 1.6)
+			var keep := rng.randf() < 0.62
+			var garden := absf(px) < 14.0 and pz > -12.0 and pz < 11.5
+			var lane := absf(px) < 8.5 and pz >= 11.5 and pz < 21.0
+			if keep and not garden and not lane:
+				if rng.randf() < 0.78:
+					_nature("Pine_%d" % rng.randi_range(1, 5), Vector3(px, 0, pz), rng.randf_range(0.75, 1.25), rng.randf() * 360.0, 0.85)
+				else:
+					_nature("DeadTree_%d" % rng.randi_range(1, 5), Vector3(px, 0, pz), rng.randf_range(0.4, 0.6), rng.randf() * 360.0, 0.6)
+			z += 4.6
+		x += 4.6
