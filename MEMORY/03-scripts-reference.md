@@ -39,7 +39,7 @@ Subclasses: arrival, scarf, drawing, door, suitcase, photo, fireplace `_memory.g
 | drawing_on_wall.gd | DrawingOnWall / Node3D | hidden until `pop_in()` | — | |
 | packable_item.gd | PackableItem / Interactable | bedroom belonging | chosen(item) | `memory_line, turn_by(amount, view_basis), fly_into(point)`; child `ItemModel` |
 | suitcase.gd | Suitcase / Interactable | closes when all packed | closed | node `PackPoint` |
-| photo_frame.gd | PhotoFrame / Interactable | face-down photo | chosen | `flip()`; node `FramePivot` |
+| photo_frame.gd | PhotoFrame / Interactable | face-down photo | chosen | `pick_up(hold)`, `hold_at(t)`, `put_down()`, `set_reflection(amount, time)`, `reflect_target`; nodes `FramePivot/{Glass,HandGripLeft,HandGripRight,FaceGlow}`, `ReflectionViewport/ReflectionCamera` (films the face from `reflection_depth` behind the glass; near plane cuts frame + hands) |
 | fireplace.gd | Fireplace / Interactable | cold hearth → `ignite()` | chosen | `get_fire_position()`; nodes `HearthFire`, `FireLight` |
 | memory_figure.gd | MemoryFigure / Node3D | frozen ghost person, pixelated face | — | `wake()`, exports `frozen_at, seat_point, vanish_after`; child **must** be named `CharacterModel` |
 
@@ -54,12 +54,20 @@ Nodes: `BodyPivot` (yaw; holds `CharacterModel` + `ScarfAnchor`), `PlayerCamera`
 **player_camera.gd** (`PlayerCamera`, Camera3D) — head bob (uneven steps), breathing, hand-held drift, start/stop spring
 sway, turn bank, noise shake (`add_shake`), glance, auto exposure. `cinematic=true` hands the camera to cutscenes;
 `look_target` (Vector3.INF = none; drift+shake still apply when set); `focus(dist)` DOF (≤0 off, needs
-CameraAttributesPractical); `default_fov` 74 (lens crops ~10 %); `comfort` + `apply_comfort()`. See 09-camera.md.
+CameraAttributesPractical); `gameplay_dof` (default on) keeps the title's blur in play: `_update_autofocus` rays layer 1
+straight ahead and eases `focus()` toward the hit (`autofocus_min/max/speed`, 0.6–14 m); `default_fov` 74 (lens crops ~10 %); `comfort` + `apply_comfort()`. See 09-camera.md.
 
 **settings/camera_comfort.gd** (`CameraComfort`, Resource) — 0..1 sliders `motion`, `shake`, `lens`, `grain` + `exposure_adapt`.
 Instance: `settings/camera_comfort.tres`, assigned to PlayerCamera.comfort and ScreenEffects.comfort.
 
 **player_animator.gd** — builds an AnimationLibrary "player" with `idle` (model's own clip) + `walk` (from `walk_animation` FBX).
+**player_hands.gd** (`PlayerHands`, node `Player/Hands`) — `hold(left_grip, right_grip, time)` / `release(time)`: tweens
+`influence` of `Skeleton3D/LeftArmHoldIK` + `RightArmHoldIK` (TwoBoneIK3D, elbows toward `BodyPivot/ElbowPoleLeft/Right`) and
+`Skeleton3D/HeadBow`. **head_bow.gd** (`HeadBow`, SkeletonModifier3D) — tips Neck+Head forward by `angle_degrees`.
+**player_tears.gd** (`PlayerTears`, `Skeleton3D/HeadAttachment/Tears`) — `start()`/`stop()`; `LeftEye/RightEye` markers ride
+the head bone, `LeftTear/RightTear` particles are top_level and copy only the marker position. PlayerBody exposes `hands`, `tears`.
+PlayerCamera `safe_position(from, to, radius)` — sphere-cast on World layer 1, used by cutscenes to keep the camera out of walls.
+
 **player_footsteps.gd** — step_snow / step_wood / floor_creak. **cold_breath.gd** — GPUParticles puff outside only; `breathing` flag.
 **player_scarf.gd** — reparents ScarfAnchor to a BoneAttachment on `mixamorig_Neck` (after one frame).
 
@@ -71,7 +79,7 @@ Instance: `settings/camera_comfort.tres`, assigned to PlayerCamera.comfort and S
 |---|---|---|
 | sound.gd | (autoload `Sound`) | `play(name, db, pitch_var)`, `play_at(name, pos, db, looped) -> AudioStreamPlayer3D`, `play_music(name or "", db, fade)`, `get_stream(name)`. Looks up `assets/audio/<name>.(mp3/ogg/wav)`; **missing file = silent no-op**. |
 | hud.gd | HUD | `connect_interaction(ray)`, `show_prompt(text)`, `set_progress(v)`, `say(text, dur, voice)`, `fade_to(alpha, t) -> Tween`, `letterbox(on, t)`, `set_crosshair_visible`, `show_end_title`. Field `screen_fade` (ColorRect) tweened directly by memories. |
-| screen_effects.gd | ScreenEffects | `world_saturation` (setter pushes global `world_sat`), `fade_saturation`, `tween_shader(param, v, t)`, `warm_flash`, `pulse`, `set_vignette`, `reset_vignette`, `apply_comfort()`; per-frame lens strength (on only for PlayerCamera, `cinematic_lens_scale` in cutscenes) and face pixelation. Material on `FilmLook` (camera_fx.gdshader). |
+| screen_effects.gd | ScreenEffects | `world_saturation` (setter pushes global `world_sat`), `fade_saturation`, `tween_shader(param, v, t)`, `warm_flash`, `pulse`, `set_vignette`, `reset_vignette`, `apply_comfort()`; per-frame lens strength (on only for PlayerCamera, `cinematic_lens_scale` in cutscenes) and face pixelation (`pixelate_faces` turns it off). Material on `FilmLook` (camera_fx.gdshader). |
 | title_sequence.gd | TitleSequence | `play(game)`, `skip(game)`, signal `finished`. Spawns one Label3D per letter at runtime (intentional: per-letter animation). Uses SystemFont fallbacks (Ink Free, Cormorant Garamond...). |
 | ambience_mixer.gd | — | crossfades WindLoop/HouseToneLoop by `player.is_outside()`. |
 | outdoor_culling.gd | — | toggles group `outdoor_only`. |
@@ -89,7 +97,7 @@ material with memory_prop / foliage_snow shader, copying albedo/normal textures.
 
 ## Utils & dev
 **utils/model_utils.gd** (`ModelUtils`, static) — `find_skeleton`, `find_animation_player`, `fix_cull` (extra_cull_margin 16384), `measure(node)` AABB.
-**dev/dev_tests.gd** — see 06-recipes "Run the automated tests". Hard-coded test positions per memory in `_story_test`.
+**dev/dev_tests.gd** — see 06-recipes "Run the automated tests". Hard-coded test positions per memory in `_story_test`. `--phototest` (windowed) fast-forwards to memory 5 and saves `shot_NN.png` + `glass_NN.png` (the reflection) every second to `user://phototest/`.
 
 ## Tools (`tools/`, run headless with `-s`, never in-game)
 | Tool | Purpose |

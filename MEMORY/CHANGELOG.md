@@ -2,7 +2,19 @@
 
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
+## 2026-11-27
+- **Photo memory rework** — picks the photo up in both hands (TwoBoneIK3D arms + HeadBow), camera goes over the shoulder
+  (half face + photo), slow push-in while the glass becomes a mirror showing the face (SubViewport ReflectionCamera +
+  photo_glass shader), tears, letter, fade back to first person. Camera kept out of walls with `PlayerCamera.safe_position`
+  and picks the roomier shoulder. Face mosaics off during it. New `--phototest`. Known issue: tear spawn points not yet on
+  the eyes. (photo_memory.gd, photo_frame.gd/.tscn, photo_glass.gdshader, player.tscn, player_body.gd, player_hands.gd,
+  head_bow.gd, player_tears.gd, player_camera.gd, screen_effects.gd, dev_tests.gd, MEMORY 03/04/05/07)
+
 ## 2026-11-26
+- **Title blur kept in gameplay** — the cinematic depth of field no longer switches off when the title hands over
+  control: `PlayerCamera.gameplay_dof` autofocuses on the World surface in view (same `dof_blur_amount` 0.08, starts
+  at the title's 14 m), and `TitleSequence._hand_over_control` only calls `focus(-1)` if it's off. Owner asked for the
+  game to look like the opening. (player_camera.gd, title_sequence.gd, MEMORY 03)
 - **QA fixes (IdiotCheckInQualityAssessment.md F1–F5, F7)** — One-way front door: `OutsideBlocker` StaticBody switched on
   when the close starts, so turning back reopens the door but can't take you outside (F1); prompt "locked" while it
   closes (F2); dead MEMORY_OWNED path removed from level_builder (`_report_placed`), stale MEMORY lines fixed (F3);

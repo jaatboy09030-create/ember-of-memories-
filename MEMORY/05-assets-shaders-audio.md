@@ -49,6 +49,7 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 | memory_prop.gdshader | spatial | SnowyProp | reads **global** `world_sat`; `snow` on up-faces |
 | foliage_snow.gdshader | spatial | SnowyFoliage | global `world_sat`, alpha-cut, `sway`, `snow` |
 | memory_surface.gdshader | spatial | **nothing** (level materials are StandardMaterial3D) | orphan — triplanar surface |
+| photo_glass.gdshader | spatial, unshaded, transparent | PhotoFrame `FramePivot/Glass` | `reflect` 0..1 shows `reflection_tex` mirrored |
 | face_blur.gdshader | spatial | **nothing** (faces now pixelated in camera_fx) | orphan |
 
 Global shader parameter **`world_sat`** (float, default 0.3) is declared in `project.godot [shader_globals]` and set only by

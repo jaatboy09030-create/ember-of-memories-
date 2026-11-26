@@ -27,6 +27,9 @@ extends CanvasLayer
 @export var face_blur_distance := 14.0
 ## Shared strength sliders (lens / grain). Empty = everything at full.
 @export var comfort: CameraComfort
+## Off = no face mosaics (memory 5 turns it off: the mosaic of a figure behind the photo
+## would land on the glass, which has no collision to hide it).
+@export var pixelate_faces := true
 
 @export_group("Lens")
 ## Barrel bend (k1). 0 = flat. ~0.1 = gentle worn-camera curve; 0.3+ = fisheye.
@@ -134,7 +137,7 @@ func _update_lens(cam: Camera3D, delta: float) -> void:
 ## mosaics stay on the faces with the lens on.
 func _update_faces(cam: Camera3D) -> void:
 	var faces: Array = []
-	for f in get_tree().get_nodes_in_group("memory_face"):
+	for f in (get_tree().get_nodes_in_group("memory_face") if pixelate_faces else []):
 		var face := f as Node3D
 		if not face.is_visible_in_tree():
 			continue

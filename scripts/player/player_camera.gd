@@ -55,6 +55,18 @@ extends Camera3D
 ## How fast it adapts (lower = slower, more like a cheap camera).
 @export var exposure_adapt_speed := 0.8
 
+@export_group("Depth of field")
+## Keep the opening's cinematic blur during play: the camera focuses on whatever is in the
+## middle of the view (like a lens pulling focus) and blurs what is much nearer or farther,
+## with the same blur amount as the title. Off = sharp everywhere outside cutscenes.
+@export var gameplay_dof := true
+## Farthest autofocus distance (metres). The title hands over focused at 14 m.
+@export var autofocus_max := 14.0
+## Closest autofocus distance (metres).
+@export var autofocus_min := 0.6
+## How fast focus follows a new distance (higher = snappier focus pulls).
+@export var autofocus_speed := 3.0
+
 ## true = a cutscene drives the camera (position/rotation are left alone by this script).
 var cinematic := false
 ## While cinematic, look at this point every frame (Vector3.INF = don't).
@@ -73,6 +85,7 @@ var _has_last_yaw := false
 var _sway := Vector2.ZERO  # x = pitch tilt, y = roll tilt (radians), spring position
 var _sway_velocity := Vector2.ZERO
 var _turn_bank := 0.0
+var _focus_dist := 14.0
 
 @onready var player: PlayerBody = get_parent()
 
@@ -115,6 +128,22 @@ func _physics_process(delta: float) -> void:
 		* (1.0 + (step_asymmetry if heavy_foot else 0.0))
 	bob += sin(_time * 1.3) * breathing_sway - sin(_settle * PI) * 0.02
 	_follow_head(bob * _motion())
+	_update_autofocus(delta)
+
+
+## Gameplay depth of field: focus smoothly on the solid surface in the middle of the view.
+## Only World geometry counts (layer 1), so held items and interact areas don't steal focus.
+func _update_autofocus(delta: float) -> void:
+	if not gameplay_dof:
+		return
+	var from := global_position
+	var query := PhysicsRayQueryParameters3D.create(from, from - global_basis.z * autofocus_max, 1, [player.get_rid()])
+	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	var target := autofocus_max
+	if not hit.is_empty():
+		target = clampf(from.distance_to(hit.position), autofocus_min, autofocus_max)
+	_focus_dist = lerpf(_focus_dist, target, clampf(autofocus_speed * delta, 0.0, 1.0))
+	focus(_focus_dist)
 
 
 ## Start/stop sway (a spring that lags behind changes of speed) and the bank into turns.
@@ -205,6 +234,25 @@ func reveal_face() -> void:
 ## you never look down into your own hair, shoulders or the inside of your head.
 func hide_face() -> void:
 	cull_mask = PlayerBody.CAMERA_MASK_WITHOUT_BODY
+
+
+## Where the camera can go on the way from `from` to `to` without entering walls or
+## furniture (World layer 1): a small sphere is swept along the line and stopped short of
+## the first hit. Cutscenes use it so the camera never clips through a wall.
+func safe_position(from: Vector3, to: Vector3, radius := 0.14) -> Vector3:
+	var shape := SphereShape3D.new()
+	shape.radius = radius
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = shape
+	q.transform = Transform3D(Basis.IDENTITY, from)
+	q.motion = to - from
+	q.collision_mask = 1
+	q.exclude = [player.get_rid()]
+	var space := get_world_3d().direct_space_state
+	if not space.intersect_shape(q, 1).is_empty():
+		return from  # already touching something at the start: stay put
+	var safe := space.cast_motion(q)[0]
+	return from.lerp(to, safe)
 
 
 ## Depth of field: keep things `dist` metres away sharp. dist <= 0 turns it off.

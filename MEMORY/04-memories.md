@@ -49,10 +49,12 @@ Caption = `item.memory_line`, prompt "pack it   hold R / Y to turn it". Next int
 Note: the suitcase belongs to this scene only; `level_builder.gd` never places one.
 
 ### 5 Photo — `photo_memory.gd`
-Node: `PhotoFrame`, `EmberRestPoint`. The only scene where the camera leaves the body: lean in → `photo.flip()` →
-swing round the side to behind the shoulder (`_pull_back`, keeps `head_clearance` from the head; the body is shown only once
-the camera is clear) → `player.reveal_face()` → orbit to face → letter voice `v_letter` → `cam.hide_face()` (body hidden again).
-Music fades to silence. Disables `PlayerCamera/ColdBreath.breathing` via hard-coded node path.
+Node: `PhotoFrame`, `EmberRestPoint`. The only scene where the camera leaves the body: `photo.pick_up(hold)` lifts it into
+both hands (`player.hands.hold(grip_left, grip_right)`, head bows) while the camera swings round the side of the head
+(`_pull_back`, keeps `head_clearance`; body shown once clear) to over the shoulder (`shoulder_start`, side with more room via
+`_pick_shoulder`) → slow push-in to `shoulder_end` while `photo.set_reflection()` turns the glass into a mirror of the face and
+`player.tears.start()` → letter `v_letter` → fade to black, photo put back face up, first person. Every camera position goes
+through `PlayerCamera.safe_position()`. Face mosaics off during the scene. Disables `PlayerCamera/ColdBreath.breathing`.
 
 ### 6 Fireplace — `fireplace_memory.gd`
 Node: `Fireplace`, `EmberRestPoint`. `chosen` → ember flies to hearth, `fireplace.ignite()`, `theme_full` music,

@@ -88,6 +88,15 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **Unused content** (safe to ignore, ask before deleting): `assets/characters/*.glb`, Medieval Village MegaKit,
   `shaders/memory_surface.gdshader`, `shaders/face_blur.gdshader`.
 
+- **New `class_name` "not found in current scope"** → the global class cache is stale; run
+  `Godot --headless --path . --import` once after adding scripts with a new class_name.
+- **Particles under a BoneAttachment3D fall sideways** → Mixamo head-bone axes are tilted/scaled, and particle direction/gravity
+  are emitter-local. Make the particles `top_level` and copy only the position from a marker (player_tears.gd).
+- **Face mosaic drawn on the photo glass** → ScreenEffects occludes faces with a physics ray; the glass has no collision. Turn
+  `pixelate_faces` off for such shots.
+- **Tears on the face still off (open)** → in `--phototest` the tear drops spawn beside the face, not on the eyelids. The
+  `LeftEye/RightEye` marker positions need re-placing (check glass_NN.png).
+
 ## Design learnings (owner preferences discovered so far)
 - Original monolithic `main.gd` (3,200 lines, everything built at runtime) was rejected → everything must be real scenes
   with one script per node (see 08). Don't regress to runtime-built node trees; the only accepted runtime creation is

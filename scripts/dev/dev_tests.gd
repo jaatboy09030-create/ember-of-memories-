@@ -5,9 +5,12 @@ extends Node
 ##   Godot --path . -- --walktest    walks from the path through the front door (add --gate
 ##                                   to start outside the gate)
 ##   Godot --path . -- --doortest    opens/closes the front door and checks it stays put
+##   Godot --path . -- --phototest   skips to memory 5, plays the photo cutscene and saves a
+##                                   screenshot every second to user://phototest/ (needs a
+##                                   window: no --headless)
 ## Add --headless before --path to run without a window. Lines starting with TEST are results.
 
-const FLAGS := ["--storytest", "--walktest", "--doortest"]
+const FLAGS := ["--storytest", "--walktest", "--doortest", "--phototest"]
 
 var game: GameDirector
 
@@ -30,6 +33,8 @@ func run(game_director: GameDirector) -> void:
 		await _walk_test("--gate" in args)
 	elif "--doortest" in args:
 		await _door_test()
+	elif "--phototest" in args:
+		await _photo_test()
 	get_tree().quit()
 
 
@@ -86,6 +91,36 @@ func _story_test() -> void:
 	print("TEST doors open: ", open)
 	print("TEST saturation at end: ", snappedf(game.screen_effects.world_saturation, 0.01))
 	print("TEST story finished")
+
+
+## Fast-forward to the photo memory, play its cutscene for real, save a frame every second.
+func _photo_test() -> void:
+	game.start_story()
+	for m in game.memories:
+		var memory: Memory = m
+		if String(memory.name) == "PhotoMemory":
+			await _wait(2.0)
+			await _check_ray(Vector3(-5.0, 0.1, -8.1), Vector3(-3.9, 1.17, -8.1), "PhotoFrame")
+			var done := [false]
+			memory.completed.connect(func(): done[0] = true, CONNECT_ONE_SHOT)
+			memory.debug_complete()
+			DirAccess.make_dir_recursive_absolute("user://phototest")
+			var t := 0
+			while not done[0] and t < 45:
+				await _wait(1.0)
+				t += 1
+				get_viewport().get_texture().get_image().save_png("user://phototest/shot_%02d.png" % t)
+				var photo: PhotoFrame = memory.get_node("PhotoFrame")
+				photo.reflection_viewport.get_texture().get_image().save_png("user://phototest/glass_%02d.png" % t)
+			print("TEST photo cutscene ", t, "s  ", "PASS" if done[0] else "FAIL (timeout)")
+			print("TEST shots in ", ProjectSettings.globalize_path("user://phototest"))
+			return
+		var done := [false]
+		memory.completed.connect(func(): done[0] = true, CONNECT_ONE_SHOT)
+		await _wait(0.5)
+		memory.debug_complete()
+		while not done[0]:
+			await get_tree().process_frame
 
 
 func _walk_test(from_gate: bool) -> void:
