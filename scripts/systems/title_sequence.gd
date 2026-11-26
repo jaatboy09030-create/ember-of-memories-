@@ -185,7 +185,7 @@ func continue_to_game() -> void:
 	tw.parallel().tween_method(func(_t: float): cam.look_target = cam.look_target.lerp(ember.global_position, 0.12), 0.0, 1.0, 5.2)
 	tw.tween_property(cam, "global_position", eye, 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(cam, "look_target", eye + Vector3(0, -0.1, -5.0), 2.4).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tw.parallel().tween_property(cam, "fov", 70.0, 2.4)
+	tw.parallel().tween_property(cam, "fov", cam.default_fov, 2.4)
 	tw.tween_callback(_hand_over_control)
 
 

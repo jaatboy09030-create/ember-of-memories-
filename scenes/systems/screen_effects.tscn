@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/systems/screen_effects.gd" id="1_fx"]
 [ext_resource type="Shader" path="res://shaders/camera_fx.gdshader" id="2_shader"]
+[ext_resource type="Resource" path="res://settings/camera_comfort.tres" id="3_comfort"]
 
 [sub_resource type="ShaderMaterial" id="FilmLookMaterial"]
 shader = ExtResource("2_shader")
@@ -15,6 +16,7 @@ shader_parameter/world_sat = 1.0
 [node name="ScreenEffects" type="CanvasLayer"]
 layer = 0
 script = ExtResource("1_fx")
+comfort = ExtResource("3_comfort")
 
 [node name="FilmLook" type="ColorRect" parent="."]
 material = SubResource("FilmLookMaterial")

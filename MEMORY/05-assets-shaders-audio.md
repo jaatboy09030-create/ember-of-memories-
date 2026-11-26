@@ -41,7 +41,7 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 ## Shaders (`shaders/`)
 | Shader | Type | Used by | Notes |
 |---|---|---|---|
-| camera_fx.gdshader | canvas_item | ScreenEffects `FilmLook` | uniforms: vignette, grain, aberration, warmth, world_sat, faces[4], face_count |
+| camera_fx.gdshader | canvas_item | ScreenEffects `FilmLook` | uniforms: vignette, grain, aberration, warmth, world_sat, faces[4], face_count, lens_k1, lens_k2, lens_fringe, shadow_noise. Lens bends first (crop-to-fill), faces tested after in flat pixels |
 | interact_highlight.gdshader | spatial overlay | Interactable, PuzzlePiece | additive rim, `highlight_color`, `strength` |
 | ghost.gdshader | spatial | MemoryFigure | `albedo_tex`, `has_tex`, `tint`, `strength` |
 | scarf_reveal.gdshader | spatial | ScarfCoatRack | hides below world-height `cut_y` |
