@@ -41,13 +41,15 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 ## Shaders (`shaders/`)
 | Shader | Type | Used by | Notes |
 |---|---|---|---|
-| camera_fx.gdshader | canvas_item | ScreenEffects `FilmLook` | uniforms: vignette, grain, aberration, warmth, world_sat, faces[4], face_count, lens_k1, lens_k2, lens_fringe, shadow_noise. Lens bends first (crop-to-fill), faces tested after in flat pixels |
+| camera_fx.gdshader | canvas_item | ScreenEffects `FilmLook` | uniforms: vignette, grain, aberration, warmth, faces[4], face_count, lens_k1, lens_k2, lens_fringe, shadow_noise. Lens bends first (crop-to-fill), faces tested after in flat pixels |
+| memory_grade.gdshader | canvas_item | ScreenEffects `MemoryGrade` (before `GradeCopy` BackBufferCopy + `FilmLook`) | frozen look: `world_sat`, `shadow_tint`, `highlight_tint`, `frozen_contrast`, `frost`, `frost_breath`, `ember` (vec4 px/radius/strength), `ripple`, `ripple_hold`, `ripple_color`. camera_fx no longer greys the image |
 | interact_highlight.gdshader | spatial overlay | Interactable, PuzzlePiece | additive rim, `highlight_color`, `strength` |
 | ghost.gdshader | spatial | MemoryFigure | `albedo_tex`, `has_tex`, `tint`, `strength` |
 | scarf_reveal.gdshader | spatial | ScarfCoatRack | hides below world-height `cut_y` |
 | memory_prop.gdshader | spatial | SnowyProp | reads **global** `world_sat`; `snow` on up-faces |
 | foliage_snow.gdshader | spatial | SnowyFoliage | global `world_sat`, alpha-cut, `sway`, `snow` |
 | memory_surface.gdshader | spatial | **nothing** (level materials are StandardMaterial3D) | orphan — triplanar surface |
+| photo_glass.gdshader | spatial, unshaded, transparent | PhotoFrame `FramePivot/Glass` | `reflect` 0..1 shows `reflection_tex` mirrored |
 | face_blur.gdshader | spatial | **nothing** (faces now pixelated in camera_fx) | orphan |
 
 Global shader parameter **`world_sat`** (float, default 0.3) is declared in `project.godot [shader_globals]` and set only by
@@ -72,3 +74,9 @@ Global shader parameter **`world_sat`** (float, default 0.3) is declared in `pro
 Wall height 2.8 m. house_level.tscn groups: `Exterior` (porch, fence, nature, snow drifts), `House` (walls, roof, `Doors/`, windows),
 `Rooms/<Room>` (Room script, RoomFillLight, lining, `Props`). Doors are instances of `interior_door.tscn`, windows of `house_window.tscn`.
 Builder RNG seed 2026 → deterministic forest/props.
+Interior (kept minimal on purpose): walls = textured `painted_plaster_wall` (matte, deeper normal) + skirting only; no beams,
+wainscot, chair rails, cornices or clutter props. Only story furniture, at fixed positions listed in `_place_props` (no auto
+"settle" any more). Lighting: each room has ONE light, `RoomFillLight`, shadowed, under a plain pendant (`CeilingLamp`:
+Shade/Bulb/Cord, no shadows); windows have no lights (their glass is opaque, so moonbeams through them were fake);
+`GroundMist` covers only z > 0.5 (outside) and is in `outdoor_only`. Environment: no SDFGI (it leaked through the 0.2 m walls),
+lighter SSAO. Doors use object-local triplanar wood (`materials/door_wood.tres`, `door_panel.tres`) so the grain moves with the leaf.

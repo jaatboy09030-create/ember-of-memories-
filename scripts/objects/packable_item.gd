@@ -1,10 +1,10 @@
 class_name PackableItem
 extends Interactable
 ## PACKABLE ITEM (memory 4, "pack the suitcase").
-## A belonging lying in the bedroom. Using it lifts it in front of the player's eyes, it
-## turns slowly while its memory line is shown, and "interact" again packs it into the
-## suitcase. SuitcaseMemory does the inspecting (it owns the camera); this script only
-## holds the item's data and flies it into the suitcase.
+## A belonging lying in the bedroom. Using it lifts it in front of the player's eyes while
+## its memory line is shown (the player can look around; holding "rotate_item" turns the
+## item through turn_by()), and "interact" again packs it into the suitcase. SuitcaseMemory
+## does the holding; this script only holds the item's data, turns it and flies it away.
 ##
 ## How to change it: memory_line = the caption shown while inspecting it.
 ## Swap the model by replacing the ItemModel child.
@@ -28,9 +28,11 @@ func on_interact() -> void:
 	chosen.emit(self)
 
 
-## Turns the item slowly while it is being looked at.
-func spin(delta: float) -> void:
-	rotate_y(delta * 0.7)
+## Turns the held item the way the mouse/stick moves: amount.x around the view's up axis,
+## amount.y around the view's right axis (radians). view = the camera's global basis.
+func turn_by(amount: Vector2, view: Basis) -> void:
+	global_rotate(view.y.normalized(), amount.x)
+	global_rotate(view.x.normalized(), amount.y)
 
 
 func fly_into(suitcase_point: Vector3) -> void:

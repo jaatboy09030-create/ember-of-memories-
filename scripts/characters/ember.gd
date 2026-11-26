@@ -24,6 +24,10 @@ var anchor := Vector3.INF
 var _time := 0.0
 
 
+func _ready() -> void:
+	add_to_group("colour_source")  # MemoryGrade brings colour back in a halo around the ember
+
+
 func _process(delta: float) -> void:
 	_time += delta
 	var bob := Vector3(0, sin(_time * 2.0) * bob_amount, 0)

@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/systems/screen_effects.gd" id="1_fx"]
 [ext_resource type="Shader" path="res://shaders/camera_fx.gdshader" id="2_shader"]
 [ext_resource type="Resource" path="res://settings/camera_comfort.tres" id="3_comfort"]
+[ext_resource type="Shader" path="res://shaders/memory_grade.gdshader" id="4_grade_shader"]
+[ext_resource type="Script" path="res://scripts/systems/memory_grade.gd" id="5_grade"]
 
 [sub_resource type="ShaderMaterial" id="FilmLookMaterial"]
 shader = ExtResource("2_shader")
@@ -11,12 +13,28 @@ shader_parameter/grain = 0.03
 shader_parameter/aberration = 0.0012
 shader_parameter/warmth = -0.35
 shader_parameter/face_count = 0
-shader_parameter/world_sat = 1.0
+
+[sub_resource type="ShaderMaterial" id="MemoryGradeMaterial"]
+shader = ExtResource("4_grade_shader")
+shader_parameter/world_sat = 0.3
 
 [node name="ScreenEffects" type="CanvasLayer"]
 layer = 0
 script = ExtResource("1_fx")
 comfort = ExtResource("3_comfort")
+
+[node name="MemoryGrade" type="ColorRect" parent="."]
+material = SubResource("MemoryGradeMaterial")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_grade")
+
+[node name="GradeCopy" type="BackBufferCopy" parent="."]
+copy_mode = 2
 
 [node name="FilmLook" type="ColorRect" parent="."]
 material = SubResource("FilmLookMaterial")

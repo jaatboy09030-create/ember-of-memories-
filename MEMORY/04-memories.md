@@ -42,20 +42,26 @@ Struggle drives HUD progress from `study_door.push_amount`. `slammed` → slam s
 
 ### 4 Suitcase — `suitcase_memory.gd`
 Nodes: `Suitcase` (+`PackPoint`), `PackableItems/{AlarmClock, SchoolNotes, Gamepad, Postcards}` each with child `ItemModel`, `EmberRestPoint`.
-Item `chosen` → lift in front of camera (tween), caption = `item.memory_line`, prompt "pack it". Next interact (polled in
-`_process`, not via raycast) packs it. Saturation = `start_saturation(0.3) * left/total`. All packed → suitcase enabled →
+Item `chosen` → `player.holding_item = true`, item rises into view and then follows the camera every frame (`hold_offset`);
+the player can look around freely; holding `rotate_item` (R / Y) turns the item (`player.item_turn` → `PackableItem.turn_by`).
+Caption = `item.memory_line`, prompt "pack it   hold R / Y to turn it". Next interact (polled in `_process`, not via raycast) packs it. Saturation = `start_saturation(0.3) * left/total`. All packed → suitcase enabled →
 `closed` → fade to black, "I left that night...", `finish()`.
-Note: `vintage_suitcase` is listed as MEMORY_OWNED in level_builder (removed from the level; this scene owns it).
+Note: the suitcase belongs to this scene only; `level_builder.gd` never places one.
 
 ### 5 Photo — `photo_memory.gd`
-Node: `PhotoFrame`, `EmberRestPoint`. The only scene where the camera leaves the body: lean in → `photo.flip()` →
-pull back over shoulder → `player.reveal_face()` (camera now renders render-layer 2) → orbit to face → letter voice `v_letter`.
-Music fades to silence. Disables `PlayerCamera/ColdBreath.breathing` via hard-coded node path.
+Node: `PhotoFrame`, `EmberRestPoint`. The only scene where the camera leaves the body: `photo.pick_up(hold)` lifts it into
+both hands (`player.hands.hold(grip_left, grip_right)`, head bows) while the camera swings round the side of the head
+(`_pull_back`, keeps `head_clearance`; body shown once clear) to over the shoulder (`shoulder_start`, side with more room via
+`_pick_shoulder`) → slow push-in to `shoulder_end` while `photo.set_reflection()` turns the glass into a mirror of the face → letter `v_letter` → fade to black, photo put back face up, first person. Every camera position goes
+through `PlayerCamera.safe_position()`. Face mosaics off during the scene. Disables `PlayerCamera/ColdBreath.breathing`.
 
 ### 6 Fireplace — `fireplace_memory.gd`
 Node: `Fireplace`, `EmberRestPoint`. `chosen` → ember flies to hearth, `fireplace.ignite()`, `theme_full` music,
 saturation→1, ambient light warm, shader `warmth` 0.8, every `Room.warm_up(1.8)`, crane shot (positions are exported
 world coordinates), after `end_delay` 10.5 s fade to black → `hud.show_end_title()` → `finish()`.
+
+Seated ghosts: `GrandmaKnitting/SeatPoint` z = 0.08 and `BoyAtDesk/SeatPoint` z = 0.08 (local, forward) so their
+shins clear the front of the armchair / school chair. Re-check by eye if a chair or figure model changes.
 
 ## Memory figures (ghost people)
 Instance `scenes/objects/memory_figure.tscn`, add a model as child named **`CharacterModel`** (Mixamo FBX with one animation,

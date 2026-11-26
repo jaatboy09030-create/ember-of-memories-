@@ -12,7 +12,7 @@ Follow these step by step. If you do a new kind of task twice, add a recipe here
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -- --walktest --gate
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -- --doortest
 ```
-Read the `TEST ...` lines; every one must say PASS. The `--` separates engine args from user args
+Read the `TEST ...` lines; every one must say PASS (doortest also covers locked-door rattle and the one-way front door). The `--` separates engine args from user args
 (`OS.get_cmdline_user_args`). Storytest has a 45 s timeout per memory.
 If you move an interactable that storytest ray-checks (ScarfCoatRack, StudyDoor, PhotoFrame, Fireplace),
 **update the stand/target positions in `scripts/dev/dev_tests.gd::_story_test`**.
@@ -66,7 +66,8 @@ Poly Haven: download glTF 1k into `assets/polyhaven/<id>/`. Sketchfab: put glb i
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -s res://tools/level_builder.gd
 ```
 Throws away every hand edit in `house_level.tscn` and rewrites `materials/level/`. Only do it if asked; prefer editing the scene.
-Afterwards re-check the memory scenes still line up (it prints positions of MEMORY_OWNED props such as the suitcase) and run R1.
+Afterwards re-check the memory scenes still line up (it prints `PLACED` positions of the furniture memories use: desk,
+chairs, dresser, nightstands, bedroom table), run R12 (overlap check) and R1.
 
 ## R9. Add an input action
 Add it in `project.godot [input]` (or Project Settings → Input Map) with **both** a keyboard/mouse and a gamepad event.
@@ -78,6 +79,14 @@ Edit the path in `tools/debug_model.gd`, then:
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -s res://tools/debug_model.gd
 ```
 Useful to find `scarf_mesh_path`-style NodePaths inside glb/fbx imports.
+
+## R12. Check that nothing passes through anything
+```powershell
+& "C:\Program Files\Godot\Godot.exe" --headless --path . -s res://tools/overlap_check.gd
+```
+Last line must be `overlap_check: 0 problem(s)`. `known` lines (the study door set into the hallway wall) are fine. Run it
+after moving props, regenerating the level (R8) or moving memory objects. Ghost figures are not checked: look at seated
+figures from the side in the editor.
 
 ## R11. Finish any change
 Update the relevant `MEMORY/*.md`, add a dated entry to `MEMORY/CHANGELOG.md`, run R1, then commit.

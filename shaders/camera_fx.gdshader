@@ -12,7 +12,6 @@ uniform float warmth = 0.0; // -1 cold .. 1 warm tint
 // Given in the FLAT (unbent) screen pixels, as Camera3D.unproject_position returns them.
 uniform vec4 faces[4];
 uniform int face_count = 0;
-uniform float world_sat = 1.0;
 // Lens bend (Brown-Conrady radial k1, k2). 0 = flat image. The bent image is scaled so the
 // corners stay filled: no black or smeared edges, at the cost of a slight zoom.
 uniform float lens_k1 : hint_range(0.0, 0.5) = 0.0;
@@ -52,10 +51,8 @@ void fragment() {
 	float g = texture(screen_tex, uv).g;
 	float b = texture(screen_tex, clamp(uv - shift, vec2(0.0), vec2(1.0))).b;
 	vec3 c = vec3(r, g, b);
-	// frozen memory: grey, except bright light sources keep their warmth
-	float lum = dot(c, vec3(0.299, 0.587, 0.114));
-	float keep = max(world_sat, smoothstep(0.55, 1.1, lum));
-	c = mix(vec3(lum), c, clamp(keep, 0.0, 1.0));
+	// (The frozen-memory colour grade runs before this pass: ScreenEffects > MemoryGrade,
+	//  shaders/memory_grade.gdshader.)
 	float v = smoothstep(0.9, 0.25, length(d * vec2(1.0, 0.8)));
 	c *= mix(1.0 - vignette, 1.0, v);
 	c *= mix(vec3(1.0), warmth > 0.0 ? vec3(1.06, 1.0, 0.9) : vec3(0.92, 0.97, 1.06), abs(warmth));

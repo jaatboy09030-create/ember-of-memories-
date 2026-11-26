@@ -56,8 +56,26 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **Windowed `--storytest` ray check FAILs at random (PhotoFrame / Fireplace)** → the window captures the real mouse, so any
   mouse/gamepad input changes `target_yaw`/`pitch` during the 0.3 s check → use headless runs for PASS/FAIL; use a windowed
   run only to catch `SHADER ERROR` (headless uses a dummy renderer and never compiles shaders).
-- **`--walktest --gate` prints `FAIL (stuck)` at z=3.0** → pre-existing (fails on clean `f0ea80f` too): the test walks 7 s
-  (420 physics frames) at 1.75 m/s = 12.25 m, but gate z=15 to inside z<-1 is 16 m. Not stuck — out of time. Fix = longer loop.
+- **`--walktest --gate` printed `FAIL (stuck)` at z=3.0** → the test walked 7 s (12.25 m) but gate→inside is 16 m. Fixed:
+  the gate run now walks 600 physics frames (10 s).
+
+- **White/grey transparent blob in the middle of rooms** → the exterior `GroundMist` FogVolume reached into the house and
+  the room lights lit it up (plus window spotlights with volumetric fog energy) → keep fog volumes outside (z > 0.5) and in
+  `outdoor_only`; interior lights use `light_volumetric_fog_energy = 0`.
+- **Walls look plastic / "too smooth"** → `beige_wall_001_diff.jpg` is a flat single colour → use `painted_plaster_wall`,
+  low `metallic_specular`, normal ~1.5.
+- **Texture slides across a door while it swings** → world-triplanar material on a moving mesh → use object triplanar.
+- **Lighting looks random** → several unrelated lights per room (centre fill + fake window moonbeams) with no shadows, plus
+  SDFGI leaking through thin walls → one shadowed light per room at a visible lamp.
+- **Props buried in furniture after regenerating** → the old builder "settle" moved furniture but not the things on it →
+  props are now placed at fixed positions; verify with R12.
+- **Second camera shows the inside of the player's head** → every Camera3D other than PlayerCamera needs
+  `cull_mask = PlayerBody.CAMERA_MASK_WITHOUT_BODY` (set it in code, don't type 1048573); and call
+  `PlayerCamera.hide_face()` after any `reveal_face()` cutscene.
+- **A door that must never let the player back out** → reopening it when someone stands in the doorway (needed so the
+  leaf never closes onto them) also lets them walk out. `InteriorDoor` switches on `OutsideBlocker` (StaticBody just
+  outside the doorway) the moment the one-way close starts; covered by `--doortest`.
+- **Timing-based dev tests flaky right after load** → headless first frames have huge deltas; wait ~1 s before sampling tweens.
 
 ## Repo / tooling
 - **Push rejected: file > 100 MB** → big Poly Haven trees are gitignored (`pine_tree_01`, `pine_sapling_medium`). Check sizes before adding assets.
@@ -69,6 +87,18 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **Godot not on PATH** — use `C:\Program Files\Godot\Godot.exe`.
 - **Unused content** (safe to ignore, ask before deleting): `assets/characters/*.glb`, Medieval Village MegaKit,
   `shaders/memory_surface.gdshader`, `shaders/face_blur.gdshader`.
+
+- **New `class_name` "not found in current scope"** → the global class cache is stale; run
+  `Godot --headless --path . --import` once after adding scripts with a new class_name.
+- **Particles under a BoneAttachment3D fall sideways** → Mixamo head-bone axes are tilted/scaled, and particle direction/gravity
+  are emitter-local. Make the particles `top_level` and copy only the position from a marker.
+- **Face mosaic drawn on the photo glass** → ScreenEffects occludes faces with a physics ray; the glass has no collision. Turn
+  `pixelate_faces` off for such shots.
+- **Camera "glitches / won't turn" right after an interaction** → a `glance()` tween was pulling the view toward the object
+  while the mouse moved (and pickups started overlapping glances). Glances now cancel on look input; DrawingMemory no longer
+  glances at pieces you're already looking at.
+- **Depth-of-field pops when focus moves near↔far** → `dof_blur_near_enabled` was switched on/off at 1 m and focus was eased
+  linearly with one ray. Keep near blur always on, scale every value with distance, ease in log space, median of 5 rays.
 
 ## Design learnings (owner preferences discovered so far)
 - Original monolithic `main.gd` (3,200 lines, everything built at runtime) was rejected → everything must be real scenes

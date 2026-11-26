@@ -21,4 +21,4 @@ func _ready() -> void:
 func warm_up(energy := 1.6) -> void:
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(fill_light, "light_color", warm_color, warm_time)
-	tw.tween_property(fill_light, "light_energy", energy * 0.6, warm_time)
+	tw.tween_property(fill_light, "light_energy", energy * 0.9, warm_time)

@@ -8,11 +8,12 @@
 resource_name = "wallpaper_kitchen"
 albedo_color = Color(0.95, 0.97, 0.88, 1)
 albedo_texture = ExtResource("1_u6mne")
+metallic_specular = 0.25
 roughness_texture = ExtResource("3_pxfc1")
 normal_enabled = true
-normal_scale = 0.9
+normal_scale = 1.5
 normal_texture = ExtResource("2_feshl")
-uv1_scale = Vector3(0.45, 0.45, 0.45)
+uv1_scale = Vector3(0.6, 0.6, 0.6)
 uv1_triplanar = true
 uv1_triplanar_sharpness = 4.0
 uv1_world_triplanar = true

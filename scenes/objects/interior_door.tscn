@@ -31,6 +31,9 @@ size = Vector3(1.58, 0.1, 0.28)
 [sub_resource type="BoxShape3D" id="ClearanceBox"]
 size = Vector3(1.3, 2, 1.1)
 
+[sub_resource type="BoxShape3D" id="OutsideBlockerBox"]
+size = Vector3(1.6, 2.2, 0.1)
+
 [node name="InteriorDoor" type="Area3D"]
 script = ExtResource("1_door")
 
@@ -106,3 +109,11 @@ monitorable = false
 [node name="ClearanceShape" type="CollisionShape3D" parent="DoorwayClearance"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("ClearanceBox")
+
+[node name="OutsideBlocker" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.7)
+
+[node name="BlockerShape" type="CollisionShape3D" parent="OutsideBlocker"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+shape = SubResource("OutsideBlockerBox")
+disabled = true
