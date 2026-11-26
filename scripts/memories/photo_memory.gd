@@ -64,8 +64,8 @@ func _play_reveal() -> void:
 	# 4. Silence. Let it land.
 	tw.tween_interval(3.5)
 	# 5. The letter
-	tw.tween_callback(func(): game.hud.say(letter_line, 5.5, letter_voice))
-	tw.tween_interval(6.5)
+	tw.tween_callback(func(): game.hud.say(letter_line, 7.5, letter_voice))
+	tw.tween_interval(8.5)
 	tw.tween_callback(func():
 		game.set_cinematic(false)
 		cam.cinematic = false

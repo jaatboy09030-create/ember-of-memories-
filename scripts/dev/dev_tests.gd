@@ -5,9 +5,14 @@ extends Node
 ##   Godot --path . -- --walktest    walks from the path through the front door (add --gate
 ##                                   to start outside the gate)
 ##   Godot --path . -- --doortest    opens/closes the front door and checks it stays put
+##   Godot --path . -- --titleshot   plays the opening and screenshots it (_shots/o*.png)
+##   Godot --path . -- --tour        screenshots the house and garden from set spots
+##                                   (saved to _shots/t*.png; needs a window)
+##   Godot --path . -- --embershot   screenshots the burning ember resting and in flight
+##                                   (saved to _shots/e1_rest, e2_moving, e3_settle; needs a window)
 ## Add --headless before --path to run without a window. Lines starting with TEST are results.
 
-const FLAGS := ["--storytest", "--walktest", "--doortest"]
+const FLAGS := ["--storytest", "--walktest", "--doortest", "--embershot", "--tour", "--titleshot"]
 
 var game: GameDirector
 
@@ -22,14 +27,22 @@ func wants_to_run() -> bool:
 func run(game_director: GameDirector) -> void:
 	game = game_director
 	await get_tree().process_frame
-	game.title_sequence.skip(game)
 	var args := OS.get_cmdline_user_args()
+	if "--titleshot" in args:
+		await _title_shot()
+		get_tree().quit()
+		return
+	game.title_sequence.skip(game)
 	if "--storytest" in args:
 		await _story_test()
 	elif "--walktest" in args:
 		await _walk_test("--gate" in args)
 	elif "--doortest" in args:
 		await _door_test()
+	elif "--embershot" in args:
+		await _ember_shot()
+	elif "--tour" in args:
+		await _tour()
 	get_tree().quit()
 
 
@@ -119,3 +132,73 @@ func _door_test() -> void:
 	player.global_position = Vector3(0, 0.1, -3.5)
 	await _wait(3.0)
 	print("TEST door after walking away (should stay open): ", snappedf(rad_to_deg(door.hinge.rotation.y), 1))
+
+
+## Close-up of the ember by the gate: resting, then swept sideways to show the trail.
+func _ember_shot() -> void:
+	var player: PlayerBody = game.player
+	var ember: Ember = game.ember
+	player.global_position = Vector3(0.0, 0.1, 12.0)
+	player.face_towards(Vector3(0, 1.3, 0))
+	ember.wait_at(Vector3(0, 1.5, 10.6))
+	ember.global_position = ember.anchor
+	await _wait(3.0)
+	_save_shot("e1_rest")
+	ember.anchor = Vector3.INF
+	var t := create_tween()
+	t.tween_property(ember, "global_position", Vector3(-1.3, 1.7, 10.6), 0.6).set_trans(Tween.TRANS_SINE)
+	t.tween_property(ember, "global_position", Vector3(1.2, 1.4, 10.6), 0.9).set_trans(Tween.TRANS_SINE)
+	await t.finished
+	_save_shot("e2_moving")
+	t = create_tween()
+	t.tween_property(ember, "global_position", Vector3(0.4, 1.6, 10.6), 0.5).set_trans(Tween.TRANS_SINE)
+	await t.finished
+	_save_shot("e3_settle")
+
+
+func _save_shot(n: String) -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://_shots"))
+	get_viewport().get_texture().get_image().save_png("res://_shots/%s.png" % n)
+	print("TEST shot ", n)
+
+
+## Fixed viewpoints for judging the look: [name, stand, look at].
+const TOUR := [
+	["t1_lane", Vector3(0.6, 0.1, 17.5), Vector3(0, 3.5, 0)],
+	["t2_garden", Vector3(-6.0, 0.1, 8.5), Vector3(-1.0, 3.0, 0)],
+	["t3_porch", Vector3(0.4, 0.1, 3.6), Vector3(0, 1.6, 0)],
+	["t4_side", Vector3(10.0, 0.1, 4.5), Vector3(3.0, 3.0, -4.0)],
+	["t5_living", Vector3(1.5, 0.1, -3.6), Vector3(-1.0, 1.4, 0)],
+	["t6_kidroom", Vector3(-3.6, 0.1, -3.6), Vector3(-7.5, 1.4, -1.0)],
+	["t7_fireplace", Vector3(-3.0, 0.1, -6.0), Vector3(-7.5, 1.0, -5.75)],
+]
+
+
+func _tour() -> void:
+	var player: PlayerBody = game.player
+	for d in game.doors.values():
+		d.unlock_and_open()
+	for t in TOUR:
+		player.global_position = t[1]
+		player.face_towards(t[2])
+		var dv: Vector3 = t[2] - player.head_position()
+		player.target_pitch = atan2(dv.y, Vector2(dv.x, dv.z).length())
+		player.pitch = player.target_pitch
+		await _wait(1.6)
+		_save_shot(t[0])
+
+
+## The opening, frame by frame: writing, the window going dark, the title, the fall to the gate.
+func _title_shot() -> void:
+	var ts: TitleSequence = game.title_sequence
+	ts.play(game)
+	for k in [[4.0, "o1_writing"], [3.4, "o2_line_done"], [2.4, "o3_window_dark"], [5.5, "o4_title"]]:
+		await _wait(k[0])
+		_save_shot(k[1])
+	while not ts._waiting_for_press:
+		await get_tree().process_frame
+	_save_shot("o5a_waiting")
+	ts.continue_to_game()
+	for k in [[2.5, "o5_fall"], [4.0, "o6_descend"], [3.0, "o7_eyes"]]:
+		await _wait(k[0])
+		_save_shot(k[1])

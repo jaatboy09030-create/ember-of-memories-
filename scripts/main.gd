@@ -28,7 +28,7 @@ extends Node3D
 @export var title_sequence: TitleSequence
 @export var world_environment: WorldEnvironment
 ## World colour when the game starts (0 grey .. 1 full colour).
-@export_range(0.0, 1.0) var start_saturation := 0.3
+@export_range(0.0, 1.0) var start_saturation := 0.8  # the first scene at the gate is in colour; it drains on the porch
 
 @onready var memories_root: Node3D = $Memories
 @onready var dev_tests: Node = $DevTests

@@ -46,6 +46,10 @@ func _on_porch_trigger_body_entered(body: Node3D) -> void:
 		return
 	_active = false
 	game.player.glance(glance_point, 0.25)
+	# as you step onto the porch the windows go out one by one: nobody is home
+	var house := get_tree().get_first_node_in_group("house_exterior") as HouseExterior
+	if house:
+		create_tween().tween_property(house, "all_windows_warmth", 0.0, 2.5).set_trans(Tween.TRANS_SINE)
 	finish()
 
 

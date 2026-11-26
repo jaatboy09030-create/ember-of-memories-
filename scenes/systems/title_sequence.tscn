@@ -1,6 +1,10 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/systems/title_sequence.gd" id="1_title"]
+[ext_resource type="PackedScene" path="res://assets/vfx/foreground_branches.glb" id="2_branches"]
+[ext_resource type="FontFile" path="res://assets/fonts/bodoni_moda/BodoniModa_28pt-Medium.ttf" id="3_bodoni_prompt"]
+[ext_resource type="Texture2D" path="res://assets/ui/unsent_lily.png" id="4_lily"]
+[ext_resource type="Texture2D" path="res://assets/ui/unsent_wordmark.png" id="5_wordmark"]
 
 [sub_resource type="StandardMaterial3D" id="AshMaterial"]
 transparency = 1
@@ -17,13 +21,21 @@ size = Vector2(0.028, 0.028)
 offsets = PackedFloat32Array(0, 0.08, 0.35, 1)
 colors = PackedColorArray(2.4, 1, 0.3, 0, 1.6, 0.7, 0.25, 0.9, 0.75, 0.76, 0.8, 0.75, 0.85, 0.88, 0.95, 0)
 
-[sub_resource type="SystemFont" id="PromptSerif"]
-font_names = PackedStringArray("Cormorant Garamond", "Palatino Linotype", "Book Antiqua", "Georgia", "serif")
-font_weight = 400
-
 [sub_resource type="FontVariation" id="PromptFont"]
-base_font = SubResource("PromptSerif")
-spacing_glyph = 5
+base_font = ExtResource("3_bodoni_prompt")
+spacing_glyph = 4
+
+[sub_resource type="Gradient" id="PromptGlowGradient"]
+offsets = PackedFloat32Array(0, 0.35, 1)
+colors = PackedColorArray(1, 0.95, 0.86, 0.8, 1, 0.9, 0.76, 0.35, 1, 0.88, 0.72, 0)
+
+[sub_resource type="GradientTexture2D" id="PromptGlowTexture"]
+gradient = SubResource("PromptGlowGradient")
+width = 256
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
 
 [node name="TitleSequence" type="Node3D"]
 script = ExtResource("1_title")
@@ -55,18 +67,131 @@ light_color = Color(1, 0.6, 0.28, 1)
 light_energy = 0.0
 omni_range = 4.0
 
+[node name="TitleLights" type="Node3D" parent="."]
+
+[node name="PorchWarmth" type="OmniLight3D" parent="TitleLights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 2.3, 1.6)
+light_color = Color(1, 0.52, 0.2, 1)
+light_energy = 3.6
+omni_range = 6.0
+omni_attenuation = 1.3
+shadow_enabled = true
+
+[node name="GableWarmth" type="OmniLight3D" parent="TitleLights"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.6, 5.4, 0.6)
+light_color = Color(1, 0.5, 0.18, 1)
+light_energy = 7.0
+light_cull_mask = 8
+omni_range = 9.5
+omni_attenuation = 1.3
+
+
+
+[node name="ForegroundBranches" type="Node3D" parent="."]
+
+[node name="Model" parent="ForegroundBranches" instance=ExtResource("2_branches")]
+
+[node name="BranchLeft" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(0.259, -0.966, 0, 0.966, 0.259, 0, 0, 0, 1.0, -0.95, -1.0, -1.15)
+cast_shadow = 0
+
+[node name="BranchLeftSnow" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(0.259, -0.966, 0, 0.966, 0.259, 0, 0, 0, 1.0, -0.95, -1.0, -1.15)
+cast_shadow = 0
+
+[node name="BranchRight" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(-0.46, -0.386, 0, -0.386, 0.46, 0, 0, 0, -0.6, 1.25, 0.55, -1.05)
+cast_shadow = 0
+
+[node name="BranchRightSnow" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(-0.46, -0.386, 0, -0.386, 0.46, 0, 0, 0, -0.6, 1.25, 0.55, -1.05)
+cast_shadow = 0
+
+[node name="BranchBottom" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(-0.58, 0.155, 0, 0.155, 0.58, 0, 0, 0, -0.6, 1.15, -0.62, -0.95)
+cast_shadow = 0
+
+[node name="BranchBottomSnow" parent="ForegroundBranches/Model" index="0"]
+transform = Transform3D(-0.58, 0.155, 0, 0.155, 0.58, 0, 0, 0, -0.6, 1.15, -0.62, -0.95)
+cast_shadow = 0
+
+
 [node name="TitleOverlay" type="CanvasLayer" parent="."]
 layer = 2
 
+[node name="NameGlow" type="TextureRect" parent="TitleOverlay"]
+modulate = Color(1, 1, 1, 0)
+anchor_left = 0.5
+anchor_top = 0.8
+anchor_right = 0.5
+anchor_bottom = 0.8
+offset_left = -420.0
+offset_top = -95.0
+offset_right = 420.0
+offset_bottom = 95.0
+mouse_filter = 2
+texture = SubResource("PromptGlowTexture")
+expand_mode = 1
+
+[node name="Wordmark" type="TextureRect" parent="TitleOverlay"]
+modulate = Color(1, 1, 1, 0)
+anchor_left = 0.5
+anchor_top = 0.8
+anchor_right = 0.5
+anchor_bottom = 0.8
+offset_left = -285.0
+offset_top = -50.0
+offset_right = 285.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_wordmark")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LogoMark" type="TextureRect" parent="TitleOverlay"]
+modulate = Color(0.72, 0.72, 0.75, 0)
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -210.0
+offset_top = -200.0
+offset_right = -40.0
+offset_bottom = -30.0
+grow_horizontal = 0
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("4_lily")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="TapPrompt" type="Label" parent="TitleOverlay"]
 modulate = Color(1, 1, 1, 0)
-anchor_top = 0.83
+anchor_top = 0.9
 anchor_right = 1.0
-anchor_bottom = 0.83
+anchor_bottom = 0.9
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_colors/font_color = Color(1, 0.84, 0.62, 1)
+theme_override_colors/font_color = Color(0.98, 0.95, 0.9, 1)
+theme_override_colors/font_shadow_color = Color(1, 0.85, 0.6, 0.35)
+theme_override_constants/shadow_outline_size = 6
 theme_override_fonts/font = SubResource("PromptFont")
-theme_override_font_sizes/font_size = 22
-text = "press any button"
+theme_override_font_sizes/font_size = 21
+text = "‹     TAP TO CONTINUE     ›"
 horizontal_alignment = 1
+
+[node name="PromptGlow" type="TextureRect" parent="TitleOverlay/TapPrompt"]
+show_behind_parent = true
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -26.0
+offset_right = 200.0
+offset_bottom = 26.0
+mouse_filter = 2
+texture = SubResource("PromptGlowTexture")
+expand_mode = 1

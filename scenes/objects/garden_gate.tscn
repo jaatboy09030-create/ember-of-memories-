@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/objects/garden_gate.gd" id="1_gate"]
 [ext_resource type="PackedScene" path="res://assets/sketchfab/gate_post.glb" id="2_post"]
+[ext_resource type="Script" path="res://scripts/level/snowy_prop.gd" id="5_snowy"]
 [ext_resource type="PackedScene" path="res://assets/sketchfab/gate_leaf_l.glb" id="3_leaf_l"]
 [ext_resource type="PackedScene" path="res://assets/sketchfab/gate_leaf_r.glb" id="4_leaf_r"]
 
@@ -19,12 +20,20 @@ script = ExtResource("1_gate")
 
 [node name="GatePostLeft" type="Node3D" parent="."]
 transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -1.37, 0, 0)
+script = ExtResource("5_snowy")
+snow_amount = 0.75
+tint = Color(1.35, 1.32, 1.25, 1)
+saturation = 0.12
 
 [node name="GatePostModel" parent="GatePostLeft" instance=ExtResource("2_post")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.717099, 0.778014, -0.047606)
 
 [node name="GatePostRight" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.37, 0, 0)
+script = ExtResource("5_snowy")
+snow_amount = 0.75
+tint = Color(1.35, 1.32, 1.25, 1)
+saturation = 0.12
 
 [node name="GatePostModel" parent="GatePostRight" instance=ExtResource("2_post")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.717099, 0.778014, -0.047606)

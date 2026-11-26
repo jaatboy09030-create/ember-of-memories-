@@ -26,7 +26,7 @@ func begin() -> void:
 func _on_knitted() -> void:
 	wake_figures()
 	play_restore_moment(coat_rack.global_position + Vector3(0, 1.4, 0))
-	game.hud.say(restored_line, 3.5, restored_voice)
+	game.hud.say(restored_line, 7.0, restored_voice)
 	finish()
 
 

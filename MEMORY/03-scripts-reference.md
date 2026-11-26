@@ -57,26 +57,33 @@ camera to cutscenes; `look_target` (Vector3.INF = none); `focus(dist)` DOF (≤0
 **player_scarf.gd** — reparents ScarfAnchor to a BoneAttachment on `mixamorig_Neck` (after one frame).
 
 ## Characters
-**characters/ember.gd** (`Ember`) — `lead_to(node)` (follow, hovers `hover_height` above), `wait_at(point)` (Vector3.INF = stay). Nodes `EmberCore`, `EmberLight`.
+**characters/ember.gd** (`Ember`) — `lead_to(node)` (follow, hovers `hover_height` above), `wait_at(point)` (Vector3.INF = stay). Nodes `EmberCore`, `EmberLight`, `EmberFire`.
+**characters/ember_fire.gd** (`EmberFire`, Node3D child of the Ember) — the burning look: Vefects flame (`flame_scene`, `flame_scale`),
+world-space tail (ember_wisp shader), sparks, smoke (ember_smoke shader); flickers EmberCore/EmberLight; the trail grows with speed.
+Exports `intensity, flame_scale, tail_at_rest, light_energy`.
 
 ## Systems (`scripts/systems/`)
 | Script | Class | Role / API |
 |---|---|---|
-| sound.gd | (autoload `Sound`) | `play(name, db, pitch_var)`, `play_at(name, pos, db, looped) -> AudioStreamPlayer3D`, `play_music(name or "", db, fade)`, `get_stream(name)`. Looks up `assets/audio/<name>.(mp3/ogg/wav)`; **missing file = silent no-op**. |
+| sound.gd | (autoload `Sound`) | Makes the `Memory` bus on `_ready`; `v_*` and `memory_sounds` play through it. `play(name, db, pitch_var)`, `play_at(name, pos, db, looped) -> AudioStreamPlayer3D`, `play_music(name or "", db, fade)`, `get_stream(name)`. Looks up `assets/audio/<name>.(mp3/ogg/wav)`; **missing file = silent no-op**. |
 | hud.gd | HUD | `connect_interaction(ray)`, `show_prompt(text)`, `set_progress(v)`, `say(text, dur, voice)`, `fade_to(alpha, t) -> Tween`, `letterbox(on, t)`, `set_crosshair_visible`, `show_end_title`. Field `screen_fade` (ColorRect) tweened directly by memories. |
 | screen_effects.gd | ScreenEffects | `world_saturation` (setter pushes global `world_sat`), `fade_saturation`, `tween_shader(param, v, t)`, `warm_flash`, `pulse`, `set_vignette`, `reset_vignette`; per-frame face pixelation. Material on `FilmLook` (camera_fx.gdshader). |
-| title_sequence.gd | TitleSequence | `play(game)`, `skip(game)`, signal `finished`. Spawns one Label3D per letter at runtime (intentional: per-letter animation). Uses SystemFont fallbacks (Ink Free, Cormorant Garamond...). |
+| title_sequence.gd | TitleSequence | `play(game)`, `skip(game)`, `continue_to_game()`, signal `finished`. Spawns one Label3D per letter at runtime (intentional). Exports `camera_start, camera_look, text_distance, text_lift, leaf_count, name_font/name_size/name_tracking` (the name is 2D Labels in `TitleOverlay/TitleName`). Builds the burning-leaf particles (`leaf_fall` process shader + `LeafFlames` sub-emitter). Drives the `HouseExterior` window. See 02 "Opening flow". |
 | ambience_mixer.gd | — | crossfades WindLoop/HouseToneLoop by `player.is_outside()`. |
 | outdoor_culling.gd | — | toggles group `outdoor_only`. |
 
 ## Level (`scripts/level/`)
 **room.gd** (`Room`) — `room_id`, `warm_up(energy)` tweens `RoomFillLight`. Adds itself to group `room`.
+**house_exterior.gd** (`HouseExterior`, extends SnowyProp) on `House/ExteriorShell` — grey+snow like any SnowyProp, plus the
+foreshadowing window: `window_warmth` 0..1, `someone_there` 0..1, `window_color`; meshes `LitWindowGlow` / `WindowSilhouette`
+(from the glb) get unshaded materials; adds a `WindowSpill` OmniLight. Group `house_exterior`.
 **snowy_prop.gd** (`SnowyProp`) / **snowy_foliage.gd** (`SnowyFoliage`) — on `_ready` replace every surface's
 material with memory_prop / foliage_snow shader, copying albedo/normal textures. Foliage detects leaves by material name containing `Lea`/`Grass`/`Flower`.
 
 ## Utils & dev
 **utils/model_utils.gd** (`ModelUtils`, static) — `find_skeleton`, `find_animation_player`, `fix_cull` (extra_cull_margin 16384), `measure(node)` AABB.
 **dev/dev_tests.gd** — see 06-recipes "Run the automated tests". Hard-coded test positions per memory in `_story_test`.
+Also screenshot modes `--titleshot` (`_title_shot`: o1-o7), `--tour` (`TOUR` list of viewpoints), `--embershot`.
 
 ## Tools (`tools/`, run headless with `-s`, never in-game)
 | Tool | Purpose |
@@ -84,4 +91,5 @@ material with memory_prop / foliage_snow shader, copying albedo/normal textures.
 | level_builder.gd (978 lines) | Regenerates `scenes/level/house_level.tscn` + `materials/level/*.tres`. **Overwrites hand edits.** |
 | make_kids_drawing.gd | Paints placeholder `assets/textures/kids_drawing/kids_drawing.png`. |
 | tri_count.gd | Prints top-30 triangle counts of Poly Haven models. |
+| swap_house_exterior.gd | One-off (already applied): put ExteriorShell into house_level, hid old outer walls, removed old roof/porch meshes. Don't re-run. |
 | debug_model.gd | Dumps node tree of `assets/mixamo/player_idle.fbx` (edit path to inspect others). |

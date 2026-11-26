@@ -12,6 +12,7 @@ uniform float alpha_cut = 0.5;
 uniform float snow = 0.8;
 uniform float sway = 0.0;      // 0 = rigid (bark, rocks), 1 = leaves
 uniform float roughness_value = 0.9;
+uniform vec3 snow_color : source_color = vec3(0.72, 0.76, 0.84);  // never pure white: lets the lights colour it (research/10)
 
 varying vec3 wpos;
 
@@ -55,12 +56,12 @@ void fragment() {
 		float n = noise(wpos.xz * 3.0 + wpos.y * 1.7);
 		float up = smoothstep(0.15 + n * 0.35, 0.7, wn.y);
 		float cover = clamp(up * snow * (0.75 + n * 0.5), 0.0, 1.0);
-		col = mix(col, vec3(0.86, 0.9, 0.98), cover);
+		col = mix(col, snow_color, cover);
 		rough = mix(rough, 0.55, cover);
 	}
 	ALBEDO = col;
 	ROUGHNESS = rough;
 	SPECULAR = 0.35;
 	// thin leaves let a little light through
-	BACKLIGHT = vec3(sway * 0.25) * col;
+	BACKLIGHT = vec3(sway * 0.1) * col;
 }

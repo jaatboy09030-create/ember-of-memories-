@@ -4,7 +4,8 @@
 ```
 Main (GameDirector)                exports wired in Inspector: player, ember, hud, screen_effects,
 │                                  title_sequence, world_environment; start_saturation=0.3
-├─ WorldEnvironment, Moon          night lighting (env adjustment_saturation 1.05)
+├─ WorldEnvironment, Moon, MoonFill night lighting: sky = shaders/night_sky.gdshader; Moon is high-left
+│                                  (~29 deg up) and also places the moon in the sky shader; MoonFill = faint front fill
 ├─ HouseLevel                      instance of scenes/level/house_level.tscn (Exterior / House / Rooms)
 ├─ Player                          scenes/player/player.tscn (PlayerBody)
 ├─ Ember                           scenes/characters/ember.tscn
@@ -80,6 +81,7 @@ InteractionRaycast mask = `1 | (1<<2)` (World + Interactable), so walls block in
 | `interior_door` | `InteriorDoor._ready` | GameDirector |
 | `memory_face` | `MemoryFigure._add_face_anchor` | ScreenEffects (max 4 faces) |
 | `outdoor_only` | set in scenes (Snowfall, forest, foliage) | OutdoorCulling |
+| `house_exterior` | `HouseExterior._ready` | TitleSequence (lit upstairs window + figure) |
 
 ## IDs that must match across scenes
 - **room_id**: `kid`, `living`, `kitchen`, `parent`, `hall`, `bed` (Room nodes in house_level) ↔ `Memory.room_id`.
@@ -100,5 +102,23 @@ Note: `E` is bound to both `interact` and `needle_right` — intentional (the sc
 
 ## World coordinates (metres; camera starts looking toward −Z)
 - Front wall of house at **z = 0**; house spans x −7.5..6, z 0..−9; gate/fence at z = 10.
+- Since 2026-11-26 the outside is a **two-storey shell** (`House/ExteriorShell`, assets/house/house_exterior.glb, ~9.4 m to
+  chimney top). The old OuterWalls meshes are hidden but keep their collision; the upstairs is outside-only (no stairs/rooms).
 - Outside = `player.z > 0.3` (`PlayerBody.outside_z`); culling uses camera `z > -0.3`.
 - Room layout: see header of `tools/level_builder.gd` (ASCII plan) — copied in 05.
+
+## Audio buses
+`Master` (default) and **`Memory`**, created at runtime by `sound.gd::_make_memory_bus()` (low-pass 6.5 kHz + soft reverb).
+`Sound` routes every `v_*` clip and the names in `Sound.memory_sounds` (`memory_restore`, `heartbeat`, `argument_muffled`)
+there, so voices sound remembered rather than present.
+
+## Opening (TitleSequence) flow, current
+0. The look follows the owner's painted reference: framing snowy branches (near-blurred), huge golden moon top-left with
+   clouds, warm porch/gable title lights, colour on (`opening_saturation`), burning leaves.
+1. Camera `camera_start (11.9, 0.85, 8.7)` -> `camera_look (3.8, 5.4, -2.5)`: low, off the front-right corner, looking up
+   (owner's sketch). Depth of field is near-only (foreground branches), so the house and sky stay sharp.
+2. Ember writes the line in the sky; meanwhile `HouseExterior.window_warmth/someone_there` = 1 (figure in the upstairs window);
+   at the break-off the figure leaves and the window goes dark; it warms again (empty) at the title.
+3. Burning leaves (GPUParticles3D `BurningLeaves` + sub-emitter `LeafFlames`) drift through the shot.
+4. On press: the camera **does not move through the garden**; it turns to follow the ember to the gate, fades to black,
+   jumps to the player's eyes, `_hand_over_control()`, and fades in.
