@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scripts/player/player_scarf.gd" id="7_scarf"]
 [ext_resource type="PackedScene" path="res://assets/mixamo/player_idle.fbx" id="8_idle"]
 [ext_resource type="PackedScene" path="res://assets/mixamo/player_walk.fbx" id="9_walk"]
+[ext_resource type="Resource" path="res://settings/camera_comfort.tres" id="10_comfort"]
 
 [sub_resource type="CapsuleShape3D" id="BodyCapsule"]
 radius = 0.25
@@ -111,6 +112,7 @@ attributes = SubResource("CameraFocus")
 near = 0.05
 fov = 70.0
 script = ExtResource("2_camera")
+comfort = ExtResource("10_comfort")
 
 [node name="InteractionRaycast" type="RayCast3D" parent="PlayerCamera"]
 target_position = Vector3(0, 0, -2.2)
