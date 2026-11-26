@@ -52,8 +52,7 @@ Note: the suitcase belongs to this scene only; `level_builder.gd` never places o
 Node: `PhotoFrame`, `EmberRestPoint`. The only scene where the camera leaves the body: `photo.pick_up(hold)` lifts it into
 both hands (`player.hands.hold(grip_left, grip_right)`, head bows) while the camera swings round the side of the head
 (`_pull_back`, keeps `head_clearance`; body shown once clear) to over the shoulder (`shoulder_start`, side with more room via
-`_pick_shoulder`) → slow push-in to `shoulder_end` while `photo.set_reflection()` turns the glass into a mirror of the face and
-`player.tears.start()` → letter `v_letter` → fade to black, photo put back face up, first person. Every camera position goes
+`_pick_shoulder`) → slow push-in to `shoulder_end` while `photo.set_reflection()` turns the glass into a mirror of the face → letter `v_letter` → fade to black, photo put back face up, first person. Every camera position goes
 through `PlayerCamera.safe_position()`. Face mosaics off during the scene. Disables `PlayerCamera/ColdBreath.breathing`.
 
 ### 6 Fireplace — `fireplace_memory.gd`

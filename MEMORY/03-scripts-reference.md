@@ -64,8 +64,10 @@ Instance: `settings/camera_comfort.tres`, assigned to PlayerCamera.comfort and S
 **player_hands.gd** (`PlayerHands`, node `Player/Hands`) — `hold(left_grip, right_grip, time)` / `release(time)`: tweens
 `influence` of `Skeleton3D/LeftArmHoldIK` + `RightArmHoldIK` (TwoBoneIK3D, elbows toward `BodyPivot/ElbowPoleLeft/Right`) and
 `Skeleton3D/HeadBow`. **head_bow.gd** (`HeadBow`, SkeletonModifier3D) — tips Neck+Head forward by `angle_degrees`.
-**player_tears.gd** (`PlayerTears`, `Skeleton3D/HeadAttachment/Tears`) — `start()`/`stop()`; `LeftEye/RightEye` markers ride
-the head bone, `LeftTear/RightTear` particles are top_level and copy only the marker position. PlayerBody exposes `hands`, `tears`.
+PlayerBody exposes `hands`.
+PlayerCamera `glance()` runs one at a time and `cancel_glance()` (called from PlayerBody._turn on any look input) hands the
+view back in 0.2 s. Gameplay autofocus: median of 5 rays (`autofocus_spread`), eased in log-distance (`autofocus_speed`,
+capped by `autofocus_max_rate`); `focus()` scales near/far blur smoothly with distance (near blur never switches off).
 PlayerCamera `safe_position(from, to, radius)` — sphere-cast on World layer 1, used by cutscenes to keep the camera out of walls.
 
 **player_footsteps.gd** — step_snow / step_wood / floor_creak. **cold_breath.gd** — GPUParticles puff outside only; `breathing` flag.

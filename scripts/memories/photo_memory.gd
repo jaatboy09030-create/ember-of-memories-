@@ -4,7 +4,7 @@ extends Memory
 ## leaves the body: the character picks the photo up in both hands and the camera swings
 ## round the side of the head to behind the shoulder (half the face and the photo in view).
 ## Then it slowly pushes in over the shoulder while the glass on the photo turns into a
-## mirror: for the first time we see our own face, reflected, and tears running down it.
+## mirror: for the first time we see our own face, reflected in it.
 ## Silence, then the letter, then a fade back to first person (photo left face up).
 ##
 ## The camera never clips into walls or furniture: every position is checked with
@@ -87,14 +87,13 @@ func _play_reveal() -> void:
 		Sound.play("memory_restore", -6.0)
 		game.screen_effects.fade_saturation(0.55, 2.5))
 	tw.tween_interval(2.0)
-	# 3. Slow push-in while the glass slowly becomes a mirror... and he is crying.
+	# 3. Slow push-in while the glass slowly becomes a mirror.
 	tw.tween_callback(func():
 		photo.reflect_target = player.face_position()
 		photo.set_reflection(reflection_strength, push_in_time * 0.8)
 		Sound.play("heartbeat", -6.0))
 	tw.tween_method(_push_in, 0.0, 1.0, push_in_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tw.parallel().tween_property(cam, "fov", 34.0, push_in_time).set_trans(Tween.TRANS_SINE)
-	tw.parallel().tween_callback(player.tears.start).set_delay(push_in_time * 0.3)
 	# 4. Silence. Let it land.
 	tw.tween_interval(2.5)
 	# 5. The letter
@@ -107,7 +106,6 @@ func _play_reveal() -> void:
 		_held = false
 		photo.put_down()
 		player.hands.release(0.0)
-		player.tears.stop()
 		cam.hide_face()
 		cam.cinematic = false
 		cam.look_target = Vector3.INF

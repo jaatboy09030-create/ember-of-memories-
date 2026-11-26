@@ -12,7 +12,6 @@
 [ext_resource type="Resource" path="res://settings/camera_comfort.tres" id="10_comfort"]
 [ext_resource type="Script" path="res://scripts/player/head_bow.gd" id="11_bow"]
 [ext_resource type="Script" path="res://scripts/player/player_hands.gd" id="12_hands"]
-[ext_resource type="Script" path="res://scripts/player/player_tears.gd" id="13_tears"]
 
 [sub_resource type="CapsuleShape3D" id="BodyCapsule"]
 radius = 0.25
@@ -81,38 +80,6 @@ billboard_mode = 3
 material = SubResource("BreathMaterial")
 size = Vector2(0.07, 0.07)
 
-[sub_resource type="Curve" id="TearGrow"]
-_data = [Vector2(0, 0.2), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.8), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="CurveTexture" id="TearGrowTexture"]
-curve = SubResource("TearGrow")
-
-[sub_resource type="ParticleProcessMaterial" id="TearMotion"]
-direction = Vector3(0, -1, 0)
-spread = 4.0
-initial_velocity_min = 0.02
-initial_velocity_max = 0.035
-gravity = Vector3(0, -0.2, 0)
-damping_min = 0.19
-damping_max = 0.2
-scale_curve = SubResource("TearGrowTexture")
-
-[sub_resource type="StandardMaterial3D" id="TearMaterial"]
-transparency = 1
-albedo_color = Color(0.85, 0.92, 1, 0.6)
-roughness = 0.05
-emission_enabled = true
-emission = Color(0.7, 0.8, 0.95, 1)
-emission_energy_multiplier = 0.6
-
-[sub_resource type="SphereMesh" id="TearDrop"]
-material = SubResource("TearMaterial")
-radius = 0.0035
-height = 0.009
-radial_segments = 8
-rings = 4
-
 [node name="Player" type="CharacterBody3D"]
 collision_layer = 2
 script = ExtResource("1_body")
@@ -159,38 +126,6 @@ settings/0/end_bone_name = "mixamorig_RightHand"
 influence = 0.0
 script = ExtResource("11_bow")
 body_pivot = NodePath("../../..")
-
-[node name="HeadAttachment" type="BoneAttachment3D" parent="BodyPivot/CharacterModel/Skeleton3D"]
-bone_name = "mixamorig_Head"
-
-[node name="Tears" type="Node3D" parent="BodyPivot/CharacterModel/Skeleton3D/HeadAttachment"]
-script = ExtResource("13_tears")
-
-[node name="LeftEye" type="Marker3D" parent="BodyPivot/CharacterModel/Skeleton3D/HeadAttachment/Tears"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0148, 0.0817, 0.0298)
-
-[node name="RightEye" type="Marker3D" parent="BodyPivot/CharacterModel/Skeleton3D/HeadAttachment/Tears"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0447, 0.097, 0.0533)
-
-[node name="LeftTear" type="GPUParticles3D" parent="BodyPivot/CharacterModel/Skeleton3D/HeadAttachment/Tears"]
-top_level = true
-emitting = false
-amount = 3
-lifetime = 3.0
-randomness = 0.5
-local_coords = false
-process_material = SubResource("TearMotion")
-draw_pass_1 = SubResource("TearDrop")
-
-[node name="RightTear" type="GPUParticles3D" parent="BodyPivot/CharacterModel/Skeleton3D/HeadAttachment/Tears"]
-top_level = true
-emitting = false
-amount = 3
-lifetime = 3.0
-randomness = 0.5
-local_coords = false
-process_material = SubResource("TearMotion")
-draw_pass_1 = SubResource("TearDrop")
 
 [node name="ElbowPoleLeft" type="Marker3D" parent="BodyPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.9, -0.2)

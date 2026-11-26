@@ -39,7 +39,6 @@ const CAMERA_MASK_WITHOUT_BODY := 0xFFFFF & ~(1 << (BODY_RENDER_LAYER - 1))
 @onready var cam: PlayerCamera = $PlayerCamera
 @onready var interaction_raycast: RayCast3D = $PlayerCamera/InteractionRaycast
 @onready var hands: PlayerHands = $Hands
-@onready var tears: PlayerTears = $BodyPivot/CharacterModel/Skeleton3D/HeadAttachment/Tears
 
 ## false during cutscenes and mini-games: no walking, no looking, no interacting.
 var can_move := true:
@@ -106,6 +105,8 @@ func _rotating_item() -> bool:
 
 
 func _turn(amount: Vector2) -> void:
+	if amount.length() > 0.0005:
+		cam.cancel_glance()
 	target_yaw -= amount.x * look_scale
 	target_pitch = clampf(target_pitch - amount.y * look_scale, -1.25, 1.25)
 

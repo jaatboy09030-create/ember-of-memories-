@@ -3,6 +3,10 @@
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
 ## 2026-11-27
+- **Tears removed; smoother focus; no camera fight after pickups** — owner asked to drop the tears (player_tears.gd and
+  its nodes deleted). Autofocus: 5-ray median, log-space easing with a rate cap, near blur no longer toggles at 1 m
+  (`focus()`). Glances: one at a time, cancelled by any look input; no glance on drawing-piece pickup. (player_camera.gd,
+  player_body.gd, player.tscn, photo_memory.gd, drawing_memory.gd, MEMORY 03/04/07)
 - **Photo memory rework** — picks the photo up in both hands (TwoBoneIK3D arms + HeadBow), camera goes over the shoulder
   (half face + photo), slow push-in while the glass becomes a mirror showing the face (SubViewport ReflectionCamera +
   photo_glass shader), tears, letter, fade back to first person. Camera kept out of walls with `PlayerCamera.safe_position`

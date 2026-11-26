@@ -91,11 +91,14 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **New `class_name` "not found in current scope"** → the global class cache is stale; run
   `Godot --headless --path . --import` once after adding scripts with a new class_name.
 - **Particles under a BoneAttachment3D fall sideways** → Mixamo head-bone axes are tilted/scaled, and particle direction/gravity
-  are emitter-local. Make the particles `top_level` and copy only the position from a marker (player_tears.gd).
+  are emitter-local. Make the particles `top_level` and copy only the position from a marker.
 - **Face mosaic drawn on the photo glass** → ScreenEffects occludes faces with a physics ray; the glass has no collision. Turn
   `pixelate_faces` off for such shots.
-- **Tears on the face still off (open)** → in `--phototest` the tear drops spawn beside the face, not on the eyelids. The
-  `LeftEye/RightEye` marker positions need re-placing (check glass_NN.png).
+- **Camera "glitches / won't turn" right after an interaction** → a `glance()` tween was pulling the view toward the object
+  while the mouse moved (and pickups started overlapping glances). Glances now cancel on look input; DrawingMemory no longer
+  glances at pieces you're already looking at.
+- **Depth-of-field pops when focus moves near↔far** → `dof_blur_near_enabled` was switched on/off at 1 m and focus was eased
+  linearly with one ray. Keep near blur always on, scale every value with distance, ease in log space, median of 5 rays.
 
 ## Design learnings (owner preferences discovered so far)
 - Original monolithic `main.gd` (3,200 lines, everything built at runtime) was rejected → everything must be real scenes
