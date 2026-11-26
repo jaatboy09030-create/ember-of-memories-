@@ -201,6 +201,12 @@ func reveal_face() -> void:
 	cull_mask = 0xFFFFF
 
 
+## Normal first person again: the camera stops seeing the body (after the photo reveal), so
+## you never look down into your own hair, shoulders or the inside of your head.
+func hide_face() -> void:
+	cull_mask = PlayerBody.CAMERA_MASK_WITHOUT_BODY
+
+
 ## Depth of field: keep things `dist` metres away sharp. dist <= 0 turns it off.
 func focus(dist: float) -> void:
 	var attr := attributes as CameraAttributesPractical

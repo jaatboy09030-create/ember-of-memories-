@@ -3,8 +3,9 @@ extends CanvasLayer
 ## SCREEN EFFECTS: the film / worn-camera look drawn over the 3D view
 ## (shaders/camera_fx.gdshader): a gentle lens bend (barrel distortion, cropped so there are
 ## no black edges) with colour fringe toward the edges, vignette, sensor grain that is
-## stronger in the dark, warm/cold tint, the grey "frozen memory" look, and the pixelated
-## faces of the memory figures.
+## stronger in the dark, warm/cold tint and the pixelated faces of the memory figures.
+## The frozen-memory look itself (moonlit duotone, frost, ember halo, restore ripple) is the
+## MemoryGrade child, drawn first; GradeCopy hands its result to FilmLook.
 ##
 ## The lens is only on while the player's camera (PlayerCamera) is the active camera. It
 ## fades out for any other camera (e.g. the drawing puzzle, where the mouse must hit exactly
@@ -43,13 +44,14 @@ extends CanvasLayer
 
 @onready var film_look: ColorRect = $FilmLook
 @onready var mat: ShaderMaterial = film_look.material
+@onready var memory_grade: MemoryGrade = $MemoryGrade
 
 var world_saturation := 0.3:
 	set(v):
 		world_saturation = v
 		RenderingServer.global_shader_parameter_set("world_sat", v)
-		if mat:
-			mat.set_shader_parameter("world_sat", v)
+		if memory_grade:
+			memory_grade.set_world_saturation(v)
 
 var _lens := 0.0  # 0 = no lens .. 1 = full lens, eased toward its target every frame
 
@@ -81,6 +83,7 @@ func tween_shader(param: String, value: float, time: float) -> Tween:
 
 ## A memory comes back: a warm flash that settles slightly warmer than before.
 func warm_flash() -> void:
+	memory_grade.ripple()
 	var tw := create_tween()
 	tw.tween_property(mat, "shader_parameter/warmth", 0.6, 0.6)
 	tw.tween_property(mat, "shader_parameter/warmth", -0.1, 3.0)

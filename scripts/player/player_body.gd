@@ -31,6 +31,9 @@ signal stepped(on_snow: bool)
 @export var outside_z := 0.3
 
 const BODY_RENDER_LAYER := 2  # the camera hides this render layer until the ending
+## Cull mask for any camera that must never see the player's own body (all 20 layers but
+## BODY_RENDER_LAYER). Use this instead of a typed number so a layer change stays in one place.
+const CAMERA_MASK_WITHOUT_BODY := 0xFFFFF & ~(1 << (BODY_RENDER_LAYER - 1))
 
 @onready var pivot: Node3D = $BodyPivot
 @onready var cam: PlayerCamera = $PlayerCamera
@@ -41,7 +44,18 @@ var can_move := true:
 	set(v):
 		can_move = v
 		if is_node_ready():
-			interaction_raycast.enabled = v
+			interaction_raycast.enabled = v and not holding_item
+## true while an object is held up to the eyes (SuitcaseMemory): no walking and no
+## interacting, but looking around stays free. While "rotate_item" is held, mouse/stick
+## movement goes into item_turn (for the holder to turn the object) instead of the view.
+var holding_item := false:
+	set(v):
+		holding_item = v
+		if is_node_ready():
+			interaction_raycast.enabled = can_move and not v
+## Turn input collected while holding "rotate_item" (radians: x = around the view's up axis,
+## y = around its right axis). The holder reads it and sets it back to zero.
+var item_turn := Vector2.ZERO
 ## Eased from 0 to 1 when control is handed back after a cutscene.
 var look_scale := 1.0
 var target_yaw := PI
@@ -78,7 +92,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed and can_move and Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	elif event is InputEventMouseMotion and can_move and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_turn(event.relative * mouse_sensitivity)
+		if _rotating_item():
+			item_turn += event.relative * mouse_sensitivity * 2.0
+		else:
+			_turn(event.relative * mouse_sensitivity)
+
+
+## Holding an object and pressing "rotate_item": turn the object, not the head.
+func _rotating_item() -> bool:
+	return holding_item and Input.is_action_pressed("rotate_item")
 
 
 func _turn(amount: Vector2) -> void:
@@ -90,11 +112,15 @@ func _physics_process(delta: float) -> void:
 	var input := Vector2.ZERO
 	is_jogging = false
 	if can_move:
-		input = Input.get_vector("move_left", "move_right", "move_back", "move_forward")
-		is_jogging = Input.is_action_pressed("sprint") and input.y > 0.0
+		if not holding_item:
+			input = Input.get_vector("move_left", "move_right", "move_back", "move_forward")
+			is_jogging = Input.is_action_pressed("sprint") and input.y > 0.0
 		var stick := Input.get_vector("look_left", "look_right", "look_up", "look_down")
 		if stick != Vector2.ZERO:
-			_turn(stick * gamepad_look_speed * delta)
+			if _rotating_item():
+				item_turn += stick * gamepad_look_speed * 1.5 * delta
+			else:
+				_turn(stick * gamepad_look_speed * delta)
 		# weighty head: the view eases toward the target
 		var k := clampf(look_smoothing * delta, 0.0, 1.0)
 		pivot.rotation.y = lerp_angle(pivot.rotation.y, target_yaw, k)

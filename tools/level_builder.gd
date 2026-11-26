@@ -57,14 +57,7 @@ const ROOMS := [
 	["Hallway", "hall", -2.5, 1.0, -9.0, -4.5, "wallpaper_hall", "floor_old_wood"],
 	["Bedroom", "bed", 1.0, 6.0, -9.0, -4.5, "wallpaper_bedroom", "floor_old_wood"],
 ]
-const WALL_HUNG := ["hanging_picture_frame", "fancy_picture_frame", "wall_clock", "vintage_telephone_wall_clock",
-	"ornate_mirror", "dartboard"]
-const CEILING := ["Chandelier", "lantern_chandelier", "ceiling_fan"]
-const DESK_POS := Vector3(-4.6, 0, -4.15)
 const FIRE_Z := -5.75
-# Props that belong to a memory scene: placed here only so the others settle around them,
-# then removed (their final spot is printed so the memory scene can match it).
-const MEMORY_OWNED := ["vintage_suitcase"]
 
 var level: Node3D
 var _mats := {}
@@ -86,8 +79,7 @@ func _initialize() -> void:
 	_build_house(house)
 	_build_rooms(rooms)
 	_place_props(rooms)
-	_settle_props()
-	_report_and_remove_memory_owned()
+	_report_placed()
 	for p in _props:
 		p.remove_meta("size")
 	_set_owner(level, level)
@@ -149,7 +141,10 @@ func _col_mat(mat_name: String, c := Color.WHITE) -> Material:
 
 
 ## Textured, world-triplanar material (textures from res://assets/textures/<tex>/).
-func _tex_mat(mat_name: String, tex := "", tint := Color.WHITE, scale := 0.5, rough := 0.85) -> Material:
+## normal_strength = how deep the surface bumps look; specular = shine (0.5 = Godot default,
+## lower = more matte, e.g. painted plaster).
+func _tex_mat(mat_name: String, tex := "", tint := Color.WHITE, scale := 0.5, rough := 0.85,
+		normal_strength := 0.9, specular := 0.5) -> Material:
 	if _mats.has(mat_name):
 		return _mats[mat_name]
 	var m := StandardMaterial3D.new()
@@ -160,7 +155,7 @@ func _tex_mat(mat_name: String, tex := "", tint := Color.WHITE, scale := 0.5, ro
 	if ResourceLoader.exists(base + "_nor.jpg"):
 		m.normal_enabled = true
 		m.normal_texture = load(base + "_nor.jpg")
-		m.normal_scale = 0.9
+		m.normal_scale = normal_strength
 	if ResourceLoader.exists(base + "_rough.jpg"):
 		m.roughness_texture = load(base + "_rough.jpg")
 		m.roughness = 1.0
@@ -170,6 +165,7 @@ func _tex_mat(mat_name: String, tex := "", tint := Color.WHITE, scale := 0.5, ro
 	m.uv1_world_triplanar = true
 	m.uv1_triplanar_sharpness = 4.0
 	m.uv1_scale = Vector3.ONE * scale
+	m.metallic_specular = specular
 	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
 	return _save_mat(mat_name, m)
 
@@ -386,8 +382,11 @@ func _build_exterior(ext: Node3D) -> void:
 	_snow_drifts(_group(ext, "SnowDrifts"))
 	var mist := FogVolume.new()
 	mist.name = "GroundMist"
-	mist.size = Vector3(90, 2.4, 50)
-	mist.position = Vector3(0, 0.6, 12)
+	# Outside only: the volume starts at z 0.5 (just in front of the house) so no mist drifts
+	# into the rooms, and OutdoorCulling hides it completely while the camera is indoors.
+	mist.size = Vector3(90, 2.4, 40)
+	mist.position = Vector3(0, 0.6, 20.5)
+	mist.add_to_group("outdoor_only", true)
 	var fmat := FogMaterial.new()
 	fmat.density = 0.06
 	fmat.albedo = Color(0.7, 0.76, 0.92)
@@ -526,8 +525,8 @@ func _snow_drifts(parent: Node3D) -> void:
 # ================================================================ house shell
 
 func _build_house(house: Node3D) -> void:
-	var clad := _tex_mat("wall_cladding", "exterior_wall_cladding", Color(0.78, 0.8, 0.88), 0.45)
-	var plaster := _tex_mat("wall_plaster", "painted_plaster_wall", Color(0.92, 0.9, 0.86), 0.4)
+	var clad := _tex_mat("wall_cladding", "exterior_wall_cladding", Color(0.78, 0.8, 0.88), 0.18, 0.85, 1.3, 0.3)
+	var plaster := _tex_mat("wall_plaster", "painted_plaster_wall", Color(0.92, 0.9, 0.86), 0.6, 0.85, 1.4, 0.25)
 	var outer := _group(house, "OuterWalls")
 	_wall(outer, "BackWall", Vector2(HOUSE_X0 - 0.1, HOUSE_Z1), Vector2(HOUSE_X1 + 0.1, HOUSE_Z1), clad)
 	_wall(outer, "WestWall", Vector2(HOUSE_X0, HOUSE_Z1), Vector2(HOUSE_X0, 0), clad)
@@ -565,6 +564,8 @@ func _build_house(house: Node3D) -> void:
 		var inst: Node3D = door_scene.instantiate()
 		inst.name = d[0]
 		inst.set("door_id", d[1])
+		if d[1] == "front":
+			inst.set("lock_behind_player", true)  # once you are inside there is no way back out
 		inst.position = d[2]
 		inst.rotation_degrees.y = 0.0 if d[3] else 90.0
 		doors.add_child(inst)
@@ -602,14 +603,15 @@ func _build_roof(roof: Node3D, clad: Material) -> void:
 func _build_rooms(rooms_root: Node3D) -> void:
 	_tex_mat("floor_old_wood", "old_wood_floor", Color.WHITE, 0.35, 0.7)
 	_tex_mat("floor_kitchen_planks", "dark_wooden_planks", Color(1.0, 0.95, 0.9), 0.5)
-	_tex_mat("wallpaper_kid", "beige_wall_001", Color(0.8, 0.88, 1.0), 0.5)
-	_tex_mat("wallpaper_living", "beige_wall_001", Color(1.0, 0.93, 0.82), 0.5)
-	_tex_mat("wallpaper_kitchen", "painted_plaster_wall", Color(0.95, 0.97, 0.88), 0.45)
-	_tex_mat("wallpaper_parent", "painted_plaster_wall", Color(1.0, 0.86, 0.82), 0.45)
-	_tex_mat("wallpaper_hall", "beige_wall_001", Color(0.95, 0.9, 0.82), 0.5)
-	_tex_mat("wallpaper_bedroom", "painted_plaster_wall", Color(0.84, 0.92, 0.86), 0.45)
-	var ceiling_m := _col_mat("ceiling_white", Color(0.93, 0.92, 0.9))
-	var beam_m := _tex_mat("ceiling_beam_wood", "dark_wooden_planks", Color(0.85, 0.7, 0.58), 1.0, 0.8)
+	# All walls use the detailed plaster texture (beige_wall_001 is a flat single colour, which
+	# is what made the walls look plastic-smooth). Matte (low specular) and a deeper bump.
+	_tex_mat("wallpaper_kid", "painted_plaster_wall", Color(0.82, 0.9, 1.0), 0.6, 0.85, 1.5, 0.25)
+	_tex_mat("wallpaper_living", "painted_plaster_wall", Color(1.0, 0.93, 0.82), 0.6, 0.85, 1.5, 0.25)
+	_tex_mat("wallpaper_kitchen", "painted_plaster_wall", Color(0.95, 0.97, 0.88), 0.6, 0.85, 1.5, 0.25)
+	_tex_mat("wallpaper_parent", "painted_plaster_wall", Color(1.0, 0.86, 0.82), 0.6, 0.85, 1.5, 0.25)
+	_tex_mat("wallpaper_hall", "painted_plaster_wall", Color(0.95, 0.9, 0.82), 0.6, 0.85, 1.5, 0.25)
+	_tex_mat("wallpaper_bedroom", "painted_plaster_wall", Color(0.84, 0.92, 0.86), 0.6, 0.85, 1.5, 0.25)
+	var ceiling_m := _tex_mat("ceiling_white", "painted_plaster_wall", Color(0.97, 0.96, 0.94), 0.5, 0.9, 0.8, 0.2)
 	for r in ROOMS:
 		var room := Node3D.new()
 		room.name = r[0]
@@ -622,18 +624,18 @@ func _build_rooms(rooms_root: Node3D) -> void:
 		var dpt: float = r[5] - r[4]
 		_box(room, "Floor", Vector3(w, 0.06, dpt), Vector3(cx, 0.03, cz), _mats[r[7]])
 		_box(room, "Ceiling", Vector3(w, 0.05, dpt), Vector3(cx, WALL_H - 0.025, cz), ceiling_m)
-		var beams := _group(room, "CeilingBeams")
-		var bx: float = r[2] + 0.75
-		while bx < r[3] - 0.4:
-			_box(beams, "Beam", Vector3(0.16, 0.2, dpt - 0.25), Vector3(bx, WALL_H - 0.12, cz), beam_m)
-			bx += 1.5
 		_line_room(_group(room, "WallLining"), r)
-		var fill := _light(room, "RoomFillLight", Vector3(cx, 1.5, cz), Color(0.6, 0.65, 0.8), 0.66, 6.0)
-		fill.omni_attenuation = 1.4
-		fill.light_size = 0.4
-		fill.light_specular = 0.2
+		# The room's ONE light: a pendant lamp in the middle of the ceiling (_pendant).
+		# Every shadow in the room falls away from that lamp, so the lighting reads as real.
+		var lamp_pos := Vector3(cx, WALL_H - 0.62, cz)
+		var fill := _light(room, "RoomFillLight", lamp_pos, Color(0.62, 0.68, 0.86), 0.9, maxf(w, dpt) * 0.85 + 1.0, true)
+		fill.omni_attenuation = 1.0
+		fill.light_specular = 0.25
+		fill.shadow_blur = 1.5
+		fill.light_volumetric_fog_energy = 0.0
 		fill.distance_fade_enabled = true
 		fill.distance_fade_begin = 16.0
+		_pendant(room, lamp_pos)
 		var probe := ReflectionProbe.new()
 		probe.name = "ReflectionProbe"
 		probe.position = Vector3(cx, 1.4, cz)
@@ -649,14 +651,17 @@ func _build_rooms(rooms_root: Node3D) -> void:
 		"ParentRoom": ["rug_parent", Color(0.8, 0.55, 0.45), 1.0, Vector3(1.2, 0.015, 1.6), Vector3(-5.0, 0.07, FIRE_Z)]}
 	for room_name in rugs:
 		var rg: Array = rugs[room_name]
-		_box(rooms_root.get_node(room_name), "Rug", rg[3], rg[4], _tex_mat(rg[0], "fabric_pattern_05", rg[1], rg[2], 0.95))
+		# Paper-thin, just above the floor: furniture legs stand on it instead of sinking in.
+		var rug_size: Vector3 = rg[3]
+		var rug_pos: Vector3 = rg[4]
+		_box(rooms_root.get_node(room_name), "Rug", Vector3(rug_size.x, 0.004, rug_size.z), Vector3(rug_pos.x, 0.063, rug_pos.z),
+			_tex_mat(rg[0], "fabric_pattern_05", rg[1], rg[2], 0.95))
 	# Kitchen counter run along the back wall, wall cupboard above
 	var kprops := rooms_root.get_node("Kitchen/Props")
 	_sketchfab(kprops, "KitchenCounter", "kitchen_counter", Vector3(4.85, 0.06, -4.08), 0.0, true).remove_meta("size")
-	_sketchfab(kprops, "KitchenCupboard", "kitchen_cupboard", Vector3(4.85, 1.55, -4.2), 0.0, false).remove_meta("size")
 
 
-## Wallpaper, wainscot, rails and skirting on the inside of each wall, leaving doorway gaps.
+## Wallpaper and skirting on the inside of each wall, leaving doorway gaps (kept minimal).
 func _line_room(lining: Node3D, r: Array) -> void:
 	var x0: float = r[2]
 	var x1: float = r[3]
@@ -664,8 +669,6 @@ func _line_room(lining: Node3D, r: Array) -> void:
 	var z1: float = r[5]
 	var paper: Material = _mats[r[6]]
 	var skirt := _col_mat("skirting_wood", Color(0.3, 0.2, 0.14))
-	var wood := _tex_mat("wainscot_wood", "dark_wooden_planks", Color(1.0, 0.82, 0.68), 1.3, 0.7)
-	var trim := _col_mat("wall_trim_wood", Color(0.32, 0.21, 0.14))
 	var sides := [["BackWall", Vector2(x0, z0), Vector2(x1, z0), Vector3(0, 0, 1)], ["FrontWall", Vector2(x0, z1), Vector2(x1, z1), Vector3(0, 0, -1)],
 		["WestWall", Vector2(x0, z0), Vector2(x0, z1), Vector3(1, 0, 0)], ["EastWall", Vector2(x1, z0), Vector2(x1, z1), Vector3(-1, 0, 0)]]
 	for s in sides:
@@ -690,9 +693,6 @@ func _line_room(lining: Node3D, r: Array) -> void:
 			var sz := func(thick: float, h: float) -> Vector3:
 				return Vector3(length, h, thick) if along_x else Vector3(thick, h, length)
 			_box(side, "Wallpaper", sz.call(0.02, WALL_H), pos + off, paper)
-			_box(side, "Wainscot", sz.call(0.03, 0.95), Vector3(pos.x, 0.475, pos.z) + off * 1.12, wood)
-			_box(side, "ChairRail", sz.call(0.06, 0.05), Vector3(pos.x, 0.97, pos.z) + off * 1.2, trim)
-			_box(side, "Cornice", sz.call(0.07, 0.1), Vector3(pos.x, WALL_H - 0.08, pos.z) + off * 1.2, trim)
 			_box(side, "Skirting", sz.call(0.03, 0.14), Vector3(pos.x, 0.07, pos.z) + off * 1.15, skirt)
 		for g in gaps:
 			var size := Vector3(1.4, WALL_H - 2.2, 0.02) if along_x else Vector3(0.02, WALL_H - 2.2, 1.4)
@@ -703,118 +703,39 @@ func _line_room(lining: Node3D, r: Array) -> void:
 # ================================================================ props
 
 func _place_props(rooms_root: Node3D) -> void:
+	# Story furniture only - kept minimal on purpose (no clutter that isn't part of a memory).
 	# [id, position, rotation (deg), collide]. Real-world scale. 0 deg = front faces +Z.
+	# Positions are FINAL (there is no automatic shuffling any more). Memory scenes put people
+	# and objects on some of these (armchair, desk + chair, dresser, nightstands, bedroom table),
+	# so moving one means moving that memory scene's nodes too (MEMORY/04-memories.md).
+	# After any change run the overlap check in MEMORY/06-recipes.md.
 	var L := [
-		# ---------------- LIVING — focal: grandma's armchair facing the TV
-		["painted_wooden_sofa", Vector3(1.5, 0.06, -4.05), 0, true],
-		["throw_pillows_01", Vector3(1.5, 0.5, -4.0), 0, false],
-		["Ukulele_01", Vector3(2.45, 0.5, -3.95), -30, false],
-		["side_table_01", Vector3(2.75, 0.06, -4.1), 0, true],
-		["ceramic_vase_03", Vector3(2.75, 0.6, -4.1), 0, false],
-		["CoffeeTable_01", Vector3(1.4, 0.06, -2.85), 0, true],
-		["vintage_oil_lamp", Vector3(1.7, 0.5, -2.85), 0, false],
-		["chess_set", Vector3(1.1, 0.5, -2.85), 20, false],
-		["ArmChair_01", Vector3(-1.75, 0.06, -2.95), 55, true],
-		["Ottoman_01", Vector3(-1.0, 0.06, -2.2), 0, true],
-		["wicker_basket_01", Vector3(-2.55, 0.06, -3.6), 0, false],
-		["ClassicConsole_01", Vector3(2.75, 0.06, -3.1), -90, true],
-		["Television_01", Vector3(2.75, 0.85, -3.1), -90, false],
-		["cassette_player", Vector3(2.75, 0.85, -3.55), -90, false],
-		["wooden_bookshelf_worn", Vector3(-2.2, 0.06, -4.2), 0, true],
-		["mantel_clock_01", Vector3(-2.2, 2.0, -4.25), 0, false],
-		["vintage_grandfather_clock_01", Vector3(-2.75, 0.06, -0.38), 180, true],
-		["potted_plant_01", Vector3(2.75, 0.06, -0.4), 0, false],
-		["Chandelier_01", Vector3(0.2, WALL_H - 0.75, -2.3), 0, false],
-		["fancy_picture_frame_02", Vector3(1.5, 1.75, -4.4), 0, false],
-		["hanging_picture_frame_01", Vector3(-2.9, 1.6, -3.7), 90, false],
-		["hanging_picture_frame_03", Vector3(-2.9, 1.7, -1.0), 90, false],
-		["vintage_telephone_wall_clock", Vector3(2.9, 1.8, -3.1), -90, false],
-		# ---------------- KID ROOM — focal: the little desk
-		["vintage_day_bed", Vector3(-6.95, 0.06, -3.35), 90, true],
-		["throw_pillows_01", Vector3(-6.95, 0.5, -3.35), 90, false],
-		["SchoolDesk_01", DESK_POS + Vector3(0, 0.06, 0), 0, true],
-		["SchoolChair_01", DESK_POS + Vector3(0, 0.06, 0.65), 180, true],
-		["stationery_supplies", DESK_POS + Vector3(-0.2, 0.8, 0), 0, false],
-		["desk_lamp_arm_01", DESK_POS + Vector3(0.3, 0.8, -0.1), -20, false],
+		# ---------------- LIVING - grandma's armchair (ScarfMemory/GrandmaKnitting sits in it)
+		["painted_wooden_sofa", Vector3(1.5, 0.06, -3.946342), 0, true],
+		["CoffeeTable_01", Vector3(0.7107189, 0.06, -2.85), 0, true],
+		["ArmChair_01", Vector3(-1.5430429, 0.06, -2.42159), 55, true],
+		# ---------------- KID ROOM - the little desk (DrawingMemory puzzle + BoyAtDesk)
+		["vintage_day_bed", Vector3(-6.912612, 0.06, -3.35), 90, true],
+		["SchoolDesk_01", Vector3(-4.6, 0.06, -4.140611), 0, true],
+		["SchoolChair_01", Vector3(-4.6, 0.06, -3.5), 180, true],
 		["painted_wooden_shelves", Vector3(-3.45, 0.06, -3.9), -90, true],
-		["horse_statue_01", Vector3(-3.45, 1.6, -3.7), -90, false],
-		["Camera_01", Vector3(-3.45, 1.6, -4.15), -90, false],
 		["Shelf_01", Vector3(-5.95, 0.06, -4.2), 0, true],
-		["book_encyclopedia_set_01", Vector3(-5.95, 0.9, -4.2), 0, false],
-		["treasure_chest", Vector3(-6.7, 0.06, -0.45), 180, true],
-		["standing_chalkboard_01", Vector3(-3.55, 0.06, -0.6), 220, true],
-		["rubber_duck_toy", Vector3(-5.0, 0.08, -1.7), 30, false],
-		["gamepad", Vector3(-5.6, 0.08, -2.3), 70, false],
-		["gaming_console", Vector3(-5.2, 0.08, -2.5), 30, false],
-		["american_football", Vector3(-4.2, 0.08, -1.2), 60, false],
-		["baseball_01", Vector3(-6.2, 0.08, -2.6), 0, false],
-		["potted_plant_04", Vector3(-7.1, 0.06, -1.2), 0, false],
-		["dartboard", Vector3(-3.1, 1.7, -3.2), -90, false],
-		["hanging_picture_frame_02", Vector3(-6.2, 1.8, -4.4), 0, false],
-		# ---------------- KITCHEN — counter run, small table
-		["electric_stove", Vector3(3.45, 0.06, -4.15), 0, true],
-		["wooden_cutting_board", Vector3(4.6, 0.95, -4.15), 10, false],
-		["yellow_onion", Vector3(4.45, 0.98, -4.1), 0, false],
-		["wooden_spoon", Vector3(4.85, 0.95, -4.25), 70, false],
-		["wooden_bowl_01", Vector3(5.3, 0.95, -4.15), 0, false],
-		["wine_bottles_01", Vector3(5.7, 0.95, -4.2), 0, false],
-		["metal_jug", Vector3(4.1, 0.95, -4.2), 0, false],
-		["pot_enamel_01", Vector3(3.45, 0.96, -4.1), 0, false],
-		["WoodenTable_02", Vector3(4.5, 0.06, -1.9), 90, true],
-		["painted_wooden_chair_02", Vector3(3.8, 0.06, -1.9), 90, true],
+		# ---------------- KITCHEN - counter run (KitchenCounter is added in _build_rooms), table
+		["electric_stove", Vector3(3.45, 0.06, -4.0161896), 0, true],
+		["WoodenTable_02", Vector3(4.688613, 0.06, -1.9), 90, true],
+		["painted_wooden_chair_02", Vector3(4.2310486, 0.06, -1.9), 90, true],
 		["painted_wooden_chair_02", Vector3(5.2, 0.06, -1.9), -90, true],
-		["tea_set_01", Vector3(4.5, 0.8, -2.1), 0, false],
-		["carrot_cake", Vector3(4.5, 0.8, -1.6), 0, false],
-		["food_pears_asian_01", Vector3(4.4, 0.8, -2.4), 0, false],
-		["painted_wooden_cabinet_02", Vector3(5.65, 0.06, -2.85), -90, true],
-		["wooden_bucket_01", Vector3(5.65, 0.06, -0.4), 0, false],
-		["wooden_crate_02", Vector3(3.45, 0.06, -0.4), 20, true],
-		["hanging_picture_frame_01", Vector3(3.1, 1.7, -3.6), 90, false],
-		# ---------------- HALLWAY — a corridor to the study door
-		["ClassicConsole_01", Vector3(-2.15, 0.06, -8.1), 90, true],
-		["wooden_candlestick", Vector3(-2.15, 0.85, -8.4), 0, false],
-		["carved_wooden_plate", Vector3(-2.15, 0.85, -7.9), 90, false],
-		["ornate_mirror_01", Vector3(-2.4, 1.55, -8.1), 90, false],
-		["side_table_tall_01", Vector3(0.65, 0.06, -5.2), -90, true],
-		["ceramic_vase_02", Vector3(0.65, 0.95, -5.2), 0, false],
-		["potted_plant_02", Vector3(0.6, 0.06, -8.55), 0, false],
-		["wooden_crate_02", Vector3(-2.1, 0.06, -5.0), 15, true],
-		["wall_clock", Vector3(0.9, 1.9, -8.0), -90, false],
-		["hanging_picture_frame_02", Vector3(0.9, 1.6, -5.2), -90, false],
-		["lantern_chandelier_01", Vector3(-0.75, WALL_H - 0.75, -6.75), 0, false],
-		# ---------------- PARENT ROOM — focal: the fireplace and rocking chair
-		["GothicBed_01", Vector3(-5.3, 0.06, -7.9), 0, true],
-		["throw_pillows_01", Vector3(-5.3, 0.62, -8.6), 0, false],
-		["ClassicNightstand_01", Vector3(-6.85, 0.06, -8.7), 0, true],
-		["wooden_candlestick", Vector3(-6.85, 0.62, -8.7), 0, false],
-		["vintage_wooden_drawer_01", Vector3(-2.85, 0.06, -8.3), -90, true],
-		["vintage_oil_lamp", Vector3(-2.85, 1.0, -8.75), 0, false],
-		["brass_vase_02", Vector3(-2.85, 1.0, -7.85), 0, false],
-		["dry_branches_medium_01", Vector3(-2.85, 1.2, -7.85), 0, false],
-		["Rockingchair_01", Vector3(-4.7, 0.06, -5.0), -110, true],
-		["spinning_wheel_01", Vector3(-3.3, 0.06, -5.15), 220, true],
-		["wicker_basket_02", Vector3(-4.0, 0.06, -5.0), 0, false],
-		["Ottoman_01", Vector3(-5.3, 0.06, -6.45), 0, true],
-		["wooden_axe", Vector3(-6.3, 0.08, FIRE_Z - 1.15), 20, false],
-		["hanging_picture_frame_03", Vector3(-5.3, 1.95, -8.85), 0, false],
-		["fancy_picture_frame_02", Vector3(-2.65, 1.6, -5.4), -90, false],
-		# ---------------- BEDROOM — the room the player left
-		["vintage_day_bed", Vector3(5.45, 0.06, -7.95), -90, true],
-		["throw_pillows_01", Vector3(5.45, 0.5, -8.4), -90, false],
-		["Ukulele_01", Vector3(5.3, 0.5, -7.3), 20, false],
-		["ClassicNightstand_01", Vector3(4.55, 0.06, -8.7), 0, true],
-		["WoodenTable_01", Vector3(2.9, 0.06, -4.9), 180, true],
-		["painted_wooden_chair_01", Vector3(2.9, 0.06, -5.55), 0, true],
-		["boombox", Vector3(3.3, 0.8, -4.85), 180, false],
-		["book_encyclopedia_set_01", Vector3(2.4, 0.8, -4.85), 0, false],
-		["desk_lamp_arm_01", Vector3(3.6, 0.8, -4.8), 200, false],
-		["painted_wooden_cabinet", Vector3(5.6, 0.06, -4.95), -90, true],
-		["wooden_display_shelves_01", Vector3(1.95, 0.06, -8.65), 0, true],
-		["potted_plant_01", Vector3(1.35, 0.06, -5.0), 0, false],
-		["american_football", Vector3(3.9, 0.08, -6.0), 120, false],
-		["vintage_suitcase", Vector3(3.3, 0.06, -7.0), 0, false],
-		["hanging_picture_frame_02", Vector3(2.9, 1.75, -4.62), 180, false],
-		["hanging_picture_frame_03", Vector3(4.3, 1.65, -4.62), 180, false],
+		# ---------------- HALLWAY - a bare corridor to the study door (no furniture)
+		# ---------------- PARENT ROOM - fireplace (memory scene), bed, the photo dresser
+		["GothicBed_01", Vector3(-5.3, 0.06, -7.82), 0, true],
+		["ClassicNightstand_01", Vector3(-6.85, 0.06, -8.627904), 0, true],
+		["vintage_wooden_drawer_01", Vector3(-3.9034564, 0.06, -7.982443), -90, true],
+		["Rockingchair_01", Vector3(-4.7, 0.06, -5.1352453), -110, true],
+		# ---------------- BEDROOM - the room the player left (SuitcaseMemory items rest on these)
+		["vintage_day_bed", Vector3(5.412612, 0.06, -7.8537226), -90, true],
+		["ClassicNightstand_01", Vector3(4.55, 0.06, -8.627904), 0, true],
+		["WoodenTable_01", Vector3(2.9, 0.06, -4.9885874), 180, true],
+		["painted_wooden_chair_01", Vector3(2.9, 0.06, -5.617087), 0, true],
 	]
 	for it in L:
 		var room: Array = _room_of(it[1])
@@ -824,12 +745,6 @@ func _place_props(rooms_root: Node3D) -> void:
 			_props.append(p)
 
 
-# ---------------------------------------------------------------- placement fixer
-const WINDOW_SPOTS := [Vector3(-5.25, 1.45, 0), Vector3(-2.0, 1.45, 0), Vector3(2.0, 1.45, 0), Vector3(4.5, 1.45, 0),
-	Vector3(-7.5, 1.45, -2.25), Vector3(6.0, 1.45, -2.25), Vector3(-3.6, 1.45, -9.0), Vector3(3.4, 1.45, -9.0),
-	Vector3(6.0, 1.45, -6.1)]
-
-
 func _room_of(pos: Vector3) -> Array:
 	for r in ROOMS:
 		if pos.x > r[2] and pos.x < r[3] and pos.z > r[4] and pos.z < r[5]:
@@ -837,142 +752,56 @@ func _room_of(pos: Vector3) -> Array:
 	return []
 
 
-func _starts(id: String, list: Array) -> bool:
-	for x in list:
-		if id.begins_with(x):
-			return true
-	return false
+## A plain pendant lamp hanging from the ceiling: cord, open shade, glowing bulb.
+## light_pos = where the room's light sits (just under the bulb). Shade, bulb and cord cast
+## no shadow, so the ceiling stays softly lit instead of going pitch black.
+func _pendant(room: Node3D, light_pos: Vector3) -> void:
+	var lamp := _group(room, "CeilingLamp")
+	var shade_m := _col_mat("lamp_shade", Color(0.18, 0.16, 0.14)) as StandardMaterial3D
+	shade_m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	ResourceSaver.save(shade_m, shade_m.resource_path)
+	var bulb_m: Material = _mats.get("lamp_bulb")
+	if bulb_m == null:
+		var bm := StandardMaterial3D.new()
+		bm.albedo_color = Color(1.0, 0.95, 0.85)
+		bm.emission_enabled = true
+		bm.emission = Color(1.0, 0.9, 0.75)
+		bm.emission_energy_multiplier = 2.5
+		bulb_m = _save_mat("lamp_bulb", bm)
+	var shade_mesh := CylinderMesh.new()
+	shade_mesh.top_radius = 0.07
+	shade_mesh.bottom_radius = 0.2
+	shade_mesh.height = 0.18
+	shade_mesh.cap_bottom = false
+	var shade := MeshInstance3D.new()
+	shade.name = "Shade"
+	shade.mesh = shade_mesh
+	shade.material_override = shade_m
+	shade.position = light_pos + Vector3(0, 0.12, 0)
+	shade.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	lamp.add_child(shade)
+	var bulb_mesh := SphereMesh.new()
+	bulb_mesh.radius = 0.045
+	bulb_mesh.height = 0.09
+	var bulb := MeshInstance3D.new()
+	bulb.name = "Bulb"
+	bulb.mesh = bulb_mesh
+	bulb.material_override = bulb_m
+	bulb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	bulb.position = light_pos + Vector3(0, 0.08, 0)
+	lamp.add_child(bulb)
+	var cord_top := WALL_H - 0.05
+	var cord_bottom := light_pos.y + 0.21
+	var cord := _box(lamp, "Cord", Vector3(0.012, cord_top - cord_bottom, 0.012), Vector3(light_pos.x, (cord_top + cord_bottom) * 0.5, light_pos.z), shade_m)
+	cord.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-## Footprint half-extents on the floor, taking the Y rotation into account.
-func _half(p: Node3D) -> Vector2:
-	var sz: Vector3 = p.get_meta("size", Vector3(0.3, 0.3, 0.3))
-	var a := absf(fmod(p.rotation.y, PI))
-	var c := absf(cos(a))
-	var sn := absf(sin(a))
-	return Vector2(sz.x * c + sz.z * sn, sz.x * sn + sz.z * c) * 0.5
-
-
-## Fix floating, clipping and overlapping props automatically.
-func _settle_props() -> void:
-	var inset := 0.16  # wall + wallpaper + wainscot thickness
-	var furniture: Array = []
+## Prints where the furniture that memory scenes sit people/objects on ended up, so a memory
+## scene can be checked against it. (Memory-owned objects such as the suitcase are never
+## placed by the level: their memory scene owns them.)
+func _report_placed() -> void:
 	for p in _props:
-		var id: String = p.get_meta("prop_id")
-		var sz: Vector3 = p.get_meta("size")
-		var room: Array = _room_of(p.position)
-		if room.is_empty() or _starts(id, CEILING):
-			continue
-		if _starts(id, WALL_HUNG):
-			_snap_to_wall(p, room)
-			continue
-		if sz.y >= 0.35 and p.position.y < 0.2:
-			furniture.append(p)
-	# 1) furniture: inside walls, clear of doorways, not overlapping each other
-	for it in 6:
-		for p in furniture:
-			var room: Array = _room_of(p.position)
-			if room.is_empty():
-				continue
-			var h: Vector2 = _half(p)
-			p.position.x = clampf(p.position.x, room[0] + inset + h.x, room[1] - inset - h.x)
-			p.position.z = clampf(p.position.z, room[2] + inset + h.y, room[3] - inset - h.y)
-			for d in DOORWAYS:
-				var dc: Vector2 = d[0]
-				var ext := Vector2(0.75, 0.9) if d[1] else Vector2(0.9, 0.75)
-				var dx: float = p.position.x - dc.x
-				var dz: float = p.position.z - dc.y
-				var ox: float = ext.x + h.x - absf(dx)
-				var oz: float = ext.y + h.y - absf(dz)
-				if ox > 0 and oz > 0:
-					if d[1]:
-						p.position.z += signf(dz if dz != 0 else -1.0) * oz
-					else:
-						p.position.x += signf(dx if dx != 0 else 1.0) * ox
-		for i in furniture.size():
-			for j in range(i + 1, furniture.size()):
-				var a: Node3D = furniture[i]
-				var b: Node3D = furniture[j]
-				var ha := _half(a)
-				var hb := _half(b)
-				var dx: float = b.position.x - a.position.x
-				var dz: float = b.position.z - a.position.z
-				var ox: float = ha.x + hb.x + 0.03 - absf(dx)
-				var oz: float = ha.y + hb.y + 0.03 - absf(dz)
-				if ox > 0 and oz > 0:
-					var small: Node3D = b if (b.get_meta("size") as Vector3).length() < (a.get_meta("size") as Vector3).length() else a
-					var sgn := 1.0 if small == b else -1.0
-					if ox < oz:
-						small.position.x += sgn * signf(dx if dx != 0 else 1.0) * ox
-					else:
-						small.position.z += sgn * signf(dz if dz != 0 else 1.0) * oz
-	# 2) small things: rest on the furniture beneath them, or on the floor
-	for p in _props:
-		var id: String = p.get_meta("prop_id")
-		if _starts(id, WALL_HUNG) or _starts(id, CEILING) or furniture.has(p):
-			continue
-		var room: Array = _room_of(p.position)
-		if room.is_empty():
-			continue
-		var best := 0.06
-		var inside := false
-		for f in furniture:
-			var h := _half(f)
-			if absf(p.position.x - f.position.x) < h.x and absf(p.position.z - f.position.z) < h.y:
-				var top: float = f.position.y + (f.get_meta("size") as Vector3).y
-				if p.position.y > 0.12 and p.position.y < top - 0.1:
-					inside = true  # sits on an inner shelf: leave it
-				elif top <= p.position.y + 0.35 and top > best:
-					best = top
-		if not inside:
-			p.position.y = best
-		var h2 := _half(p)
-		p.position.x = clampf(p.position.x, room[0] + inset + h2.x, room[1] - inset - h2.x)
-		p.position.z = clampf(p.position.z, room[2] + inset + h2.y, room[3] - inset - h2.y)
-
-
-## Wall items: flat against the nearest wall, facing into the room, clear of doors/windows.
-func _snap_to_wall(p: Node3D, room: Array) -> void:
-	var sides := [
-		[absf(p.position.z - room[2]), Vector3(0, 0, 1), room[2]],
-		[absf(p.position.z - room[3]), Vector3(0, 0, -1), room[3]],
-		[absf(p.position.x - room[0]), Vector3(1, 0, 0), room[0]],
-		[absf(p.position.x - room[1]), Vector3(-1, 0, 0), room[1]],
-	]
-	sides.sort_custom(func(a, b): return a[0] < b[0])
-	var n: Vector3 = sides[0][1]
-	var plane: float = sides[0][2]
-	p.rotation.y = atan2(n.x, n.z)
-	var size: Vector3 = p.get_meta("size")
-	var depth: float = minf(size.z, size.x)
-	var half_w: float = maxf(size.x, size.z) * 0.5
-	var openings: Array = []
-	for d in DOORWAYS:
-		openings.append([Vector3(d[0].x, 0, d[0].y), 0.85])
-	for w in WINDOW_SPOTS:
-		openings.append([w, 0.8])
-	for o in openings:
-		var op: Vector3 = o[0]
-		var r: float = o[1] + half_w + 0.05
-		if absf(n.z) > 0.5 and absf(op.z - plane) < 0.3 and absf(p.position.x - op.x) < r:
-			p.position.x = op.x + signf(p.position.x - op.x if p.position.x != op.x else 1.0) * r
-		elif absf(n.x) > 0.5 and absf(op.x - plane) < 0.3 and absf(p.position.z - op.z) < r:
-			p.position.z = op.z + signf(p.position.z - op.z if p.position.z != op.z else 1.0) * r
-	var off := 0.125 + depth * 0.5
-	if absf(n.z) > 0.5:
-		p.position.z = plane + n.z * off
-	else:
-		p.position.x = plane + n.x * off
-
-
-func _report_and_remove_memory_owned() -> void:
-	for p in _props.duplicate():
 		var id: String = p.get_meta("prop_id")
 		if id in ["vintage_wooden_drawer_01", "SchoolDesk_01", "ArmChair_01", "SchoolChair_01", "ClassicNightstand_01", "WoodenTable_01"]:
 			print("PLACED ", id, " pos=", p.position, " size=", p.get_meta("size"), " rot=", p.rotation_degrees.y)
 		p.remove_meta("prop_id")
-		if id in MEMORY_OWNED:
-			print("MEMORY_OWNED ", id, " pos=", p.position, " rot=", p.rotation_degrees.y)
-			_props.erase(p)
-			p.get_parent().remove_child(p)
-			p.free()
