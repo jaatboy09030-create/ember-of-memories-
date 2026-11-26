@@ -45,6 +45,19 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **Face pixelation**: max 4 faces at once (`faces[4]` uniform), only within 14 m and line-of-sight.
 - **Sky letters blurred by depth-of-field** → Label3D needs `ALPHA_CUT_OPAQUE_PREPASS` to write depth (title_sequence.gd).
 - **Indoors frame-rate** — OutdoorCulling hides `outdoor_only` nodes when camera z < −0.3. Put heavy outdoor stuff in that group.
+- **Mouse clicks miss in a screen-space-distorted view** → `project_ray_origin(mouse)` uses the flat image but the
+  player sees the bent one → ScreenEffects turns the lens off for every camera that is not `PlayerCamera`. Keep any
+  mouse-driven mini-game on its own camera.
+- **Face mosaic / any screen marker drifts off target with the lens on** → `unproject_position` returns flat pixels →
+  in the shader compute the bent UV first, then test markers against it (see camera_fx `lens_uv`).
+- **New `class_name` "not declared" when running headless tests** → the global class cache is only rebuilt by the
+  editor → run `Godot --headless --path . --import` once after adding a class.
+- **Hard-coded FOV numbers in cutscenes** → title used `70.0` while `default_fov` changed → return to `cam.default_fov`.
+- **Windowed `--storytest` ray check FAILs at random (PhotoFrame / Fireplace)** → the window captures the real mouse, so any
+  mouse/gamepad input changes `target_yaw`/`pitch` during the 0.3 s check → use headless runs for PASS/FAIL; use a windowed
+  run only to catch `SHADER ERROR` (headless uses a dummy renderer and never compiles shaders).
+- **`--walktest --gate` prints `FAIL (stuck)` at z=3.0** → pre-existing (fails on clean `f0ea80f` too): the test walks 7 s
+  (420 physics frames) at 1.75 m/s = 12.25 m, but gate z=15 to inside z<-1 is 16 m. Not stuck — out of time. Fix = longer loop.
 
 ## Repo / tooling
 - **Push rejected: file > 100 MB** → big Poly Haven trees are gitignored (`pine_tree_01`, `pine_sapling_medium`). Check sizes before adding assets.

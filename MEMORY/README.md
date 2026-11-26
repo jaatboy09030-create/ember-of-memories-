@@ -23,7 +23,8 @@ Last full audit: **2026-11-26**, at commit `c806893` (main).
 | 6 | [06-recipes.md](06-recipes.md) | Doing a repetitive task (new interactable, memory, sound, door, prop, test run...). Follow step by step. |
 | 7 | [07-gotchas-and-learnings.md](07-gotchas-and-learnings.md) | **Before debugging anything.** Known pitfalls and their fixes. |
 | 8 | [08-conventions.md](08-conventions.md) | Before writing code. The owner's rules — non-negotiable. |
-| 9 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
+| 9 | [09-camera.md](09-camera.md) | Touching the camera, screen look, lens, shake or comfort settings. Research + backlog. |
+| 10 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
 
 ---
 

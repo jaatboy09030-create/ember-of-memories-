@@ -1,10 +1,18 @@
 class_name ScreenEffects
 extends CanvasLayer
-## SCREEN EFFECTS: the film look drawn over the 3D view (shaders/camera_fx.gdshader):
-## vignette, grain, colour fringe, warm/cold tint, the grey "frozen memory" look, and the
-## pixelated faces of the memory figures.
+## SCREEN EFFECTS: the film / worn-camera look drawn over the 3D view
+## (shaders/camera_fx.gdshader): a gentle lens bend (barrel distortion, cropped so there are
+## no black edges) with colour fringe toward the edges, vignette, sensor grain that is
+## stronger in the dark, warm/cold tint, the grey "frozen memory" look, and the pixelated
+## faces of the memory figures.
 ##
-## How to change it: the resting values below; the shader's own uniforms are on
+## The lens is only on while the player's camera (PlayerCamera) is the active camera. It
+## fades out for any other camera (e.g. the drawing puzzle, where the mouse must hit exactly
+## what it points at) and is softer while a cutscene drives the player camera.
+## The HUD is a higher CanvasLayer, so prompts and captions are never bent.
+##
+## How to change it: the resting values and the Lens group below; overall strength and
+## accessibility in settings/camera_comfort.tres; the shader's own uniforms are on
 ## FilmLook > Material in the Inspector.
 ##
 ## World colour: `world_saturation` (0 grey .. 1 full colour) drives BOTH this screen effect
@@ -12,8 +20,26 @@ extends CanvasLayer
 
 @export var resting_vignette := 0.32
 @export var resting_aberration := 0.0012
+## Film grain amount when comfort.grain = 1.
+@export var resting_grain := 0.03
 ## Faces further away than this are not pixelated.
 @export var face_blur_distance := 14.0
+## Shared strength sliders (lens / grain). Empty = everything at full.
+@export var comfort: CameraComfort
+
+@export_group("Lens")
+## Barrel bend (k1). 0 = flat. ~0.1 = gentle worn-camera curve; 0.3+ = fisheye.
+@export_range(0.0, 0.5) var lens_bend := 0.1
+## Extra bend toward the far corners (k2).
+@export_range(0.0, 0.5) var lens_bend_edges := 0.02
+## Colour fringe that grows toward the edges.
+@export_range(0.0, 0.02) var lens_fringe := 0.003
+## Lens strength while a cutscene drives the player camera (PlayerCamera.cinematic).
+@export_range(0.0, 1.0) var cinematic_lens_scale := 0.6
+## How fast the lens fades in/out when the active camera changes (full strength per second).
+@export var lens_fade_speed := 3.0
+## 0..1: how much stronger the grain is in dark areas (cheap-sensor noise).
+@export_range(0.0, 1.0) var shadow_noise := 0.6
 
 @onready var film_look: ColorRect = $FilmLook
 @onready var mat: ShaderMaterial = film_look.material
@@ -25,9 +51,19 @@ var world_saturation := 0.3:
 		if mat:
 			mat.set_shader_parameter("world_sat", v)
 
+var _lens := 0.0  # 0 = no lens .. 1 = full lens, eased toward its target every frame
+
 
 func _ready() -> void:
 	world_saturation = world_saturation
+	apply_comfort()
+
+
+## Re-read the comfort resource (call after an options menu changes it).
+func apply_comfort() -> void:
+	var g := comfort.grain if comfort else 1.0
+	mat.set_shader_parameter("grain", resting_grain * g)
+	mat.set_shader_parameter("shadow_noise", shadow_noise)
 
 
 ## Fade the world's colour to `value` over `time` seconds.
@@ -68,11 +104,32 @@ func reset_vignette(time := 0.6) -> void:
 	tween_shader("vignette", resting_vignette, time)
 
 
-## Pixelate the memory figures' faces (nodes in the "memory_face" group).
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var cam := get_viewport().get_camera_3d()
+	_update_lens(cam, delta)
 	if not cam:
 		return
+	_update_faces(cam)
+
+
+## Lens on for the player camera, softer in cutscenes, off for any other camera.
+func _update_lens(cam: Camera3D, delta: float) -> void:
+	var target := 0.0
+	var player_cam := cam as PlayerCamera
+	if player_cam:
+		target = cinematic_lens_scale if player_cam.cinematic else 1.0
+		if comfort:
+			target *= comfort.lens
+	_lens = move_toward(_lens, target, delta * lens_fade_speed)
+	mat.set_shader_parameter("lens_k1", lens_bend * _lens)
+	mat.set_shader_parameter("lens_k2", lens_bend_edges * _lens)
+	mat.set_shader_parameter("lens_fringe", lens_fringe * _lens)
+
+
+## Pixelate the memory figures' faces (nodes in the "memory_face" group).
+## Positions are flat-screen pixels; the shader bends first, then tests them, so the
+## mosaics stay on the faces with the lens on.
+func _update_faces(cam: Camera3D) -> void:
 	var faces: Array = []
 	for f in get_tree().get_nodes_in_group("memory_face"):
 		var face := f as Node3D
