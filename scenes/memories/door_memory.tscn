@@ -1,0 +1,22 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/memories/door_memory.gd" id="1_door"]
+[ext_resource type="PackedScene" path="res://scenes/objects/study_door.tscn" id="2_study_door"]
+
+[node name="DoorMemory" type="Node3D" node_paths=PackedStringArray("ember_rest_point")]
+script = ExtResource("1_door")
+room_id = "hall"
+unlocks_door_id = "bed"
+saturation_after = 0.3
+saturation_time = 1.0
+warms_room = false
+ember_rest_point = NodePath("EmberRestPoint")
+
+[node name="StudyDoor" parent="." instance=ExtResource("2_study_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, -8.84)
+
+[node name="ArgumentSoundPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.4, -9.6)
+
+[node name="EmberRestPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0, -8)

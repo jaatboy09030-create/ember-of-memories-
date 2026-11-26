@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/beige_wall_001/beige_wall_001_diff.jpg" id="1_bj5j6"]
+[ext_resource type="Texture2D" path="res://assets/textures/beige_wall_001/beige_wall_001_nor.jpg" id="2_tjjrn"]
+[ext_resource type="Texture2D" path="res://assets/textures/beige_wall_001/beige_wall_001_rough.jpg" id="3_2topu"]
+
+[resource]
+resource_name = "wallpaper_living"
+albedo_color = Color(1, 0.93, 0.82, 1)
+albedo_texture = ExtResource("1_bj5j6")
+roughness_texture = ExtResource("3_2topu")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_tjjrn")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5

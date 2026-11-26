@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/memories/drawing_memory.gd" id="1_drawing"]
+[ext_resource type="PackedScene" path="res://scenes/objects/drawing_piece.tscn" id="2_piece"]
+[ext_resource type="PackedScene" path="res://scenes/objects/torn_drawing_puzzle.tscn" id="3_puzzle"]
+[ext_resource type="PackedScene" path="res://scenes/objects/drawing_on_wall.tscn" id="4_wall"]
+[ext_resource type="PackedScene" path="res://scenes/objects/memory_figure.tscn" id="5_figure"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/boy_sit.fbx" id="6_boy"]
+
+[node name="DrawingMemory" type="Node3D" node_paths=PackedStringArray("ember_rest_point")]
+script = ExtResource("1_drawing")
+room_id = "kid"
+unlocks_door_id = "hall"
+saturation_after = 0.6
+ember_rest_point = NodePath("EmberRestPoint")
+
+[node name="DrawingPieces" type="Node3D" parent="."]
+
+[node name="PieceByTheBed" parent="DrawingPieces" instance=ExtResource("2_piece")]
+transform = Transform3D(0.766044, 0, 0.642788, 0, 1, 0, -0.642788, 0, 0.766044, -6.2, 0, -1)
+
+[node name="PieceByTheShelves" parent="DrawingPieces" instance=ExtResource("2_piece")]
+transform = Transform3D(-0.34202, 0, 0.939693, 0, 1, 0, -0.939693, 0, -0.34202, -3.7, 0, -2.9)
+
+[node name="PieceByTheBookcase" parent="DrawingPieces" instance=ExtResource("2_piece")]
+transform = Transform3D(-0.34202, 0, -0.939693, 0, 1, 0, 0.939693, 0, -0.34202, -5.7, 0, -3.3)
+
+[node name="TornDrawingPuzzle" parent="." instance=ExtResource("3_puzzle")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 0.9426, -4.09)
+
+[node name="DrawingOnWall" parent="." instance=ExtResource("4_wall")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.55, -4.36)
+
+[node name="BoyAtDesk" parent="." node_paths=PackedStringArray("seat_point") instance=ExtResource("5_figure")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -4.6, 0.06, -3.5)
+frozen_at = 0.4
+seat_point = NodePath("SeatPoint")
+
+[node name="CharacterModel" parent="BoyAtDesk" instance=ExtResource("6_boy")]
+
+[node name="SeatPoint" type="Marker3D" parent="BoyAtDesk"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, -0.03)
+
+[node name="EmberRestPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 0, -4.15)

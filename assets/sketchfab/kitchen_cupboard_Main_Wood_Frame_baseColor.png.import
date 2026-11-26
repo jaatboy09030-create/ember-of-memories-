@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cr11ce0loholl"
-path="res://.godot/imported/kitchen_cupboard_Main_Wood_Frame_baseColor.png-7a4e48f96d5be58c4c3987997f685b9d.ctex"
+path.s3tc="res://.godot/imported/kitchen_cupboard_Main_Wood_Frame_baseColor.png-7a4e48f96d5be58c4c3987997f685b9d.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e2f4ba666d7a5e67fbcd4b46b74216a0"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/sketchfab/kitchen_cupboard_Main_Wood_Frame_baseColor.png"
-dest_files=["res://.godot/imported/kitchen_cupboard_Main_Wood_Frame_baseColor.png-7a4e48f96d5be58c4c3987997f685b9d.ctex"]
+dest_files=["res://.godot/imported/kitchen_cupboard_Main_Wood_Frame_baseColor.png-7a4e48f96d5be58c4c3987997f685b9d.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

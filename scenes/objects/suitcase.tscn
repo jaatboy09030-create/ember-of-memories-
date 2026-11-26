@@ -1,0 +1,20 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/suitcase.gd" id="1_suitcase"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/vintage_suitcase/vintage_suitcase.gltf" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="InteractBox"]
+size = Vector3(1.7, 0.7, 0.5)
+
+[node name="Suitcase" type="Area3D"]
+script = ExtResource("1_suitcase")
+prompt_text = "close the suitcase"
+
+[node name="InteractShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("InteractBox")
+
+[node name="SuitcaseModel" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.000721, 0.000106, 0.009233)
+
+[node name="PackPoint" type="Marker3D" parent="."]

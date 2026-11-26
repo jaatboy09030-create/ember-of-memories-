@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/drawing_on_wall.gd" id="1_wall"]
+[ext_resource type="Texture2D" path="res://assets/textures/kids_drawing/kids_drawing.png" id="2_drawing"]
+
+[sub_resource type="BoxMesh" id="BackingMesh"]
+size = Vector3(0.8, 0.6, 0.01)
+
+[sub_resource type="StandardMaterial3D" id="BackingMaterial"]
+albedo_color = Color(0.97, 0.96, 0.9, 1)
+roughness = 0.9
+
+[sub_resource type="QuadMesh" id="PictureMesh"]
+size = Vector2(0.6, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="PictureMaterial"]
+albedo_texture = ExtResource("2_drawing")
+roughness = 0.95
+
+[node name="DrawingOnWall" type="Node3D"]
+script = ExtResource("1_wall")
+
+[node name="PaperBacking" type="MeshInstance3D" parent="."]
+mesh = SubResource("BackingMesh")
+surface_material_override/0 = SubResource("BackingMaterial")
+
+[node name="DrawingPicture" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.012)
+mesh = SubResource("PictureMesh")
+surface_material_override/0 = SubResource("PictureMaterial")

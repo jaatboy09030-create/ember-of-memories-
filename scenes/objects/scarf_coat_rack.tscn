@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/scarf_coat_rack.gd" id="1_rack"]
+[ext_resource type="PackedScene" path="res://assets/sketchfab/coat_rack_scarf.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="InteractBox"]
+size = Vector3(0.8, 1.9, 0.8)
+
+[sub_resource type="BoxShape3D" id="RackBox"]
+size = Vector3(0.473, 1.85, 0.52)
+
+[node name="ScarfCoatRack" type="Area3D"]
+script = ExtResource("1_rack")
+prompt_text = "knit: alternate left / right"
+scarf_mesh_path = NodePath("CoatRackModel/Sketchfab_model_001/Hanger_fbx/RootNode_001/Scarf/Scarf__0")
+
+[node name="InteractShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.95, 0)
+shape = SubResource("InteractBox")
+
+[node name="CoatRackModel" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001104, 0.026236)
+
+[node name="RackBody" type="StaticBody3D" parent="."]
+
+[node name="RackCollision" type="CollisionShape3D" parent="RackBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.925, 0)
+shape = SubResource("RackBox")

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b0851ikcilki0"
-path="res://.godot/imported/fireplace_rustic_burning_logs_emissive.jpg-461d40e5bb16ae10af5b0cb5080b2046.ctex"
+path.s3tc="res://.godot/imported/fireplace_rustic_burning_logs_emissive.jpg-461d40e5bb16ae10af5b0cb5080b2046.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e988bd5e65ab4bb8481c4bed289b0765"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/sketchfab/fireplace_rustic_burning_logs_emissive.jpg"
-dest_files=["res://.godot/imported/fireplace_rustic_burning_logs_emissive.jpg-461d40e5bb16ae10af5b0cb5080b2046.ctex"]
+dest_files=["res://.godot/imported/fireplace_rustic_burning_logs_emissive.jpg-461d40e5bb16ae10af5b0cb5080b2046.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

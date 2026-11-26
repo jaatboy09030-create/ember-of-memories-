@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/fireplace.gd" id="1_fireplace"]
+[ext_resource type="PackedScene" path="res://assets/sketchfab/fireplace_rustic.glb" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="InteractBox"]
+size = Vector3(1.4, 1, 0.8)
+
+[sub_resource type="BoxShape3D" id="FireplaceBox"]
+size = Vector3(1.591, 1.92, 1.151)
+
+[sub_resource type="Curve" id="FlameSizeOverLife"]
+_data = [Vector2(0, 0.5), 0.0, 0.0, 0, 0, Vector2(0.25, 1), 0.0, 0.0, 0, 0, Vector2(1, 0.15), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="FlameSizeTexture"]
+curve = SubResource("FlameSizeOverLife")
+
+[sub_resource type="Gradient" id="FlameColors"]
+offsets = PackedFloat32Array(0, 0.12, 0.5, 1)
+colors = PackedColorArray(1, 0.85, 0.45, 0, 1, 0.7, 0.3, 0.95, 1, 0.38, 0.08, 0.7, 0.6, 0.12, 0.02, 0)
+
+[sub_resource type="GradientTexture1D" id="FlameColorTexture"]
+gradient = SubResource("FlameColors")
+
+[sub_resource type="ParticleProcessMaterial" id="FlameMotion"]
+emission_shape = 3
+emission_box_extents = Vector3(0.12, 0.03, 0.3)
+direction = Vector3(0, 1, 0)
+spread = 12.0
+initial_velocity_min = 0.35
+initial_velocity_max = 0.7
+gravity = Vector3(0, 0.6, 0)
+scale_min = 0.6
+scale_max = 1.2
+scale_curve = SubResource("FlameSizeTexture")
+color_ramp = SubResource("FlameColorTexture")
+
+[sub_resource type="Gradient" id="SoftBlob"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftBlobTexture"]
+gradient = SubResource("SoftBlob")
+fill = 1
+fill_from = Vector2(0.5, 0.6)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="StandardMaterial3D" id="FlameMaterial"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+albedo_color = Color(2.2, 2.2, 2.2, 1)
+albedo_texture = SubResource("SoftBlobTexture")
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="FlameQuad"]
+material = SubResource("FlameMaterial")
+size = Vector2(0.32, 0.42)
+
+[node name="Fireplace" type="Area3D"]
+script = ExtResource("1_fireplace")
+prompt_text = "relight the fire"
+
+[node name="InteractShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.4)
+shape = SubResource("InteractBox")
+
+[node name="FireplaceModel" type="Node3D" parent="."]
+transform = Transform3D(0.8, 0, 0, 0, 0.8, 0, 0, 0, 0.8, 0, 0, 0)
+
+[node name="RusticFireplace" parent="FireplaceModel" instance=ExtResource("2_model")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.045589, 1.367929, 0.547222)
+
+[node name="FireplaceBody" type="StaticBody3D" parent="."]
+
+[node name="FireplaceCollision" type="CollisionShape3D" parent="FireplaceBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
+shape = SubResource("FireplaceBox")
+
+[node name="HearthFire" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.26, -0.35)
+
+[node name="Flames" type="GPUParticles3D" parent="HearthFire"]
+amount = 46
+lifetime = 0.85
+local_coords = false
+process_material = SubResource("FlameMotion")
+draw_pass_1 = SubResource("FlameQuad")
+
+[node name="FireLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0.6)
+light_color = Color(1, 0.5, 0.2, 1)
+light_energy = 0.0
+shadow_enabled = true
+omni_range = 9.0

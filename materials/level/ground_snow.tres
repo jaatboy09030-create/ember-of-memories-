@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_snow/asphalt_snow_diff.jpg" id="1_fsb4l"]
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_snow/asphalt_snow_nor.jpg" id="2_4d2xp"]
+[ext_resource type="Texture2D" path="res://assets/textures/asphalt_snow/asphalt_snow_rough.jpg" id="3_2vtx5"]
+
+[resource]
+resource_name = "ground_snow"
+albedo_texture = ExtResource("1_fsb4l")
+roughness_texture = ExtResource("3_2vtx5")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_4d2xp")
+uv1_scale = Vector3(0.25, 0.25, 0.25)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5

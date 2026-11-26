@@ -1,0 +1,136 @@
+[gd_scene format=3]
+
+[ext_resource type="Material" path="res://materials/window_frame.tres" id="1_frame"]
+[ext_resource type="Material" path="res://materials/window_glass_night.tres" id="2_glass"]
+[ext_resource type="Material" path="res://materials/snow_white.tres" id="3_snow"]
+[ext_resource type="Material" path="res://materials/curtain_fabric.tres" id="4_cloth"]
+[ext_resource type="Material" path="res://materials/curtain_rod.tres" id="5_rod"]
+
+[sub_resource type="BoxMesh" id="GlassMesh"]
+size = Vector3(1.1, 1.2, 0.02)
+
+[sub_resource type="BoxMesh" id="BarHorizontalMesh"]
+size = Vector3(1.24, 0.07, 0.05)
+
+[sub_resource type="BoxMesh" id="BarVerticalMesh"]
+size = Vector3(0.07, 1.32, 0.05)
+
+[sub_resource type="BoxMesh" id="MuntinHorizontalMesh"]
+size = Vector3(1.2, 0.04, 0.04)
+
+[sub_resource type="BoxMesh" id="MuntinVerticalMesh"]
+size = Vector3(0.04, 1.2, 0.04)
+
+[sub_resource type="BoxMesh" id="SillMesh"]
+size = Vector3(1.3, 0.06, 0.2)
+
+[sub_resource type="BoxMesh" id="CurtainMesh"]
+size = Vector3(0.42, 2.05, 0.05)
+
+[sub_resource type="BoxMesh" id="RodMesh"]
+size = Vector3(2.2, 0.03, 0.03)
+
+[node name="HouseWindow" type="Node3D"]
+
+[node name="GlassOutside" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.13)
+mesh = SubResource("GlassMesh")
+surface_material_override/0 = ExtResource("2_glass")
+
+[node name="GlassInside" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.13)
+mesh = SubResource("GlassMesh")
+surface_material_override/0 = ExtResource("2_glass")
+
+[node name="FrameOutside" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1495)
+
+[node name="FrameTop" type="MeshInstance3D" parent="FrameOutside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.63, 0)
+mesh = SubResource("BarHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameBottom" type="MeshInstance3D" parent="FrameOutside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.63, 0)
+mesh = SubResource("BarHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="FrameOutside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 0)
+mesh = SubResource("BarVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameRight" type="MeshInstance3D" parent="FrameOutside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0)
+mesh = SubResource("BarVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="MuntinHorizontal" type="MeshInstance3D" parent="FrameOutside"]
+mesh = SubResource("MuntinHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="MuntinVertical" type="MeshInstance3D" parent="FrameOutside"]
+mesh = SubResource("MuntinVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameInside" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.1495)
+
+[node name="FrameTop" type="MeshInstance3D" parent="FrameInside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.63, 0)
+mesh = SubResource("BarHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameBottom" type="MeshInstance3D" parent="FrameInside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.63, 0)
+mesh = SubResource("BarHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameLeft" type="MeshInstance3D" parent="FrameInside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 0, 0)
+mesh = SubResource("BarVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="FrameRight" type="MeshInstance3D" parent="FrameInside"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0, 0)
+mesh = SubResource("BarVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="MuntinHorizontal" type="MeshInstance3D" parent="FrameInside"]
+mesh = SubResource("MuntinHorizontalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="MuntinVertical" type="MeshInstance3D" parent="FrameInside"]
+mesh = SubResource("MuntinVerticalMesh")
+surface_material_override/0 = ExtResource("1_frame")
+
+[node name="SnowOnSill" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.66, 0.2)
+mesh = SubResource("SillMesh")
+surface_material_override/0 = ExtResource("3_snow")
+
+[node name="MoonlightBeam" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.80178, 0.59762, 0, -0.59762, 0.80178, 0, 0.55, -0.25)
+light_color = Color(0.55, 0.66, 1, 1)
+light_energy = 2.0
+light_volumetric_fog_energy = 2.5
+light_size = 0.6
+light_specular = 0.5
+spot_range = 7.0
+spot_attenuation = 0.8
+spot_angle = 32.0
+
+[node name="CurtainLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.86, -0.12, -0.2)
+mesh = SubResource("CurtainMesh")
+surface_material_override/0 = ExtResource("4_cloth")
+
+[node name="CurtainRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.86, -0.12, -0.2)
+mesh = SubResource("CurtainMesh")
+surface_material_override/0 = ExtResource("4_cloth")
+
+[node name="CurtainRod" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93, -0.2)
+mesh = SubResource("RodMesh")
+surface_material_override/0 = ExtResource("5_rod")

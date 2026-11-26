@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ds6qxuh3pvybc"
-path="res://.godot/imported/grandma_Hirii_-_Copy(1)_-_Copy.png-fa34a06c8458402d0c8c2c0f5c701ba7.ctex"
+path.s3tc="res://.godot/imported/grandma_Hirii_-_Copy(1)_-_Copy.png-fa34a06c8458402d0c8c2c0f5c701ba7.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1f4b8ca0483f3be5682e6698366621be"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/grandma_Hirii_-_Copy(1)_-_Copy.png"
-dest_files=["res://.godot/imported/grandma_Hirii_-_Copy(1)_-_Copy.png-fa34a06c8458402d0c8c2c0f5c701ba7.ctex"]
+dest_files=["res://.godot/imported/grandma_Hirii_-_Copy(1)_-_Copy.png-fa34a06c8458402d0c8c2c0f5c701ba7.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

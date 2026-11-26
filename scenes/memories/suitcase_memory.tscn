@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/memories/suitcase_memory.gd" id="1_suitcase_memory"]
+[ext_resource type="PackedScene" path="res://scenes/objects/suitcase.tscn" id="2_suitcase"]
+[ext_resource type="PackedScene" path="res://scenes/objects/packable_item.tscn" id="3_item"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/alarm_clock_01/alarm_clock_01.gltf" id="4_clock"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/binder_notebook/binder_notebook.gltf" id="5_notes"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/gamepad/gamepad.gltf" id="6_gamepad"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/postcard_set_01/postcard_set_01.gltf" id="7_postcards"]
+
+[node name="SuitcaseMemory" type="Node3D" node_paths=PackedStringArray("ember_rest_point")]
+script = ExtResource("1_suitcase_memory")
+room_id = "bed"
+unlocks_door_id = "parent"
+warms_room = false
+ember_rest_point = NodePath("EmberRestPoint")
+
+[node name="Suitcase" parent="." instance=ExtResource("2_suitcase")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0.06, -7)
+
+[node name="PackableItems" type="Node3D" parent="."]
+
+[node name="AlarmClock" parent="PackableItems" instance=ExtResource("3_item")]
+transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 4.55, 0.76, -8.63)
+memory_line = "The clock she set for my first day of school."
+
+[node name="ItemModel" parent="PackableItems/AlarmClock" instance=ExtResource("4_clock")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001228, -0.009132)
+
+[node name="SchoolNotes" parent="PackableItems" instance=ExtResource("3_item")]
+transform = Transform3D(-0.173648, 0, 0.984808, 0, 1, 0, -0.984808, 0, -0.173648, 2.6, 0.61, -4.99)
+memory_line = "My old school notes. She kept every one."
+
+[node name="ItemModel" parent="PackableItems/SchoolNotes" instance=ExtResource("5_notes")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.135203, 0.002095, -0.000365)
+
+[node name="Gamepad" parent="PackableItems" instance=ExtResource("3_item")]
+transform = Transform3D(-0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, -0.939693, 4.2, 0.06, -5.8)
+memory_line = "She saved for months to buy me this."
+
+[node name="ItemModel" parent="PackableItems/Gamepad" instance=ExtResource("6_gamepad")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.008479, 0.000592, -0.003176)
+
+[node name="Postcards" parent="PackableItems" instance=ExtResource("3_item")]
+transform = Transform3D(0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 1.8, 0.06, -7.9)
+memory_line = "Postcards. All addressed to me. Never sent."
+
+[node name="ItemModel" parent="PackableItems/Postcards" instance=ExtResource("7_postcards")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.255, 0.2725, -0.22)
+
+[node name="EmberRestPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0, -7)
