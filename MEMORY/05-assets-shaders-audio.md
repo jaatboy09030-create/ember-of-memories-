@@ -10,6 +10,11 @@
 | `sketchfab/` | glb | Sketchfab CC-BY 4.0 — **credits required**, see `assets/sketchfab/CREDITS.md` | coat rack + scarf, fireplace, gate leaves/post, fence, mailbox, kitchen counter/cupboard, firewood | used |
 | `stylised assets/stylised assets/Stylized_Nature_MegaKitStandard/glTF/` | glTF | Quaternius (CC0) | trees, bushes, rocks, grass (via SnowyFoliage) | used |
 | `stylised assets/stylised assets/Medieval_Village_MegaKitStandard/` | — | Quaternius | — | **unused** |
+| `house/house_exterior.glb` (+ extracted `house_exterior_*.jpg`) | glb ~21 MB | Tripo AI parts + Blender modelling (XMavrik), assembled in Blender scene `TripoHouse` | the two-storey house shell (walls, roof, roof/porch snow, icicles, 19 windows + glass, lit-window glow + silhouette, porch, steps, chimney, lantern) | used |
+| `vfx/burning_leaf.glb` | glb | modelled in Blender (scene `VFXParts`) | opening burning leaves | used |
+| `res://Vefects/` | Godot asset | Vefects Stylized Fire (Godot Asset Store) — **licence forbids public repos -> gitignored**; install locally | Ember flame | local only |
+| `ui/` | png/ico | owner's lily logo (XMavrik) | game icon, title-screen LogoMark | used |
+| `fonts/bodoni_moda/` | ttf (18pt Bold = name, 28pt Medium = prompt) | Bodoni Moda, Google Fonts, **SIL OFL** (OFL.txt alongside) | title name + tap prompt | used |
 | `textures/<name>/` | jpg PBR sets | Poly Haven textures (CC0) | level materials; `kids_drawing/kids_drawing.png` (generated) | used |
 
 Excluded from git (>100 MB, GitHub limit): `assets/polyhaven/pine_tree_01/`, `assets/polyhaven/pine_sapling_medium/` (.gitignore).
@@ -25,7 +30,7 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 | theme_full | FireplaceMemory (ending) |
 | wind_loop, house_tone_loop | AmbienceMixer (AudioStreamPlayers in main.tscn) |
 | step_snow, step_wood, floor_creak | player_footsteps.gd |
-| ember_chime | ArrivalMemory, TitleSequence |
+| ember_chime | ArrivalMemory, TitleSequence (since 2026-11-26 a soft flame breath, no bells) |
 | door_creak, door_slam | GardenGate, InteriorDoor, DoorMemory |
 | argument_muffled | DoorMemory (positional) |
 | knit_loop | ScarfCoatRack (positional loop) |
@@ -34,9 +39,9 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 | pack_item | PackableItem, StudyDoor (push sound) |
 | suitcase_close | Suitcase |
 | photo_flip | PhotoFrame |
-| heartbeat, memory_restore | PhotoMemory; memory_restore also Memory.play_restore_moment |
-| fire_ignite, fire_loop | Fireplace |
-| v_scarf, v_artist, v_letter | voice lines via `hud.say(text, dur, voice)` |
+| heartbeat, memory_restore | PhotoMemory; memory_restore also Memory.play_restore_moment (now a slow low cello swell; Memory bus) |
+| fire_ignite, fire_loop | Fireplace (fire_ignite now a match + slow catch) |
+| v_scarf, v_artist, v_letter | voice lines via `hud.say(text, dur, voice)`; Memory bus. Grandma = ElevenLabs voice "Grandma - Unsent" (library: Maria Moody); mother = "Mother - Unsent" (Valentyna). eleven_v3 + emotion tags, slowed 0.84x and warmed with ffmpeg (06 R12). Caption durations in the memory scripts match the clip lengths. |
 
 ## Shaders (`shaders/`)
 | Shader | Type | Used by | Notes |
@@ -51,6 +56,10 @@ When adding a Sketchfab (CC-BY) model: **add a row to `assets/sketchfab/CREDITS.
 | memory_surface.gdshader | spatial | **nothing** (level materials are StandardMaterial3D) | orphan — triplanar surface |
 | photo_glass.gdshader | spatial, unshaded, transparent | PhotoFrame `FramePivot/Glass` | `reflect` 0..1 shows `reflection_tex` mirrored |
 | face_blur.gdshader | spatial | **nothing** (faces now pixelated in camera_fx) | orphan |
+| night_sky.gdshader | sky | main.tscn Sky | near-black sky, big detailed moon (position = Moon light), Milky Way (`milky_way_pole`, `band_offset`), 3 star layers, puffy moonlit clouds (`cloud_cover`: lower = more). Cheap path in `AT_CUBEMAP_PASS`. |
+| burning_leaf.gdshader | spatial | title BurningLeaves | edge-inward burn by particle age (`INSTANCE_CUSTOM.y`), char + glowing rim, veins, curl |
+| leaf_fall.gdshader | **particles** (process) | title BurningLeaves | pendulum glide / rock / spin fall; emits flame sub-particles (`emit_subparticle`) while burning |
+| ember_wisp.gdshader / ember_smoke.gdshader | spatial (particle billboards) | EmberFire, LeafFlames | noise-torn additive flame / mix-blended smoke |
 
 Global shader parameter **`world_sat`** (float, default 0.3) is declared in `project.godot [shader_globals]` and set only by
 `ScreenEffects.world_saturation`. Any new shader that should grey out with the story: `global uniform float world_sat;`.

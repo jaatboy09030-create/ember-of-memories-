@@ -13,7 +13,43 @@ extends Node
 ## How far a 3D sound carries (bigger = audible from further away).
 @export var positional_unit_size := 3.0
 
+## Voices (v_*) and these memory sounds play through the "Memory" bus: a soft, dark room
+## reverb with the top end rolled off, so what you hear sounds remembered, not present.
+@export var memory_sounds: PackedStringArray = ["memory_restore", "heartbeat", "argument_muffled"]
+
 @onready var music_player: AudioStreamPlayer = $MusicPlayer
+
+const MEMORY_BUS := "Memory"
+
+
+func _ready() -> void:
+	_make_memory_bus()
+
+
+func _make_memory_bus() -> void:
+	if AudioServer.get_bus_index(MEMORY_BUS) != -1:
+		return
+	AudioServer.add_bus()
+	var i := AudioServer.bus_count - 1
+	AudioServer.set_bus_name(i, MEMORY_BUS)
+	AudioServer.set_bus_send(i, "Master")
+	var lp := AudioEffectLowPassFilter.new()
+	lp.cutoff_hz = 6500.0
+	AudioServer.add_bus_effect(i, lp)
+	var rv := AudioEffectReverb.new()
+	rv.room_size = 0.72
+	rv.damping = 0.6
+	rv.spread = 0.8
+	rv.predelay_msec = 40.0
+	rv.dry = 0.85
+	rv.wet = 0.28
+	AudioServer.add_bus_effect(i, rv)
+
+
+func _bus_for(sound_name: String) -> StringName:
+	if sound_name.begins_with("v_") or sound_name in memory_sounds:
+		return MEMORY_BUS
+	return &"Master"
 
 
 ## Finds res://assets/audio/<sound_name>.(mp3|ogg|wav). Returns null if it doesn't exist.
@@ -34,6 +70,7 @@ func play(sound_name: String, volume_db := 0.0, pitch_variation := 0.0) -> void:
 	p.stream = stream
 	p.volume_db = volume_db
 	p.pitch_scale = 1.0 + randf_range(-pitch_variation, pitch_variation)
+	p.bus = _bus_for(sound_name)
 	add_child(p)
 	p.play()
 	p.finished.connect(p.queue_free)
@@ -50,6 +87,7 @@ func play_at(sound_name: String, world_position: Vector3, volume_db := 0.0, loop
 	p.stream = stream
 	p.volume_db = volume_db
 	p.unit_size = positional_unit_size
+	p.bus = _bus_for(sound_name)
 	add_child(p)
 	p.global_position = world_position
 	p.play()

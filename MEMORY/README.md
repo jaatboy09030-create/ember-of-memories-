@@ -7,7 +7,7 @@ that alters structure, dependencies, conventions, or teaches a lesson.
 Goal: nobody re-discovers the same dependency, re-makes the same mistake, or re-invents a
 workflow that already has a recipe here.
 
-Last full audit: **2026-11-26**, at commit `c806893` (main).
+Last full audit: **2026-11-26**, at commit `c806893` (main). Updated the same day for the uncommitted look/opening pass (see CHANGELOG).
 
 ---
 
@@ -25,6 +25,7 @@ Last full audit: **2026-11-26**, at commit `c806893` (main).
 | 8 | [08-conventions.md](08-conventions.md) | Before writing code. The owner's rules — non-negotiable. |
 | 9 | [09-camera.md](09-camera.md) | Touching the camera, screen look, lens, shake or comfort settings. Research + backlog. |
 | 10 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
+| 11 | [../research/00-unsent-opening-recipe.md](../research/00-unsent-opening-recipe.md) | **Before any lighting / art-direction work.** Researched recipe + index of 10 reports. |
 
 ---
 

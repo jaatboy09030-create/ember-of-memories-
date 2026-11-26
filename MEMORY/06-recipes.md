@@ -91,3 +91,25 @@ figures from the side in the editor.
 ## R11. Finish any change
 Update the relevant `MEMORY/*.md`, add a dated entry to `MEMORY/CHANGELOG.md`, run R1, then commit.
 Commit/push only when the owner asks; branch first if on `main`.
+
+## R12. Make / redo a voice line (ElevenLabs)
+1. Use the account voices **"Grandma - Unsent"** / **"Mother - Unsent"** (library voices must be *added to the account*
+   before TTS works, else `voice_not_found`). Model `eleven_v3`, stability 0.5, direction tags in the text, e.g.
+   `[warmly, slowly, holding back tears] ... [long pause] ...`. Generate into a scratch folder, not assets.
+2. v3 ignores `speed`, so slow/warm afterwards (ffmpeg needs Windows paths, not Git-Bash `/c/...`):
+   `ffmpeg -i in.mp3 -af "atempo=0.84,bass=g=2.5:f=180,treble=g=-2.5:f=7000,apad=pad_dur=0.4" -b:a 128k assets/audio/v_x.mp3`
+3. Set the caption duration in the memory script (`hud.say(line, seconds, voice)`) to >= the clip length.
+4. Owner's cap: **30k ElevenLabs credits total** — check `check_subscription` and keep a tally.
+
+## R13. Change the house exterior
+1. Edit in **Blender**, scene `TripoHouse`, collection `TripoAssembly` (owner wants modelling in Blender, not Godot).
+   Game coords: front wall at z=0, x -7.5..6.
+2. Export: deselect objects in *all* scenes, select the collection's objects, `export_scene.gltf(use_selection=True,
+   use_active_scene=True, export_format='GLB')` -> `assets/house/house_exterior.glb`.
+3. Keep the mesh names `LitWindowGlow` and `WindowSilhouette` (HouseExterior finds them by prefix).
+4. Texture missing after re-export -> see 07 (broken JPEG / force reimport).
+
+## R14. Look at the opening / the level without playing
+`& $GODOT --path . -- --titleshot` (o1-o7 in `_shots/`) or `-- --tour` (t1-t7). Not headless (needs rendering).
+Opening framing = `TitleSequence.camera_start / camera_look / text_lift`; garden pines `Pine2`/`Pine3` were moved to keep
+that view clear — re-shoot if you move trees.

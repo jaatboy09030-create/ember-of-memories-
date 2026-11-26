@@ -97,8 +97,8 @@ func _play_reveal() -> void:
 	# 4. Silence. Let it land.
 	tw.tween_interval(2.5)
 	# 5. The letter
-	tw.tween_callback(func(): game.hud.say(letter_line, 5.5, letter_voice))
-	tw.tween_interval(6.5)
+	tw.tween_callback(func(): game.hud.say(letter_line, 7.5, letter_voice))
+	tw.tween_interval(8.5)
 	# 6. Fade back to first person; the photo stays on the dresser, face up.
 	tw.tween_callback(func(): game.hud.fade_to(1.0, 1.0))
 	tw.tween_interval(1.1)

@@ -77,6 +77,22 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
   outside the doorway) the moment the one-way close starts; covered by `--doortest`.
 - **Timing-based dev tests flaky right after load** → headless first frames have huge deltas; wait ~1 s before sampling tweens.
 
+- **Sky / moon looks soft in the opening** -> camera depth-of-field blurs everything past the focus distance, incl. the sky ->
+  the title runs with `cam.focus(-1)`.
+- **Sky colours look black / too dark** -> `source_color` uniforms are sRGB and converted to linear; enter sRGB values
+  (night_sky.gdshader comments give the intended linear value next to each).
+- **Title line "missing"** -> check `TitleSequence.unfinished_line`; empty = intentionally no handwriting (goes straight to the name).
+- **A title light tints the trees/branches too** -> give it `light_cull_mask = 8`; only the house shell (render layer 4) receives it.
+- **The title and gameplay need different global looks** -> don't retune the Environment for one shot; TitleSequence
+  swaps an "opening look" in and out (see `_apply_opening_look`). A new reference image: ask which scene it is for.
+- **Light shadows filled in by another light** -> the camera-side lamp light washed out the fence shadows; dim
+  the fill, and keep one shadow-casting key per area (research/00).
+- **Moving the moon changes gameplay light** -> the `Moon` DirectionalLight3D is both the moonlight and the sky's moon
+  position (`LIGHT0_DIRECTION`). `MoonFill` keeps the garden readable.
+- **Cinematic camera flies through fence/trees** -> don't tween the camera across the garden; turn the head + fade (title does this).
+- **GPU particle sub-emitter** -> set `sub_emitter` on the parent; the child then emits only through it. From a custom
+  `particles` shader call `emit_subparticle(xform, vel, color, custom, FLAG_EMIT_POSITION | FLAG_EMIT_VELOCITY)`.
+
 ## Repo / tooling
 - **Push rejected: file > 100 MB** → big Poly Haven trees are gitignored (`pine_tree_01`, `pine_sapling_medium`). Check sizes before adding assets.
 - **level_builder overwrites hand edits** to `house_level.tscn` and `materials/level/`. Don't run unless asked.
@@ -84,7 +100,18 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **OneDrive**: repo is inside OneDrive; sync can lock files or create conflicted copies during heavy imports.
   If Godot reports a file locked, pause OneDrive sync. Never commit `* (1).tscn`-style conflict copies.
 - **`.godot/` is gitignored** — first open re-imports ~4k files (slow). `.import` / `.uid` files ARE tracked; commit them with assets.
-- **Godot not on PATH** — use `C:\Program Files\Godot\Godot.exe`.
+- **Godot not on PATH** — use `C:\Program Files\Godot\Godot.exe` (or `Godot_v4.7.2-stable_win64.exe`, see 01).
+- **"Could not find type X" after a pull / new `class_name`** -> stale class cache -> `Godot --headless --path . --import` once.
+- **Asset-store zip overwrote project files** (the Vefects zip ships its own `project.godot`, `icon.svg`, `LICENSE.txt`) ->
+  extract only the addon folder; restore `project.godot` from git if it happens.
+- **Vefects must never be committed** (licence) — it's in `.gitignore`; check `git status` before `git add -A`.
+- **Blender glTF export includes other scenes / huge file** -> deselect in every scene and pass `use_active_scene=True`.
+- **Texture silently missing on an imported glb** -> image generated in Blender from a float buffer (broken JPEG) ->
+  write it with PIL, pack it, re-export; force reimport by deleting `<file>.import` and `.godot/imported/<file>*`.
+- **Blender session holds unsaved owner scenes** (FamilyPack, EmberProps, Scene) -> work only in your own scenes
+  (SwapExport, HouseEdit, TripoHouse, VFXParts) and never save the .blend yourself; ask the owner to save.
+- **ElevenLabs `voice_not_found` for a library voice** -> add it to the account first (`POST /v1/voices/add/{owner}/{voice_id}`);
+  **v3 ignores `speed`** -> slow in post (06 R12).
 - **Unused content** (safe to ignore, ask before deleting): `assets/characters/*.glb`, Medieval Village MegaKit,
   `shaders/memory_surface.gdshader`, `shaders/face_blur.gdshader`.
 
@@ -101,6 +128,9 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
   linearly with one ray. Keep near blur always on, scale every value with distance, ease in log space, median of 5 rays.
 
 ## Design learnings (owner preferences discovered so far)
+- Opening must feel **dramatic, sad, cinematic** — not cheerful: no bells/chimes, slow warm voices, low sustained swells.
+- The owner sketches shots; current opening = low two-point view from the front-right corner, moon low-left behind trees, clouds above.
+- The owner wants 3D modelling done in **Blender**, not built from primitives in Godot.
 - Original monolithic `main.gd` (3,200 lines, everything built at runtime) was rejected → everything must be real scenes
   with one script per node (see 08). Don't regress to runtime-built node trees; the only accepted runtime creation is
   procedural content like TitleSequence's per-letter Label3Ds, ghost materials, bone attachments.

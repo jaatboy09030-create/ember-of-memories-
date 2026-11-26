@@ -33,6 +33,7 @@ size = Vector3(2.2, 0.03, 0.03)
 [node name="HouseWindow" type="Node3D"]
 
 [node name="GlassOutside" type="MeshInstance3D" parent="."]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.13)
 mesh = SubResource("GlassMesh")
 surface_material_override/0 = ExtResource("2_glass")
@@ -43,6 +44,7 @@ mesh = SubResource("GlassMesh")
 surface_material_override/0 = ExtResource("2_glass")
 
 [node name="FrameOutside" type="Node3D" parent="."]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.1495)
 
 [node name="FrameTop" type="MeshInstance3D" parent="FrameOutside"]
@@ -105,6 +107,7 @@ mesh = SubResource("MuntinVerticalMesh")
 surface_material_override/0 = ExtResource("1_frame")
 
 [node name="SnowOnSill" type="MeshInstance3D" parent="."]
+visible = false
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.66, 0.2)
 mesh = SubResource("SillMesh")
 surface_material_override/0 = ExtResource("3_snow")
