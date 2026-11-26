@@ -389,7 +389,9 @@ func _hand_over_control() -> void:
 	Sound.play_music("theme_broken", -10.0, 4.0)  # the piano belongs to the opening only
 	game.hud.letterbox(false, 1.8)
 	game.hud.set_crosshair_visible(true, 2.0)
-	player.cam.focus(-1.0)
+	# keep the opening's blur: PlayerCamera's autofocus takes over from the 14 m title focus
+	if not player.cam.gameplay_dof:
+		player.cam.focus(-1.0)
 	player.cam.cinematic = false
 	player.cam.look_target = Vector3.INF
 	player.can_move = true

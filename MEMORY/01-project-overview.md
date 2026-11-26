@@ -31,6 +31,7 @@ scenes/
   systems/               HUD, ScreenEffects, Snowfall, Sound (autoload), TitleSequence
 scripts/                 mirrors scenes/ (one script per node) + utils/ + dev/
 shaders/                 8 .gdshader files (2 currently unused — see 05)
+settings/                shared settings resources (camera_comfort.tres — see 09); script in scripts/settings/
 materials/               .tres materials; materials/level/ written by level_builder
 assets/                  audio, characters (glb), mixamo (fbx), polyhaven (gltf), sketchfab (glb),
                          "stylised assets" (Quaternius MegaKits, note the SPACE in the folder name), textures

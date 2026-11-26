@@ -3,6 +3,21 @@
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
 ## 2026-11-27
+- **Merge PR #4 + PR #5** — opening/first-scene pass merged on top of the house fixes, photo memory and blur work.
+  `house_level.tscn` = PR #5's rebuilt level + `tools/swap_house_exterior.gd` re-run + PR #4's hand edits re-applied
+  (ExteriorShell on HouseExterior, DoorwaySpill/PathSpill/FenceShadowLight, street-lamp glow, fence SnowyProp, moved
+  Pine2/Pine3/lane bush). Lighting in `main.tscn` follows PR #4 (ambient 0.06 + SDFGI). Title continue-to-game follows
+  PR #4; photo letter timing from PR #4 plus PR #5's fade-out; dev_tests has all flags.
+- **Tears removed; smoother focus; no camera fight after pickups** — owner asked to drop the tears (player_tears.gd and
+  its nodes deleted). Autofocus: 5-ray median, log-space easing with a rate cap, near blur no longer toggles at 1 m
+  (`focus()`). Glances: one at a time, cancelled by any look input; no glance on drawing-piece pickup. (player_camera.gd,
+  player_body.gd, player.tscn, photo_memory.gd, drawing_memory.gd, MEMORY 03/04/07)
+- **Photo memory rework** — picks the photo up in both hands (TwoBoneIK3D arms + HeadBow), camera goes over the shoulder
+  (half face + photo), slow push-in while the glass becomes a mirror showing the face (SubViewport ReflectionCamera +
+  photo_glass shader), tears, letter, fade back to first person. Camera kept out of walls with `PlayerCamera.safe_position`
+  and picks the roomier shoulder. Face mosaics off during it. New `--phototest`. Known issue: tear spawn points not yet on
+  the eyes. (photo_memory.gd, photo_frame.gd/.tscn, photo_glass.gdshader, player.tscn, player_body.gd, player_hands.gd,
+  head_bow.gd, player_tears.gd, player_camera.gd, screen_effects.gd, dev_tests.gd, MEMORY 03/04/05/07)
 - Owner: the ember waits **at the garden gate in the fence** for the player (`TitleSequence.gate_point` (0, 1.3, 10)), not at the house door.
 - **XMavrik + AI (Claude)** — First scene matched against the reference in a measured loop. A critic agent compares
   screenshots; see `research/critique_v1.md` and `research/compare_v1..v4.png`.
@@ -43,6 +58,42 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
     direction and size, exposure, glow, ambient, AgX and MoonFill, switching back while the screen is black.
 
 ## 2026-11-26
+- **Title blur kept in gameplay** — the cinematic depth of field no longer switches off when the title hands over
+  control: `PlayerCamera.gameplay_dof` autofocuses on the World surface in view (same `dof_blur_amount` 0.08, starts
+  at the title's 14 m), and `TitleSequence._hand_over_control` only calls `focus(-1)` if it's off. Owner asked for the
+  game to look like the opening. (player_camera.gd, title_sequence.gd, MEMORY 03)
+- **QA fixes (IdiotCheckInQualityAssessment.md F1–F5, F7)** — One-way front door: `OutsideBlocker` StaticBody switched on
+  when the close starts, so turning back reopens the door but can't take you outside (F1); prompt "locked" while it
+  closes (F2); dead MEMORY_OWNED path removed from level_builder (`_report_placed`), stale MEMORY lines fixed (F3);
+  unused `world_sat` uniform removed from camera_fx + FilmLook material (F4); `PlayerBody.CAMERA_MASK_WITHOUT_BODY` used
+  by PlayerCamera and the puzzle camera instead of typed numbers (F5); `--walktest --gate` walks 10 s and passes (F7);
+  new `--doortest` checks for the one-way door. Level output unchanged (verified). (interior_door.gd/.tscn,
+  player_body.gd, player_camera.gd, torn_drawing_puzzle.gd/.tscn, level_builder.gd, camera_fx.gdshader,
+  screen_effects.tscn, dev_tests.gd, MEMORY 03/04/05/06/07)
+- **House fixes (IdiotHandOffGuide-house-fixes.md)** — Owner feedback round: textured matte plaster walls + local-triplanar
+  doors; locked doors say "locked" and rattle, front door shuts + locks behind you (no exiting); minimal story-only furniture
+  at fixed spots (no clipping: kitchen items, lamp, pillows, books, cupboard through wall, desk in wall, seated ghosts'
+  legs, photo layers); wainscot/rails/cornices/beams removed (corner z-fighting gone); hold-an-item lets you look around,
+  hold R / Y to turn it; new frozen-memory grade (moonlit duotone, breathing frost, ember colour halo, restore ripple);
+  ground mist kept outside (the white blob); one shadowed pendant light per room, fake window moonbeams removed, SDFGI off;
+  puzzle camera no longer sees the player's head, body hidden again after the photo reveal, pull-back swings round the
+  head. New `tools/overlap_check.gd`. (level_builder.gd → house_level.tscn + materials/level, interior_door.gd,
+  player_body.gd, player_camera.gd, packable_item.gd, suitcase_memory.gd, photo_memory.gd, ember.gd, room.gd,
+  screen_effects.gd/.tscn, memory_grade.gd/.gdshader, camera_fx.gdshader, house_window.tscn, photo_frame.tscn,
+  torn_drawing_puzzle.tscn, drawing/scarf_memory.tscn, main.tscn, door_wood/door_panel.tres, project.godot, dev_tests.gd)
+- **AI (Claude)** — Investigated the owner's 11-point feedback (textures, locked doors, clipping, z-fighting, clutter,
+  hold-and-look, grey look, white blob, lighting, camera through head) and wrote `IdiotHandOffGuide-house-fixes.md`
+  (root) with exact code, validated on a scratch copy. Applied the same day (entry above; ledger
+  `IdiotHandOffManager-status.md`). Review repairs on top of the guide: the one-way front door reopens if the player
+  steps back into the doorway while it closes and only locks once fully shut (avoided a lock-outside soft-lock); no
+  rattle during a swing; MemoryGrade restarts an interrupted ripple; pull-back aims at the head (no aim jump).
+- **Worn-camera phase 1** — Lens bend + edge fringe + shadow grain (camera_fx), lens off for non-player cameras;
+  PlayerCamera drift / start-stop spring sway / turn bank / uneven steps / noise shake / auto exposure; `CameraComfort`
+  accessibility resource (`settings/camera_comfort.tres`); default_fov 70→74; title returns to `default_fov`. Why: blend
+  body-cam feel into the existing look without copying Bodycam/Unrecord. (camera_fx.gdshader, player_camera.gd,
+  screen_effects.gd, camera_comfort.gd/.tres, player.tscn, screen_effects.tscn, title_sequence.gd, MEMORY 01/03/05/07/09)
+- **AI (Claude)** — Researched body-cam cameras (Bodycam, Unrecord, indie/Godot replications, accessibility) and wrote
+  `IdiotHandOffGuide.md` (root): phase-1 "worn camera" plan with exact code. No game code changed yet.
 - **XMavrik + AI (Claude)** — Title name is now the owner's wordmark image (`assets/ui/unsent_wordmark.png`,
   `TitleOverlay/Wordmark`, fades in/out; the Bodoni name letters and `game_name`/`name_font` exports are gone — Bodoni Moda
   28pt is still used for the prompt). Lighting matched to the mock-up:

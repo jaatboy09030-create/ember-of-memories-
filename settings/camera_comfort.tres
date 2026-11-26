@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="CameraComfort" format=3]
+
+[ext_resource type="Script" path="res://scripts/settings/camera_comfort.gd" id="1_comfort"]
+
+[resource]
+script = ExtResource("1_comfort")
+motion = 1.0
+shake = 1.0
+lens = 1.0
+grain = 1.0
+exposure_adapt = true

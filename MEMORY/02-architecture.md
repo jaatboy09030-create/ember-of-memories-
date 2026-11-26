@@ -80,8 +80,9 @@ InteractionRaycast mask = `1 | (1<<2)` (World + Interactable), so walls block in
 | `room` | `Room._ready` | GameDirector |
 | `interior_door` | `InteriorDoor._ready` | GameDirector |
 | `memory_face` | `MemoryFigure._add_face_anchor` | ScreenEffects (max 4 faces) |
-| `outdoor_only` | set in scenes (Snowfall, forest, foliage) | OutdoorCulling |
+| `outdoor_only` | set in scenes (Snowfall, forest, foliage, GroundMist) | OutdoorCulling |
 | `house_exterior` | `HouseExterior._ready` | TitleSequence (lit upstairs window + figure) |
+| `colour_source` | `Ember._ready` | MemoryGrade (colour halo around the ember) |
 
 ## IDs that must match across scenes
 - **room_id**: `kid`, `living`, `kitchen`, `parent`, `hall`, `bed` (Room nodes in house_level) ↔ `Memory.room_id`.
@@ -98,6 +99,7 @@ InteractionRaycast mask = `1 | (1<<2)` (World + Interactable), so walls block in
 | needle_left / needle_right | LMB or Q / RMB or E | buttons 9 / 10 (shoulders) |
 | select_next / select_previous | ↓/↑ arrows, wheel down/up | d-pad down/up (14/13) |
 | release_mouse | Esc | button 4 (Back) |
+| rotate_item | R (hold) | button 3 (Y) — while holding a SuitcaseMemory item, mouse/stick turn the item |
 Note: `E` is bound to both `interact` and `needle_right` — intentional (the scarf rack uses needles while hovered).
 
 ## World coordinates (metres; camera starts looking toward −Z)

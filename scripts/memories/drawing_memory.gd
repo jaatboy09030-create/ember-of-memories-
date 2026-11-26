@@ -32,8 +32,7 @@ func begin() -> void:
 			p.picked_up.connect(_on_piece_picked_up)
 
 
-func _on_piece_picked_up(piece: DrawingPiece) -> void:
-	game.player.glance(piece.global_position, 0.4)
+func _on_piece_picked_up(_piece: DrawingPiece) -> void:
 	_pieces_left -= 1
 	if _pieces_left == 0:
 		puzzle.enabled = true

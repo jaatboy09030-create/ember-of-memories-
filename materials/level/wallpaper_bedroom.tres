@@ -8,11 +8,12 @@
 resource_name = "wallpaper_bedroom"
 albedo_color = Color(0.84, 0.92, 0.86, 1)
 albedo_texture = ExtResource("1_5r3m3")
+metallic_specular = 0.25
 roughness_texture = ExtResource("3_u8lec")
 normal_enabled = true
-normal_scale = 0.9
+normal_scale = 1.5
 normal_texture = ExtResource("2_o55vx")
-uv1_scale = Vector3(0.45, 0.45, 0.45)
+uv1_scale = Vector3(0.6, 0.6, 0.6)
 uv1_triplanar = true
 uv1_triplanar_sharpness = 4.0
 uv1_world_triplanar = true
