@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/dark_wooden_planks/dark_wooden_planks_diff.jpg" id="1_3ma60"]
+[ext_resource type="Texture2D" path="res://assets/textures/dark_wooden_planks/dark_wooden_planks_nor.jpg" id="2_pvxcg"]
+[ext_resource type="Texture2D" path="res://assets/textures/dark_wooden_planks/dark_wooden_planks_rough.jpg" id="3_so1bo"]
+
+[resource]
+resource_name = "floor_kitchen_planks"
+albedo_color = Color(1, 0.95, 0.9, 1)
+albedo_texture = ExtResource("1_3ma60")
+roughness_texture = ExtResource("3_so1bo")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_pvxcg")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5

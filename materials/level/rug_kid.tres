@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/fabric_pattern_05/fabric_pattern_05_nor.jpg" id="1_gvao0"]
+[ext_resource type="Texture2D" path="res://assets/textures/fabric_pattern_05/fabric_pattern_05_rough.jpg" id="2_ggocs"]
+
+[resource]
+resource_name = "rug_kid"
+albedo_color = Color(0.35, 0.5, 0.8, 1)
+roughness_texture = ExtResource("2_ggocs")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("1_gvao0")
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5

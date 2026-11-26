@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://blp1sj0ugjt31"
-path="res://.godot/imported/firewood_logs_Material_baseColor.png-dc3729456ec496fcd607746e8b210b40.ctex"
+path.s3tc="res://.godot/imported/firewood_logs_Material_baseColor.png-dc3729456ec496fcd607746e8b210b40.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1dd7040a39c84fdc41ddc6682b7cdbda"
@@ -14,11 +15,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/sketchfab/firewood_logs_Material_baseColor.png"
-dest_files=["res://.godot/imported/firewood_logs_Material_baseColor.png-dc3729456ec496fcd607746e8b210b40.ctex"]
+dest_files=["res://.godot/imported/firewood_logs_Material_baseColor.png-dc3729456ec496fcd607746e8b210b40.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
@@ -40,4 +41,4 @@ process/normal_map_invert_y=false
 process/hdr_as_srgb=false
 process/hdr_clamp_exposure=false
 process/size_limit=0
-detect_3d/compress_to=1
+detect_3d/compress_to=0

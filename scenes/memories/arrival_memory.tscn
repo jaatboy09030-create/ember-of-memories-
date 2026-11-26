@@ -1,0 +1,38 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/memories/arrival_memory.gd" id="1_arrival"]
+[ext_resource type="PackedScene" path="res://scenes/objects/garden_gate.tscn" id="2_gate"]
+
+[sub_resource type="SphereShape3D" id="ReachRadius"]
+radius = 1.8
+
+[node name="ArrivalMemory" type="Node3D"]
+script = ExtResource("1_arrival")
+unlocks_door_id = "front"
+saturation_after = 0.0
+saturation_time = 2.0
+warms_room = false
+
+[node name="GardenGate" parent="." instance=ExtResource("2_gate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 10)
+
+[node name="GateTrigger" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 10)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="GateTriggerShape" type="CollisionShape3D" parent="GateTrigger"]
+shape = SubResource("ReachRadius")
+
+[node name="PorchTrigger" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.9)
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="PorchTriggerShape" type="CollisionShape3D" parent="PorchTrigger"]
+shape = SubResource("ReachRadius")
+
+[node name="PorchPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.9)

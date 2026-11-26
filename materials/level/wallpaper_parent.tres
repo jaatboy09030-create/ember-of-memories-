@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_diff.jpg" id="1_hgwpn"]
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_nor.jpg" id="2_t47kw"]
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_rough.jpg" id="3_5t0ug"]
+
+[resource]
+resource_name = "wallpaper_parent"
+albedo_color = Color(1, 0.86, 0.82, 1)
+albedo_texture = ExtResource("1_hgwpn")
+roughness_texture = ExtResource("3_5t0ug")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_t47kw")
+uv1_scale = Vector3(0.45, 0.45, 0.45)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5

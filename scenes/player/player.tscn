@@ -1,0 +1,138 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/player/player_body.gd" id="1_body"]
+[ext_resource type="Script" path="res://scripts/player/player_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scripts/interaction/interaction_raycast.gd" id="3_ray"]
+[ext_resource type="Script" path="res://scripts/player/cold_breath.gd" id="4_breath"]
+[ext_resource type="Script" path="res://scripts/player/player_animator.gd" id="5_anim"]
+[ext_resource type="Script" path="res://scripts/player/player_footsteps.gd" id="6_steps"]
+[ext_resource type="Script" path="res://scripts/player/player_scarf.gd" id="7_scarf"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/player_idle.fbx" id="8_idle"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/player_walk.fbx" id="9_walk"]
+
+[sub_resource type="CapsuleShape3D" id="BodyCapsule"]
+radius = 0.25
+height = 1.7
+
+[sub_resource type="StandardMaterial3D" id="ScarfMaterial"]
+albedo_color = Color(0.6, 0.27, 0.25, 1)
+roughness = 0.9
+
+[sub_resource type="TorusMesh" id="ScarfLoopMesh"]
+material = SubResource("ScarfMaterial")
+inner_radius = 0.075
+outer_radius = 0.135
+
+[sub_resource type="BoxMesh" id="ScarfTailMesh"]
+material = SubResource("ScarfMaterial")
+size = Vector3(0.085, 0.3, 0.03)
+
+[sub_resource type="CameraAttributesPractical" id="CameraFocus"]
+dof_blur_amount = 0.08
+
+[sub_resource type="Curve" id="BreathGrow"]
+_data = [Vector2(0, 0.3), 0.0, 0.0, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 2
+
+[sub_resource type="CurveTexture" id="BreathGrowTexture"]
+curve = SubResource("BreathGrow")
+
+[sub_resource type="Gradient" id="BreathFade"]
+offsets = PackedFloat32Array(0, 0.25, 1)
+colors = PackedColorArray(0.9, 0.92, 0.96, 0, 0.9, 0.92, 0.96, 0.045, 0.9, 0.92, 0.96, 0)
+
+[sub_resource type="GradientTexture1D" id="BreathFadeTexture"]
+gradient = SubResource("BreathFade")
+
+[sub_resource type="ParticleProcessMaterial" id="BreathMotion"]
+direction = Vector3(0, 0.15, -1)
+spread = 18.0
+initial_velocity_min = 0.3
+initial_velocity_max = 0.55
+gravity = Vector3(0, 0.12, 0)
+damping_min = 0.4
+damping_max = 0.8
+scale_min = 0.6
+scale_max = 1.2
+scale_curve = SubResource("BreathGrowTexture")
+color_ramp = SubResource("BreathFadeTexture")
+
+[sub_resource type="Gradient" id="SoftDot"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftDotTexture"]
+gradient = SubResource("SoftDot")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="BreathMaterial"]
+transparency = 1
+vertex_color_use_as_albedo = true
+albedo_texture = SubResource("SoftDotTexture")
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="BreathQuad"]
+material = SubResource("BreathMaterial")
+size = Vector2(0.07, 0.07)
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+script = ExtResource("1_body")
+
+[node name="BodyCollision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("BodyCapsule")
+
+[node name="BodyPivot" type="Node3D" parent="."]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+
+[node name="CharacterModel" parent="BodyPivot" instance=ExtResource("8_idle")]
+transform = Transform3D(0.972222, 0, 0, 0, 0.972222, 0, 0, 0, 0.972222, 0, 0, 0)
+
+[node name="ScarfAnchor" type="Node3D" parent="BodyPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.43, 0)
+script = ExtResource("7_scarf")
+
+[node name="ScarfLoop" type="MeshInstance3D" parent="BodyPivot/ScarfAnchor"]
+transform = Transform3D(1, 0, 0, 0, 0.8, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("ScarfLoopMesh")
+
+[node name="ScarfTail" type="MeshInstance3D" parent="BodyPivot/ScarfAnchor"]
+transform = Transform3D(0.994522, -0.104528, 0, 0.101423, 0.964981, 0.241922, -0.025288, -0.240597, 0.970296, 0.06, -0.16, 0.11)
+mesh = SubResource("ScarfTailMesh")
+
+[node name="PlayerCamera" type="Camera3D" parent="."]
+top_level = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
+cull_mask = 1048573
+attributes = SubResource("CameraFocus")
+near = 0.05
+fov = 70.0
+script = ExtResource("2_camera")
+
+[node name="InteractionRaycast" type="RayCast3D" parent="PlayerCamera"]
+target_position = Vector3(0, 0, -2.2)
+collision_mask = 5
+collide_with_areas = true
+script = ExtResource("3_ray")
+
+[node name="ColdBreath" type="GPUParticles3D" parent="PlayerCamera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.28, -0.5)
+emitting = false
+amount = 18
+lifetime = 2.2
+one_shot = true
+explosiveness = 0.55
+local_coords = false
+process_material = SubResource("BreathMotion")
+draw_pass_1 = SubResource("BreathQuad")
+script = ExtResource("4_breath")
+
+[node name="PlayerAnimator" type="Node" parent="."]
+script = ExtResource("5_anim")
+walk_animation = ExtResource("9_walk")
+
+[node name="Footsteps" type="Node" parent="."]
+script = ExtResource("6_steps")

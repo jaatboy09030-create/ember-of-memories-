@@ -1,0 +1,113 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/torn_drawing_puzzle.gd" id="1_puzzle"]
+[ext_resource type="Script" path="res://scripts/objects/puzzle_piece.gd" id="2_piece"]
+[ext_resource type="Texture2D" path="res://assets/textures/kids_drawing/kids_drawing.png" id="3_drawing"]
+
+[sub_resource type="BoxShape3D" id="InteractBox"]
+size = Vector3(0.8, 0.5, 0.7)
+
+[sub_resource type="BoxShape3D" id="PieceBox"]
+size = Vector3(0.19, 0.01, 0.19)
+
+[sub_resource type="PlaneMesh" id="PieceMesh"]
+size = Vector2(0.19, 0.19)
+
+[sub_resource type="StandardMaterial3D" id="PieceTopLeftMaterial"]
+albedo_texture = ExtResource("3_drawing")
+roughness = 0.95
+uv1_scale = Vector3(0.5, 0.5, 1)
+
+[sub_resource type="StandardMaterial3D" id="PieceTopRightMaterial"]
+albedo_texture = ExtResource("3_drawing")
+roughness = 0.95
+uv1_scale = Vector3(0.5, 0.5, 1)
+uv1_offset = Vector3(0.5, 0, 0)
+
+[sub_resource type="StandardMaterial3D" id="PieceBottomLeftMaterial"]
+albedo_texture = ExtResource("3_drawing")
+roughness = 0.95
+uv1_scale = Vector3(0.5, 0.5, 1)
+uv1_offset = Vector3(0, 0.5, 0)
+
+[sub_resource type="StandardMaterial3D" id="PieceBottomRightMaterial"]
+albedo_texture = ExtResource("3_drawing")
+roughness = 0.95
+uv1_scale = Vector3(0.5, 0.5, 1)
+uv1_offset = Vector3(0.5, 0.5, 0)
+
+[node name="TornDrawingPuzzle" type="Area3D"]
+script = ExtResource("1_puzzle")
+prompt_text = "tape the drawing back together"
+
+[node name="InteractShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+shape = SubResource("InteractBox")
+
+[node name="PuzzleCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.14834, 0.98894, 0, -0.98894, 0.14834, 0, 0.55, 0.08)
+near = 0.05
+fov = 60.0
+
+[node name="Pieces" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.004, 0)
+
+[node name="PieceTopLeft" type="Area3D" parent="Pieces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0, -0.1)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_piece")
+start_quarter_turns = 1
+
+[node name="PieceShape" type="CollisionShape3D" parent="Pieces/PieceTopLeft"]
+shape = SubResource("PieceBox")
+
+[node name="PieceMesh" type="MeshInstance3D" parent="Pieces/PieceTopLeft"]
+mesh = SubResource("PieceMesh")
+surface_material_override/0 = SubResource("PieceTopLeftMaterial")
+
+[node name="PieceTopRight" type="Area3D" parent="Pieces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, -0.1)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_piece")
+start_quarter_turns = 2
+
+[node name="PieceShape" type="CollisionShape3D" parent="Pieces/PieceTopRight"]
+shape = SubResource("PieceBox")
+
+[node name="PieceMesh" type="MeshInstance3D" parent="Pieces/PieceTopRight"]
+mesh = SubResource("PieceMesh")
+surface_material_override/0 = SubResource("PieceTopRightMaterial")
+
+[node name="PieceBottomLeft" type="Area3D" parent="Pieces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0, 0.1)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_piece")
+start_quarter_turns = 3
+
+[node name="PieceShape" type="CollisionShape3D" parent="Pieces/PieceBottomLeft"]
+shape = SubResource("PieceBox")
+
+[node name="PieceMesh" type="MeshInstance3D" parent="Pieces/PieceBottomLeft"]
+mesh = SubResource("PieceMesh")
+surface_material_override/0 = SubResource("PieceBottomLeftMaterial")
+
+[node name="PieceBottomRight" type="Area3D" parent="Pieces"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 0.1)
+collision_layer = 8
+collision_mask = 0
+monitoring = false
+script = ExtResource("2_piece")
+start_quarter_turns = 2
+
+[node name="PieceShape" type="CollisionShape3D" parent="Pieces/PieceBottomRight"]
+shape = SubResource("PieceBox")
+
+[node name="PieceMesh" type="MeshInstance3D" parent="Pieces/PieceBottomRight"]
+mesh = SubResource("PieceMesh")
+surface_material_override/0 = SubResource("PieceBottomRightMaterial")

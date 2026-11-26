@@ -1,0 +1,35 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/memories/scarf_memory.gd" id="1_scarf"]
+[ext_resource type="PackedScene" path="res://scenes/objects/scarf_coat_rack.tscn" id="2_rack"]
+[ext_resource type="PackedScene" path="res://scenes/objects/memory_figure.tscn" id="3_figure"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/grandma_sit.fbx" id="4_grandma"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/boy_happy.fbx" id="5_boy"]
+
+[node name="ScarfMemory" type="Node3D" node_paths=PackedStringArray("ember_rest_point")]
+script = ExtResource("1_scarf")
+room_id = "living"
+unlocks_door_id = "kid"
+saturation_after = 0.35
+ember_rest_point = NodePath("EmberRestPoint")
+
+[node name="ScarfCoatRack" parent="." instance=ExtResource("2_rack")]
+transform = Transform3D(-0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, -0.939693, 0.95, 0, -0.42)
+
+[node name="GrandmaKnitting" parent="." node_paths=PackedStringArray("seat_point") instance=ExtResource("3_figure")]
+transform = Transform3D(0.573576, 0, 0.819152, 0, 1, 0, -0.819152, 0, 0.573576, -1.543, 0.06, -2.4216)
+seat_point = NodePath("SeatPoint")
+
+[node name="CharacterModel" parent="GrandmaKnitting" instance=ExtResource("4_grandma")]
+
+[node name="SeatPoint" type="Marker3D" parent="GrandmaKnitting"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
+
+[node name="BoyWatching" parent="." instance=ExtResource("3_figure")]
+transform = Transform3D(-0.642788, 0, -0.766044, 0, 1, 0, 0.766044, 0, -0.642788, -0.7, 0.06, -3.5)
+frozen_at = 0.5
+
+[node name="CharacterModel" parent="BoyWatching" instance=ExtResource("5_boy")]
+
+[node name="EmberRestPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 0, -0.42)

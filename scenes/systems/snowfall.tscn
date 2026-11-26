@@ -1,0 +1,79 @@
+[gd_scene format=3]
+
+[sub_resource type="ParticleProcessMaterial" id="FineSnowMotion"]
+emission_shape = 3
+emission_box_extents = Vector3(30, 0.5, 26)
+direction = Vector3(0, -1, 0)
+spread = 25.0
+initial_velocity_max = 0.25
+gravity = Vector3(0.28, -0.85, 0.06)
+scale_min = 0.6
+scale_max = 1.3
+collision_mode = 2
+
+[sub_resource type="Gradient" id="SoftDot"]
+offsets = PackedFloat32Array(0, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="SoftDotTexture"]
+gradient = SubResource("SoftDot")
+width = 64
+height = 64
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="FlakeMaterial"]
+transparency = 1
+albedo_color = Color(0.92, 0.95, 1, 0.75)
+albedo_texture = SubResource("SoftDotTexture")
+emission_enabled = true
+emission = Color(0.4, 0.45, 0.6, 1)
+emission_energy_multiplier = 0.08
+billboard_mode = 3
+
+[sub_resource type="QuadMesh" id="FineFlake"]
+material = SubResource("FlakeMaterial")
+size = Vector2(0.04, 0.04)
+
+[sub_resource type="ParticleProcessMaterial" id="SoftFlakesMotion"]
+emission_shape = 3
+emission_box_extents = Vector3(30, 0.5, 26)
+direction = Vector3(0, -1, 0)
+spread = 25.0
+initial_velocity_max = 0.25
+gravity = Vector3(0.35, -0.7, 0.1)
+scale_min = 0.7
+scale_max = 1.1
+collision_mode = 2
+
+[sub_resource type="QuadMesh" id="SoftFlake"]
+material = SubResource("FlakeMaterial")
+size = Vector2(0.06, 0.06)
+
+[node name="Snowfall" type="Node3D" groups=["outdoor_only"]]
+
+[node name="FineSnow" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11, 3)
+amount = 2200
+lifetime = 10.0
+preprocess = 10.0
+visibility_aabb = AABB(-40, -14, -35, 80, 28, 70)
+collision_base_size = 0.02
+process_material = SubResource("FineSnowMotion")
+draw_pass_1 = SubResource("FineFlake")
+
+[node name="SoftFlakes" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 11, 3)
+amount = 250
+lifetime = 8.0
+preprocess = 8.0
+visibility_aabb = AABB(-40, -14, -35, 80, 28, 70)
+collision_base_size = 0.02
+process_material = SubResource("SoftFlakesMotion")
+draw_pass_1 = SubResource("SoftFlake")
+
+[node name="RoofAndGroundCollision" type="GPUParticlesCollisionHeightField3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 2)
+size = Vector3(80, 30, 70)
+resolution = 1

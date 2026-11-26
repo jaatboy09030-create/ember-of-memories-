@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/characters/ember.gd" id="1_ember"]
+
+[sub_resource type="StandardMaterial3D" id="EmberGlow"]
+albedo_color = Color(1, 0.5, 0.15, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.1, 1)
+emission_energy_multiplier = 6.0
+
+[sub_resource type="SphereMesh" id="EmberSphere"]
+material = SubResource("EmberGlow")
+radius = 0.08
+height = 0.16
+
+[node name="Ember" type="Node3D"]
+script = ExtResource("1_ember")
+
+[node name="EmberCore" type="MeshInstance3D" parent="."]
+mesh = SubResource("EmberSphere")
+
+[node name="EmberLight" type="OmniLight3D" parent="."]
+light_color = Color(1, 0.55, 0.2, 1)
+light_energy = 2.2
+light_size = 0.05
+shadow_enabled = true
+omni_range = 6.5
+omni_attenuation = 1.3

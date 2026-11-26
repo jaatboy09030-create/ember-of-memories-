@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/objects/drawing_piece.gd" id="1_piece"]
+
+[sub_resource type="BoxShape3D" id="InteractBox"]
+size = Vector3(0.45, 0.25, 0.4)
+
+[sub_resource type="BoxMesh" id="PaperMesh"]
+size = Vector3(0.3, 0.01, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="PaperMaterial"]
+albedo_color = Color(0.97, 0.96, 0.9, 1)
+roughness = 0.9
+
+[node name="DrawingPiece" type="Area3D"]
+script = ExtResource("1_piece")
+prompt_text = "pick up"
+
+[node name="InteractShape" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+shape = SubResource("InteractBox")
+
+[node name="PaperScrap" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+mesh = SubResource("PaperMesh")
+surface_material_override/0 = SubResource("PaperMaterial")

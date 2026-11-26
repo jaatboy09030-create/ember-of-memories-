@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_diff.jpg" id="1_bcvnp"]
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_nor.jpg" id="2_58ji5"]
+[ext_resource type="Texture2D" path="res://assets/textures/painted_plaster_wall/painted_plaster_wall_rough.jpg" id="3_ditd6"]
+
+[resource]
+resource_name = "wall_plaster"
+albedo_color = Color(0.92, 0.9, 0.86, 1)
+albedo_texture = ExtResource("1_bcvnp")
+roughness_texture = ExtResource("3_ditd6")
+normal_enabled = true
+normal_scale = 0.9
+normal_texture = ExtResource("2_58ji5")
+uv1_scale = Vector3(0.4, 0.4, 0.4)
+uv1_triplanar = true
+uv1_triplanar_sharpness = 4.0
+uv1_world_triplanar = true
+texture_filter = 5
