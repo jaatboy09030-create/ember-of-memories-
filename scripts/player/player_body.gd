@@ -170,6 +170,14 @@ func face_towards(point: Vector3) -> void:
 	target_yaw = pivot.rotation.y
 
 
+## Turn body and view to look straight at `point` (yaw and pitch), instantly.
+func look_at_point(point: Vector3) -> void:
+	face_towards(point)
+	var d := point - head_position()
+	target_pitch = clampf(atan2(d.y, Vector2(d.x, d.z).length()), -1.25, 1.25)
+	pitch = target_pitch
+
+
 func glance(point: Vector3, amount := 0.35) -> void:
 	cam.glance(point, amount)
 

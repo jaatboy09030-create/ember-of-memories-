@@ -11,7 +11,7 @@ size = Vector3(0.473, 1.85, 0.52)
 
 [node name="ScarfCoatRack" type="Area3D"]
 script = ExtResource("1_rack")
-prompt_text = "knit: alternate left / right"
+prompt_text = "knit the scarf"
 scarf_mesh_path = NodePath("CoatRackModel/Sketchfab_model_001/Hanger_fbx/RootNode_001/Scarf/Scarf__0")
 
 [node name="InteractShape" type="CollisionShape3D" parent="."]

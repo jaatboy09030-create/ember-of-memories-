@@ -61,6 +61,12 @@ func _follow_head(bob: float) -> void:
 	global_transform = Transform3D(b, player.head_position() + player.facing() * 0.12 + Vector3(sh.x * 0.02, bob + sh.y * 0.02, 0))
 
 
+## Put the camera at the player's eyes right now (no bob, no smoothing), e.g. so a
+## cutscene can glide back to exactly where first-person view will resume.
+func snap_to_head() -> void:
+	_follow_head(0.0)
+
+
 ## Briefly turn the head toward something you interacted with.
 func glance(point: Vector3, amount := 0.35) -> void:
 	_glance_point = point

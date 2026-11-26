@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/knitting/darning_loom.gd" id="1_loom"]
+[ext_resource type="Material" path="res://materials/door_wood.tres" id="2_wood"]
+
+[sub_resource type="BoxMesh" id="BarMesh"]
+size = Vector3(0.11, 0.012, 0.014)
+
+[sub_resource type="BoxMesh" id="ToothMesh"]
+size = Vector3(0.007, 0.016, 0.007)
+
+[node name="DarningLoom" type="Node3D"]
+script = ExtResource("1_loom")
+
+[node name="LoomBar" type="MeshInstance3D" parent="."]
+mesh = SubResource("BarMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hooks" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.004, 0.003)
+
+[node name="Hook1" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.039, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook2" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.026, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook3" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.013, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook3"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook4" type="Node3D" parent="Hooks"]
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook4"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook5" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.013, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook5"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook6" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.026, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook6"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")
+
+[node name="Hook7" type="Node3D" parent="Hooks"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.039, 0, 0)
+
+[node name="Tooth" type="MeshInstance3D" parent="Hooks/Hook7"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.008, 0)
+mesh = SubResource("ToothMesh")
+surface_material_override/0 = ExtResource("2_wood")

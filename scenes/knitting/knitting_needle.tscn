@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/knitting/knitting_needle.gd" id="1_needle"]
+[ext_resource type="PackedScene" path="res://assets/knitting/needle/needle.glb" id="2_model"]
+[ext_resource type="Material" path="res://materials/needle_steel.tres" id="3_steel"]
+
+[node name="KnittingNeedle" type="Node3D"]
+script = ExtResource("1_needle")
+needle_material = ExtResource("3_steel")
+
+[node name="NeedleModel" type="Node3D" parent="."]
+transform = Transform3D(0, 0.6, 0, -0.6, 0, 0, 0, 0, 0.6, 0, 0.027, 0)
+
+[node name="NeedleGlb" parent="NeedleModel" instance=ExtResource("2_model")]
+transform = Transform3D(1.581e-07, 0, 0, 0, 3.7944e-07, 0, 0, 0, 3.7944e-07, 0.081862, -0.126276, -0.134751)

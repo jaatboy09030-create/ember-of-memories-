@@ -1,0 +1,11 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/yarn.gdshader" id="1_yarn"]
+
+[resource]
+resource_name = "yarn_red"
+shader = ExtResource("1_yarn")
+shader_parameter/yarn_color = Color(0.72, 0.1, 0.09, 1)
+shader_parameter/plies = 3.0
+shader_parameter/twist = 0.35
+shader_parameter/warmth = 0.25

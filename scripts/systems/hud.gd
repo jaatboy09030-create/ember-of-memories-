@@ -71,6 +71,13 @@ func say(text: String, duration := 3.0, voice := "") -> void:
 	_caption_tween.tween_property(caption, "modulate:a", 0.0, caption_fade_time + 0.2)
 
 
+## Hide the current caption right away.
+func clear_caption() -> void:
+	if _caption_tween:
+		_caption_tween.kill()
+	caption.modulate.a = 0.0
+
+
 ## Fade the screen to black (alpha 1) or back to clear (alpha 0).
 func fade_to(alpha: float, time: float) -> Tween:
 	var tw := create_tween()
