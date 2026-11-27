@@ -16,6 +16,8 @@ extends Label
 var _tw: Tween
 ## Lines said here keep the blink offer (metronome / eye) away until they're said. Off for title cards.
 var holds_blink := true
+## The current text was said with duration <= 0: it stays on screen on purpose (montage).
+var held := false
 ## Clock time (s) when the last line said through a caption is finished being said.
 static var talking_until := 0.0
 
@@ -41,6 +43,7 @@ func say(line: String, duration := 3.0) -> void:
 				duration = maxf(duration, length + 0.3)
 	if holds_blink:
 		talking_until = Time.get_ticks_msec() / 1000.0 + talk
+	held = duration <= 0.0
 	if _tw:
 		_tw.kill()
 	# a quote and the narration around it are separate lines on screen, one after another,

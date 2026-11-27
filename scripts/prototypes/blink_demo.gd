@@ -235,7 +235,7 @@ func _process(delta: float) -> void:
 	# no blink offer (metronome or eye) until every line is said: beat lines, the eye's own line,
 	# unrecorded lines (by reading time). Only the last ~0.2 s may overlap.
 	var talk_done := beat_time >= _talk_end - 0.2 and Sound.voice_time_left() <= 0.2 \
-		and BlinkCaption.talk_left() <= 0.2 and caption.modulate.a <= 0.4  # and the words have faded
+		and BlinkCaption.talk_left() <= 0.2 and (caption.held or caption.modulate.a <= 0.4)  # and the words have faded
 	blink_ui.hotspot = b.hotspot if talk_done else null
 	_update_listen_hint(b, talk_done)
 	if not armed and talk_done and beat_time >= b.protect_time and (eye_done or beat_time >= b.max_wait):
@@ -625,4 +625,6 @@ func _shot(label: String) -> void:
 	await RenderingServer.frame_post_draw
 	var img := get_viewport().get_texture().get_image()
 	img.save_png(_shots_dir.path_join(label + ".png"))
-	print("BLINKDEMO shot ", label, " beat=", index, " armed=", armed, " sat=", game.screen_effects.world_saturation)
+	print("BLINKDEMO shot ", label, " beat=", index, " armed=", armed, " sat=", game.screen_effects.world_saturation,
+		" metro=", blink_ui.metronome_on, " talk_left=%.2f voice_left=%.2f held=%s a=%.2f t=%.1f end=%.1f" % [
+		BlinkCaption.talk_left(), Sound.voice_time_left(), caption.held, caption.modulate.a, beat_time, _talk_end])
