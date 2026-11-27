@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://kqc68ny17hmc"]
 
-[ext_resource type="Script" uid="uid://d35d0islard1t" path="res://scripts/main.gd" id="1_director"]
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_director"]
 [ext_resource type="PackedScene" path="res://scenes/level/house_level.tscn" id="2_level"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="3_player"]
 [ext_resource type="PackedScene" path="res://scenes/characters/ember.tscn" id="4_ember"]
@@ -15,44 +15,69 @@
 [ext_resource type="PackedScene" path="res://scenes/systems/title_sequence.tscn" id="13_title"]
 [ext_resource type="PackedScene" path="res://scenes/systems/hud.tscn" id="14_hud"]
 [ext_resource type="PackedScene" path="res://scenes/systems/screen_effects.tscn" id="15_fx"]
-[ext_resource type="Script" uid="uid://b4em6t7h0qvky" path="res://scripts/systems/ambience_mixer.gd" id="16_ambience"]
-[ext_resource type="Script" uid="uid://bllf6b3rqytmu" path="res://scripts/systems/outdoor_culling.gd" id="17_culling"]
-[ext_resource type="Script" uid="uid://bcu1x3xpfl01w" path="res://scripts/dev/dev_tests.gd" id="18_tests"]
-[ext_resource type="AudioStream" uid="uid://ccih1ejrr4u8" path="res://assets/audio/wind_loop.mp3" id="19_wind"]
-[ext_resource type="AudioStream" uid="uid://r15hyxxcuv23" path="res://assets/audio/house_tone_loop.mp3" id="20_house"]
+[ext_resource type="Script" path="res://scripts/systems/ambience_mixer.gd" id="16_ambience"]
+[ext_resource type="Script" path="res://scripts/systems/outdoor_culling.gd" id="17_culling"]
+[ext_resource type="Script" path="res://scripts/dev/dev_tests.gd" id="18_tests"]
+[ext_resource type="AudioStream" path="res://assets/audio/wind_loop.mp3" id="19_wind"]
+[ext_resource type="AudioStream" path="res://assets/audio/house_tone_loop.mp3" id="20_house"]
+[ext_resource type="Shader" path="res://shaders/night_sky.gdshader" id="21_sky"]
+
+[sub_resource type="ShaderMaterial" id="NightSkyMaterial"]
+shader = ExtResource("21_sky")
+shader_parameter/moon_size = 0.035
+shader_parameter/cloud_cover = 0.46
+shader_parameter/cloud_far = 0.32
+shader_parameter/cloud_focus = 1.8
+shader_parameter/halo = 0.28
+shader_parameter/moon_color = Color(1, 0.83, 0.6, 1)
+shader_parameter/milky_way = 3.5
+
+[sub_resource type="Sky" id="NightSky"]
+sky_material = SubResource("NightSkyMaterial")
+radiance_size = 1
 
 [sub_resource type="Environment" id="NightEnvironment"]
-background_mode = 1
-background_color = Color(0.012, 0.018, 0.04, 1)
+background_mode = 2
+sky = SubResource("NightSky")
 ambient_light_source = 2
 ambient_light_color = Color(0.3, 0.38, 0.6, 1)
-ambient_light_energy = 0.14
+ambient_light_energy = 0.06
 tonemap_mode = 4
-tonemap_exposure = 1.05
+tonemap_exposure = 0.82
+tonemap_agx_white = 9.0
+tonemap_agx_contrast = 1.2
+ssr_enabled = true
+ssr_max_steps = 48
+ssr_fade_in = 0.15
+ssr_fade_out = 2.0
 ssao_enabled = true
-ssao_radius = 1.1
-ssao_intensity = 1.8
+ssao_radius = 0.6
+ssao_intensity = 1.0
+ssao_power = 1.2
 ssil_intensity = 1.1
 sdfgi_enabled = true
 sdfgi_use_occlusion = true
-sdfgi_bounce_feedback = 0.45
 sdfgi_cascades = 3
 sdfgi_min_cell_size = 0.12
-sdfgi_energy = 1.1
+sdfgi_bounce_feedback = 0.45
+sdfgi_energy = 0.7
 glow_enabled = true
-glow_intensity = 0.7
-glow_bloom = 0.06
+glow_intensity = 0.5
+glow_bloom = 0.03
 glow_hdr_threshold = 1.4
 volumetric_fog_enabled = true
-volumetric_fog_density = 0.0025
-volumetric_fog_albedo = Color(0.85, 0.88, 1, 1)
+volumetric_fog_density = 0.006
+volumetric_fog_albedo = Color(0.62, 0.7, 0.9, 1)
+volumetric_fog_sky_affect = 0.04
+volumetric_fog_length = 90.0
+volumetric_fog_emission = Color(0, 0, 0, 1)
+volumetric_fog_anisotropy = 0.25
 volumetric_fog_gi_inject = 0.0
-volumetric_fog_anisotropy = 0.7
 adjustment_enabled = true
 adjustment_contrast = 1.08
 adjustment_saturation = 1.05
 
-[node name="Main" type="Node3D" unique_id=1579201161 node_paths=PackedStringArray("player", "ember", "hud", "screen_effects", "title_sequence", "world_environment")]
+[node name="Main" type="Node3D" node_paths=PackedStringArray("player", "ember", "hud", "screen_effects", "title_sequence", "world_environment")]
 script = ExtResource("1_director")
 player = NodePath("Player")
 ember = NodePath("Ember")
@@ -61,70 +86,73 @@ screen_effects = NodePath("ScreenEffects")
 title_sequence = NodePath("TitleSequence")
 world_environment = NodePath("WorldEnvironment")
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=815326976]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("NightEnvironment")
 
-[node name="Moon" type="DirectionalLight3D" parent="." unique_id=1804471363]
-transform = Transform3D(0.906308, -0.260189, 0.333028, 0, 0.788011, 0.615661, -0.422618, -0.557979, 0.714181, 0, 20, 0)
-light_color = Color(0.55, 0.66, 1, 1)
-light_energy = 0.5
-light_volumetric_fog_energy = 0.6
+[node name="Moon" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866, 0.1875, -0.464, 0, 0.927, 0.375, 0.5, 0.325, -0.803, 0, 20, 0)
+light_color = Color(0.62, 0.69, 0.88, 1)
+light_energy = 0.62
 light_angular_distance = 0.6
+light_volumetric_fog_energy = 0.7
 shadow_enabled = true
 shadow_blur = 1.5
 directional_shadow_max_distance = 60.0
 
-[node name="HouseLevel" parent="." unique_id=1553532215 instance=ExtResource("2_level")]
+[node name="MoonFill" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.939693, 0.116978, -0.321394, 0, 0.939693, 0.34202, 0.34202, -0.321394, 0.883022, 0, 18, 0)
+light_color = Color(0.5, 0.6, 0.92, 1)
+light_energy = 0.025
+light_volumetric_fog_energy = 0.0
+light_specular = 0.2
+editor_description = "Faint cold fill from the front, no shadows: the real moon is behind the house (backlight), this keeps the garden readable."
 
-[node name="Shape" parent="HouseLevel/Rooms/LivingRoom/Props/Ottoman/Collision" parent_id_path=PackedInt32Array(1553532215, 143469749) index="0" unique_id=690237722]
-disabled = true
+[node name="HouseLevel" parent="." instance=ExtResource("2_level")]
 
-[node name="Player" parent="." unique_id=787820121 instance=ExtResource("3_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 15)
+[node name="Player" parent="." instance=ExtResource("3_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 16.3)
 
-[node name="Ember" parent="." unique_id=1104359466 instance=ExtResource("4_ember")]
+[node name="Ember" parent="." instance=ExtResource("4_ember")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 10)
 
-[node name="Memories" type="Node3D" parent="." unique_id=1302418813]
+[node name="Memories" type="Node3D" parent="."]
 
-[node name="ArrivalMemory" parent="Memories" unique_id=1676463207 instance=ExtResource("5_arrival")]
+[node name="ArrivalMemory" parent="Memories" instance=ExtResource("5_arrival")]
 
-[node name="ScarfMemory" parent="Memories" unique_id=1473720841 instance=ExtResource("6_scarf")]
+[node name="ScarfMemory" parent="Memories" instance=ExtResource("6_scarf")]
 
-[node name="DrawingMemory" parent="Memories" unique_id=1673788219 instance=ExtResource("7_drawing")]
+[node name="DrawingMemory" parent="Memories" instance=ExtResource("7_drawing")]
 
-[node name="DoorMemory" parent="Memories" unique_id=1822648523 instance=ExtResource("8_door")]
+[node name="DoorMemory" parent="Memories" instance=ExtResource("8_door")]
 
-[node name="SuitcaseMemory" parent="Memories" unique_id=2144884592 instance=ExtResource("9_suitcase")]
+[node name="SuitcaseMemory" parent="Memories" instance=ExtResource("9_suitcase")]
 
-[node name="PhotoMemory" parent="Memories" unique_id=780103134 instance=ExtResource("10_photo")]
+[node name="PhotoMemory" parent="Memories" instance=ExtResource("10_photo")]
 
-[node name="FireplaceMemory" parent="Memories" unique_id=834880450 instance=ExtResource("11_fire")]
+[node name="FireplaceMemory" parent="Memories" instance=ExtResource("11_fire")]
 
-[node name="Snowfall" parent="." unique_id=1872611040 instance=ExtResource("12_snow")]
+[node name="Snowfall" parent="." instance=ExtResource("12_snow")]
 
-[node name="TitleSequence" parent="." unique_id=179091000 instance=ExtResource("13_title")]
+[node name="TitleSequence" parent="." instance=ExtResource("13_title")]
 
-[node name="HUD" parent="." unique_id=692941065 instance=ExtResource("14_hud")]
+[node name="HUD" parent="." instance=ExtResource("14_hud")]
 
-[node name="ScreenEffects" parent="." unique_id=783890193 instance=ExtResource("15_fx")]
+[node name="ScreenEffects" parent="." instance=ExtResource("15_fx")]
 
-[node name="AmbienceMixer" type="Node" parent="." unique_id=1550668471 node_paths=PackedStringArray("player")]
+[node name="AmbienceMixer" type="Node" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("16_ambience")
 player = NodePath("../Player")
 
-[node name="WindLoop" type="AudioStreamPlayer" parent="AmbienceMixer" unique_id=1587335202]
+[node name="WindLoop" type="AudioStreamPlayer" parent="AmbienceMixer"]
 stream = ExtResource("19_wind")
 volume_db = -6.0
 
-[node name="HouseToneLoop" type="AudioStreamPlayer" parent="AmbienceMixer" unique_id=2026805488]
+[node name="HouseToneLoop" type="AudioStreamPlayer" parent="AmbienceMixer"]
 stream = ExtResource("20_house")
 volume_db = -60.0
 
-[node name="OutdoorCulling" type="Node" parent="." unique_id=1308448986]
+[node name="OutdoorCulling" type="Node" parent="."]
 script = ExtResource("17_culling")
 
-[node name="DevTests" type="Node" parent="." unique_id=501621910]
+[node name="DevTests" type="Node" parent="."]
 script = ExtResource("18_tests")
-
-[editable path="HouseLevel"]

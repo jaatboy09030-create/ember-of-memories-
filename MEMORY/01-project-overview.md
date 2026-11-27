@@ -13,7 +13,8 @@
 
 ## Engine & platform
 - **Godot 4.7**, Forward+ renderer, GDScript only. 1920×1080 viewport.
-- Godot executable on this machine: `C:\Program Files\Godot\Godot.exe` (NOT on PATH).
+- Godot executable: `C:\Program Files\Godot\Godot.exe` on Suyash's machine; `C:\Program Files\Godot\Godot_v4.7.2-stable_win64.exe`
+  on XMavrik's (`D:\Users\Dell\Downloads\gamedev 2026\EmberLetters`, not OneDrive). Neither is on PATH.
 - Project root = folder containing `project.godot`. Main scene `res://scenes/main.tscn`.
 - Repo lives inside **OneDrive** (`C:\Users\suyas\OneDrive\Documents\ember-of-memories-`) — see gotchas.
 - Optional editor integrations used by AIs: Godot MCP (`godot`, `godot-ai`), Blender MCP.
@@ -44,7 +45,8 @@ MEMORY/                  this knowledge base
 & "C:\Program Files\Godot\Godot.exe" --path . --editor              # editor
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -- --storytest   # automated story test
 ```
-Other test flags: `--walktest` (add `--gate` to start outside), `--doortest`. Output lines starting
+Other test flags: `--walktest` (add `--gate` to start outside), `--doortest`; screenshot flags (not headless, write `_shots/`):
+`--titleshot` (opening, `o*`), `--tour` (fixed viewpoints, `t*`), `--embershot` (the burning ember). Output lines starting
 with `TEST` are results; each prints PASS/FAIL. All three passed headless at commit 7509065.
 
 ## Team / history

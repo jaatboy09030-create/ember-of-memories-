@@ -7,7 +7,7 @@ that alters structure, dependencies, conventions, or teaches a lesson.
 Goal: nobody re-discovers the same dependency, re-makes the same mistake, or re-invents a
 workflow that already has a recipe here.
 
-Last full audit: **2026-11-26**, at commit `c806893` (main).
+Last full audit: **2026-11-26**, at commit `c806893` (main). Updated the same day for the uncommitted look/opening pass (see CHANGELOG).
 
 ---
 
@@ -27,6 +27,7 @@ Last full audit: **2026-11-26**, at commit `c806893` (main).
 | 10 | [10-story-and-gameplay.md](10-story-and-gameplay.md) | Briefing someone new: story, gameplay, flow, presentation, where it's going. |
 | 11 | [11-blink-demo.md](11-blink-demo.md) | Working on the Before Your Eyes style blink prototype (scenes/prototypes/blink_demo.tscn). |
 | 12 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
+| 13 | [../research/00-unsent-opening-recipe.md](../research/00-unsent-opening-recipe.md) | **Before any lighting / art-direction work.** Researched recipe + index of 10 reports. |
 
 ---
 

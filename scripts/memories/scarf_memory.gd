@@ -105,8 +105,8 @@ func _on_knitted() -> void:
 	wake_figures()
 	if boy_figure and boy_wear_clip:
 		get_tree().create_timer(boy_wear_delay).timeout.connect(func(): boy_figure.play_clip(boy_wear_clip))
-	play_restore_moment(_figures_point())
-	game.hud.say(restored_line, 3.5, restored_voice)
+	play_restore_moment(coat_rack.global_position + Vector3(0, 1.4, 0))
+	game.hud.say(restored_line, 7.0, restored_voice)
 	finish()
 
 

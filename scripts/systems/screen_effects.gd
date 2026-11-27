@@ -3,8 +3,9 @@ extends CanvasLayer
 ## SCREEN EFFECTS: the film / worn-camera look drawn over the 3D view
 ## (shaders/camera_fx.gdshader): a gentle lens bend (barrel distortion, cropped so there are
 ## no black edges) with colour fringe toward the edges, vignette, sensor grain that is
-## stronger in the dark, warm/cold tint, the grey "frozen memory" look, and the pixelated
-## faces of the memory figures.
+## stronger in the dark, warm/cold tint and the pixelated faces of the memory figures.
+## The frozen-memory look itself (moonlit duotone, frost, ember halo, restore ripple) is the
+## MemoryGrade child, drawn first; GradeCopy hands its result to FilmLook.
 ##
 ## The lens is only on while the player's camera (PlayerCamera) is the active camera. It
 ## fades out for any other camera (e.g. the drawing puzzle, where the mouse must hit exactly
@@ -42,6 +43,9 @@ extends CanvasLayer
 @export_group("")
 ## Shared strength sliders (lens / grain). Empty = everything at full.
 @export var comfort: CameraComfort
+## Off = no face mosaics (memory 5 turns it off: the mosaic of a figure behind the photo
+## would land on the glass, which has no collision to hide it).
+@export var pixelate_faces := true
 
 @export_group("Lens")
 ## Barrel bend (k1). 0 = flat. ~0.1 = gentle worn-camera curve; 0.3+ = fisheye.
@@ -59,13 +63,14 @@ extends CanvasLayer
 
 @onready var film_look: ColorRect = $FilmLook
 @onready var mat: ShaderMaterial = film_look.material
+@onready var memory_grade: MemoryGrade = $MemoryGrade
 
 var world_saturation := 0.3:
 	set(v):
 		world_saturation = v
 		RenderingServer.global_shader_parameter_set("world_sat", v)
-		if mat:
-			mat.set_shader_parameter("world_sat", v)
+		if memory_grade:
+			memory_grade.set_world_saturation(v)
 
 var _lens := 0.0  # 0 = no lens .. 1 = full lens, eased toward its target every frame
 var _gaze := {}  # face anchor instance id -> 0..1 how long it has been looked at
@@ -104,6 +109,7 @@ func remember(amount := -1.0) -> void:
 
 ## A memory comes back: a warm flash that settles slightly warmer than before.
 func warm_flash() -> void:
+	memory_grade.ripple()
 	var tw := create_tween()
 	tw.tween_property(mat, "shader_parameter/warmth", 0.6, 0.6)
 	tw.tween_property(mat, "shader_parameter/warmth", -0.1, 3.0)
@@ -159,7 +165,7 @@ func _update_lens(cam: Camera3D, delta: float) -> void:
 func _update_faces(cam: Camera3D, delta: float) -> void:
 	var faces: Array = []
 	var res := get_viewport().get_visible_rect().size
-	for f in get_tree().get_nodes_in_group("memory_face"):
+	for f in (get_tree().get_nodes_in_group("memory_face") if pixelate_faces else []):
 		var face := f as Node3D
 		if not face.is_visible_in_tree():
 			continue

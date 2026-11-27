@@ -12,7 +12,7 @@ Follow these step by step. If you do a new kind of task twice, add a recipe here
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -- --walktest --gate
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -- --doortest
 ```
-Read the `TEST ...` lines; every one must say PASS. The `--` separates engine args from user args
+Read the `TEST ...` lines; every one must say PASS (doortest also covers locked-door rattle and the one-way front door). The `--` separates engine args from user args
 (`OS.get_cmdline_user_args`). Storytest has a 45 s timeout per memory.
 If you move an interactable that storytest ray-checks (ScarfCoatRack, StudyDoor, PhotoFrame, Fireplace),
 **update the stand/target positions in `scripts/dev/dev_tests.gd::_story_test`**.
@@ -66,7 +66,8 @@ Poly Haven: download glTF 1k into `assets/polyhaven/<id>/`. Sketchfab: put glb i
 & "C:\Program Files\Godot\Godot.exe" --headless --path . -s res://tools/level_builder.gd
 ```
 Throws away every hand edit in `house_level.tscn` and rewrites `materials/level/`. Only do it if asked; prefer editing the scene.
-Afterwards re-check the memory scenes still line up (it prints positions of MEMORY_OWNED props such as the suitcase) and run R1.
+Afterwards re-check the memory scenes still line up (it prints `PLACED` positions of the furniture memories use: desk,
+chairs, dresser, nightstands, bedroom table), run R12 (overlap check) and R1.
 
 ## R9. Add an input action
 Add it in `project.godot [input]` (or Project Settings → Input Map) with **both** a keyboard/mouse and a gamepad event.
@@ -79,6 +80,36 @@ Edit the path in `tools/debug_model.gd`, then:
 ```
 Useful to find `scarf_mesh_path`-style NodePaths inside glb/fbx imports.
 
+## R12. Check that nothing passes through anything
+```powershell
+& "C:\Program Files\Godot\Godot.exe" --headless --path . -s res://tools/overlap_check.gd
+```
+Last line must be `overlap_check: 0 problem(s)`. `known` lines (the study door set into the hallway wall) are fine. Run it
+after moving props, regenerating the level (R8) or moving memory objects. Ghost figures are not checked: look at seated
+figures from the side in the editor.
+
 ## R11. Finish any change
 Update the relevant `MEMORY/*.md`, add a dated entry to `MEMORY/CHANGELOG.md`, run R1, then commit.
 Commit/push only when the owner asks; branch first if on `main`.
+
+## R12. Make / redo a voice line (ElevenLabs)
+1. Use the account voices **"Grandma - Unsent"** / **"Mother - Unsent"** (library voices must be *added to the account*
+   before TTS works, else `voice_not_found`). Model `eleven_v3`, stability 0.5, direction tags in the text, e.g.
+   `[warmly, slowly, holding back tears] ... [long pause] ...`. Generate into a scratch folder, not assets.
+2. v3 ignores `speed`, so slow/warm afterwards (ffmpeg needs Windows paths, not Git-Bash `/c/...`):
+   `ffmpeg -i in.mp3 -af "atempo=0.84,bass=g=2.5:f=180,treble=g=-2.5:f=7000,apad=pad_dur=0.4" -b:a 128k assets/audio/v_x.mp3`
+3. Set the caption duration in the memory script (`hud.say(line, seconds, voice)`) to >= the clip length.
+4. Owner's cap: **30k ElevenLabs credits total** — check `check_subscription` and keep a tally.
+
+## R13. Change the house exterior
+1. Edit in **Blender**, scene `TripoHouse`, collection `TripoAssembly` (owner wants modelling in Blender, not Godot).
+   Game coords: front wall at z=0, x -7.5..6.
+2. Export: deselect objects in *all* scenes, select the collection's objects, `export_scene.gltf(use_selection=True,
+   use_active_scene=True, export_format='GLB')` -> `assets/house/house_exterior.glb`.
+3. Keep the mesh names `LitWindowGlow` and `WindowSilhouette` (HouseExterior finds them by prefix).
+4. Texture missing after re-export -> see 07 (broken JPEG / force reimport).
+
+## R14. Look at the opening / the level without playing
+`& $GODOT --path . -- --titleshot` (o1-o7 in `_shots/`) or `-- --tour` (t1-t7). Not headless (needs rendering).
+Opening framing = `TitleSequence.camera_start / camera_look / text_lift`; garden pines `Pine2`/`Pine3` were moved to keep
+that view clear — re-shoot if you move trees.

@@ -6,22 +6,26 @@ extends Node3D
 ##   follow = false -> sits at `anchor` (a world position); Vector3.INF = stay put
 ## The story (main.gd) moves the target from memory to memory.
 ##
-## How to change it: drift_speed, hover_height, bob_amount, flicker below; colour and
-## brightness are on EmberCore and EmberLight in the Inspector.
+## How to change it: drift_speed, hover_height, bob_amount below. The fire itself (flame,
+## tail, sparks, smoke, light flicker) is on the EmberFire child: scripts/characters/ember_fire.gd.
 
 @export var follow := false
 @export var drift_speed := 1.2
 ## Height above the target it floats at.
 @export var hover_height := 1.55
 @export var bob_amount := 0.08
-@export var base_light_energy := 2.2
 
 var target: Node3D
 var anchor := Vector3.INF
 
 @onready var light: OmniLight3D = $EmberLight
+@onready var fire: EmberFire = $EmberFire
 
 var _time := 0.0
+
+
+func _ready() -> void:
+	add_to_group("colour_source")  # MemoryGrade brings colour back in a halo around the ember
 
 
 func _process(delta: float) -> void:
@@ -37,7 +41,6 @@ func _process(delta: float) -> void:
 	elif anchor != Vector3.INF:
 		goal = anchor
 	global_position = global_position.lerp(goal + bob, clampf(drift_speed * delta, 0.0, 1.0))
-	light.light_energy = base_light_energy + sin(_time * 7.0) * 0.15 + sin(_time * 13.0) * 0.08
 
 
 ## Wait at a fixed point (not following).

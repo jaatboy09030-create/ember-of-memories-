@@ -6,3 +6,6 @@ _shots/
 # huge unused Poly Haven trees (>100 MB, GitHub limit)
 assets/polyhaven/pine_tree_01/
 assets/polyhaven/pine_sapling_medium/
+
+# Vefects Stylized Fire: licence forbids public repositories (install locally from the Godot Asset Store)
+Vefects/

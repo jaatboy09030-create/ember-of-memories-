@@ -78,6 +78,8 @@ func _ready() -> void:
 	memory_camera.make_current()
 	if music != "":
 		Sound.play_music(music, -16.0, 3.0)
+	if "--blinknovoid" in OS.get_cmdline_user_args():  # debug: see the whole room, no black void
+		memory_void.visible = false
 	if "--blinkcheck" in OS.get_cmdline_user_args():
 		_check_figures()
 	elif _shots_dir != "":
@@ -421,7 +423,12 @@ func _check_figures() -> void:
 				if best != Vector3.INF:
 					break
 			print("CHECK   free spot for ", fig.name, ": ", best.snapped(Vector3.ONE * 0.01))
-		print("CHECK ", fig.get_path().get_concatenated_names().right(60), "  ", "OK" if ok else "BAD",
+		var shown := 0
+		for mi in fig.find_children("*", "MeshInstance3D", true, false):
+			var vm := mi as VisualInstance3D
+			if (vm.layers & memory_camera.cull_mask) != 0:
+				shown += 1
+		print("CHECK ", fig.get_path().get_concatenated_names().right(60), "  ", "OK" if ok else "BAD", "  meshes_seen=", shown,
 			"  feet_gap=%.2f" % floor_gap, "  box=", box.size.snapped(Vector3.ONE * 0.01), "  hits=", names)
 	# props placed by the beats: each must rest on something (no floating, no sinking)
 	for props in beats_root.find_children("Props", "Node3D", true, false):

@@ -55,6 +55,24 @@ extends Camera3D
 ## How fast it adapts (lower = slower, more like a cheap camera).
 @export var exposure_adapt_speed := 0.8
 
+@export_group("Depth of field")
+## Keep the opening's cinematic blur during play: the camera focuses on whatever is in the
+## middle of the view (like a lens pulling focus) and blurs what is much nearer or farther,
+## with the same blur amount as the title. Off = sharp everywhere outside cutscenes.
+@export var gameplay_dof := true
+## Farthest autofocus distance (metres). The title hands over focused at 14 m.
+@export var autofocus_max := 14.0
+## Closest autofocus distance (metres).
+@export var autofocus_min := 0.6
+## How fast focus follows a new distance (higher = snappier focus pulls). Focus moves in
+## "lens steps" (log of the distance), so near-to-far pulls look as smooth as far-to-near.
+@export var autofocus_speed := 1.6
+## Fastest focus pull, in lens steps per second (caps sudden jumps, e.g. a doorway edge).
+@export var autofocus_max_rate := 1.2
+## Half-angle (degrees) of the four extra focus rays around the centre; the median of the
+## five distances is used, so one thin edge in the middle of the view can't snap focus.
+@export var autofocus_spread := 4.0
+
 ## true = a cutscene drives the camera (position/rotation are left alone by this script).
 var cinematic := false
 ## While cinematic, look at this point every frame (Vector3.INF = don't).
@@ -73,6 +91,8 @@ var _has_last_yaw := false
 var _sway := Vector2.ZERO  # x = pitch tilt, y = roll tilt (radians), spring position
 var _sway_velocity := Vector2.ZERO
 var _turn_bank := 0.0
+var _focus_log := log(14.0)
+var _glance_tween: Tween
 
 @onready var player: PlayerBody = get_parent()
 
@@ -115,6 +135,29 @@ func _physics_process(delta: float) -> void:
 		* (1.0 + (step_asymmetry if heavy_foot else 0.0))
 	bob += sin(_time * 1.3) * breathing_sway - sin(_settle * PI) * 0.02
 	_follow_head(bob * _motion())
+	_update_autofocus(delta)
+
+
+## Gameplay depth of field: focus smoothly on the solid surface in the middle of the view.
+## Only World geometry counts (layer 1), so held items and interact areas don't steal focus.
+func _update_autofocus(delta: float) -> void:
+	if not gameplay_dof:
+		return
+	var space := get_world_3d().direct_space_state
+	var from := global_position
+	var spread := deg_to_rad(autofocus_spread)
+	var dists: Array[float] = []
+	for dir in [Vector2.ZERO, Vector2(1, 0), Vector2(-1, 0), Vector2(0, 1), Vector2(0, -1)]:
+		var ray := -global_basis.z
+		ray = ray.rotated(global_basis.y, dir.x * spread).rotated(global_basis.x, dir.y * spread)
+		var query := PhysicsRayQueryParameters3D.create(from, from + ray * autofocus_max, 1, [player.get_rid()])
+		var hit := space.intersect_ray(query)
+		dists.append(autofocus_max if hit.is_empty() else from.distance_to(hit.position))
+	dists.sort()
+	var target := log(clampf(dists[2], autofocus_min, autofocus_max))
+	var step := (target - _focus_log) * (1.0 - exp(-autofocus_speed * delta))
+	_focus_log += clampf(step, -autofocus_max_rate * delta, autofocus_max_rate * delta)
+	focus(exp(_focus_log))
 
 
 ## Start/stop sway (a spring that lags behind changes of speed) and the bank into turns.
@@ -189,12 +232,27 @@ func snap_to_head() -> void:
 
 
 ## Briefly turn the head toward something you interacted with.
+## Only one glance runs at a time, and it lets go as soon as the player looks around
+## (cancel_glance), so it never fights the mouse or stick.
 func glance(point: Vector3, amount := 0.35) -> void:
+	if _glance_tween:
+		_glance_tween.kill()
 	_glance_point = point
-	var tw := create_tween()
-	tw.tween_property(self, "_glance_amount", amount, 0.35).set_trans(Tween.TRANS_SINE)
-	tw.tween_interval(0.6)
-	tw.tween_property(self, "_glance_amount", 0.0, 0.8).set_trans(Tween.TRANS_SINE)
+	_glance_tween = create_tween()
+	_glance_tween.tween_property(self, "_glance_amount", amount, 0.35).set_trans(Tween.TRANS_SINE)
+	_glance_tween.tween_interval(0.6)
+	_glance_tween.tween_property(self, "_glance_amount", 0.0, 0.8).set_trans(Tween.TRANS_SINE)
+
+
+## The player is looking around: hand the view back quickly.
+func cancel_glance() -> void:
+	if _glance_amount <= 0.001 or (_glance_tween and _glance_tween.is_valid() and _glance_tween.get_meta("cancel", false)):
+		return
+	if _glance_tween:
+		_glance_tween.kill()
+	_glance_tween = create_tween()
+	_glance_tween.set_meta("cancel", true)
+	_glance_tween.tween_property(self, "_glance_amount", 0.0, 0.2).set_trans(Tween.TRANS_SINE)
 
 
 func add_shake(amount: float, time_s := 0.5) -> void:
@@ -207,6 +265,31 @@ func reveal_face() -> void:
 	cull_mask = 0xFFFFF
 
 
+## Normal first person again: the camera stops seeing the body (after the photo reveal), so
+## you never look down into your own hair, shoulders or the inside of your head.
+func hide_face() -> void:
+	cull_mask = PlayerBody.CAMERA_MASK_WITHOUT_BODY
+
+
+## Where the camera can go on the way from `from` to `to` without entering walls or
+## furniture (World layer 1): a small sphere is swept along the line and stopped short of
+## the first hit. Cutscenes use it so the camera never clips through a wall.
+func safe_position(from: Vector3, to: Vector3, radius := 0.14) -> Vector3:
+	var shape := SphereShape3D.new()
+	shape.radius = radius
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = shape
+	q.transform = Transform3D(Basis.IDENTITY, from)
+	q.motion = to - from
+	q.collision_mask = 1
+	q.exclude = [player.get_rid()]
+	var space := get_world_3d().direct_space_state
+	if not space.intersect_shape(q, 1).is_empty():
+		return from  # already touching something at the start: stay put
+	var safe := space.cast_motion(q)[0]
+	return from.lerp(to, safe)
+
+
 ## Depth of field: keep things `dist` metres away sharp. dist <= 0 turns it off.
 func focus(dist: float) -> void:
 	var attr := attributes as CameraAttributesPractical
@@ -216,9 +299,10 @@ func focus(dist: float) -> void:
 		attr.dof_blur_far_enabled = false
 		attr.dof_blur_near_enabled = false
 		return
+	# every value scales smoothly with the distance (no switch on/off) so focus pulls never pop
 	attr.dof_blur_far_enabled = true
-	attr.dof_blur_far_distance = dist + 0.6
-	attr.dof_blur_far_transition = maxf(dist * 0.8, 0.8)
-	attr.dof_blur_near_enabled = dist > 1.0
-	attr.dof_blur_near_distance = maxf(dist * 0.4, 0.1)
-	attr.dof_blur_near_transition = 0.3
+	attr.dof_blur_far_distance = dist * 1.15 + 0.3
+	attr.dof_blur_far_transition = maxf(dist * 0.8, 0.5)
+	attr.dof_blur_near_enabled = true
+	attr.dof_blur_near_distance = dist * 0.45
+	attr.dof_blur_near_transition = dist * 0.35

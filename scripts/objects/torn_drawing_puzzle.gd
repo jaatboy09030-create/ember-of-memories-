@@ -36,6 +36,8 @@ func _ready() -> void:
 			_pieces.append(c)
 	pieces_root.visible = false
 	_camera_rest = puzzle_camera.transform
+	# the glide starts at the player's eyes: never render the inside of their head
+	puzzle_camera.cull_mask = PlayerBody.CAMERA_MASK_WITHOUT_BODY
 
 
 ## Glide from the player's camera to the puzzle view and start taking input.

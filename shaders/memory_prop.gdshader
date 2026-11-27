@@ -8,6 +8,8 @@ uniform vec4 tint : source_color = vec4(1.0);
 uniform bool has_tex = false;
 uniform float roughness_value = 0.85;
 uniform float snow = 0.0;
+uniform float own_saturation = 1.0;  // this prop's own colour strength (weathered paint < 1)
+uniform vec3 snow_color : source_color = vec3(0.8, 0.83, 0.9);  // never pure white (research/10)
 uniform float paint_bias = 2.2; // softer, painted-looking textures // 0 = none, 1 = full snow cover on top faces
 
 varying vec3 wnorm;
@@ -29,13 +31,13 @@ void fragment() {
 		discard;
 	}
 	float l = dot(c.rgb, vec3(0.299, 0.587, 0.114));
-	c.rgb = mix(vec3(l), c.rgb, 1.15); // a touch richer
+	c.rgb = mix(vec3(l), c.rgb, 1.15 * own_saturation); // a touch richer, or weathered
 	vec3 col = mix(vec3(l), c.rgb, clamp(world_sat, 0.0, 1.0));
 	float rough = roughness_value;
 	if (snow > 0.0) {
 		float up = smoothstep(0.25, 0.75, wnorm.y);
 		float cover = clamp(up * snow, 0.0, 1.0);
-		col = mix(col, vec3(0.9, 0.93, 1.0), cover);
+		col = mix(col, snow_color, cover);
 		rough = mix(rough, 0.6, cover);
 	}
 	ALBEDO = col;

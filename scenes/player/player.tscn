@@ -10,6 +10,8 @@
 [ext_resource type="PackedScene" path="res://assets/mixamo/player_idle.fbx" id="8_idle"]
 [ext_resource type="PackedScene" path="res://assets/mixamo/player_walk.fbx" id="9_walk"]
 [ext_resource type="Resource" path="res://settings/camera_comfort.tres" id="10_comfort"]
+[ext_resource type="Script" path="res://scripts/player/head_bow.gd" id="11_bow"]
+[ext_resource type="Script" path="res://scripts/player/player_hands.gd" id="12_hands"]
 
 [sub_resource type="CapsuleShape3D" id="BodyCapsule"]
 radius = 0.25
@@ -104,6 +106,33 @@ mesh = SubResource("ScarfLoopMesh")
 transform = Transform3D(0.994522, -0.104528, 0, 0.101423, 0.964981, 0.241922, -0.025288, -0.240597, 0.970296, 0.06, -0.16, 0.11)
 mesh = SubResource("ScarfTailMesh")
 
+[node name="LeftArmHoldIK" type="TwoBoneIK3D" parent="BodyPivot/CharacterModel/Skeleton3D"]
+influence = 0.0
+setting_count = 1
+settings/0/pole_node = NodePath("../../../ElbowPoleLeft")
+settings/0/root_bone_name = "mixamorig_LeftArm"
+settings/0/middle_bone_name = "mixamorig_LeftForeArm"
+settings/0/end_bone_name = "mixamorig_LeftHand"
+
+[node name="RightArmHoldIK" type="TwoBoneIK3D" parent="BodyPivot/CharacterModel/Skeleton3D"]
+influence = 0.0
+setting_count = 1
+settings/0/pole_node = NodePath("../../../ElbowPoleRight")
+settings/0/root_bone_name = "mixamorig_RightArm"
+settings/0/middle_bone_name = "mixamorig_RightForeArm"
+settings/0/end_bone_name = "mixamorig_RightHand"
+
+[node name="HeadBow" type="SkeletonModifier3D" parent="BodyPivot/CharacterModel/Skeleton3D" node_paths=PackedStringArray("body_pivot")]
+influence = 0.0
+script = ExtResource("11_bow")
+body_pivot = NodePath("../../..")
+
+[node name="ElbowPoleLeft" type="Marker3D" parent="BodyPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.9, -0.2)
+
+[node name="ElbowPoleRight" type="Marker3D" parent="BodyPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.9, -0.2)
+
 [node name="PlayerCamera" type="Camera3D" parent="."]
 top_level = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.62, 0)
@@ -135,6 +164,9 @@ script = ExtResource("4_breath")
 [node name="PlayerAnimator" type="Node" parent="."]
 script = ExtResource("5_anim")
 walk_animation = ExtResource("9_walk")
+
+[node name="Hands" type="Node" parent="."]
+script = ExtResource("12_hands")
 
 [node name="Footsteps" type="Node" parent="."]
 script = ExtResource("6_steps")

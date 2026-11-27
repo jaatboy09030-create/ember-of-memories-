@@ -39,7 +39,7 @@ seat_point = NodePath("SeatPoint")
 [node name="CharacterModel" parent="BoyAtDesk" instance=ExtResource("6_boy")]
 
 [node name="SeatPoint" type="Marker3D" parent="BoyAtDesk"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, -0.03)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.52, 0.08)
 
 [node name="EmberRestPoint" type="Marker3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 0, -4.15)

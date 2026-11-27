@@ -32,8 +32,7 @@ func begin() -> void:
 			p.picked_up.connect(_on_piece_picked_up)
 
 
-func _on_piece_picked_up(piece: DrawingPiece) -> void:
-	game.player.glance(piece.global_position, 0.4)
+func _on_piece_picked_up(_piece: DrawingPiece) -> void:
 	_pieces_left -= 1
 	if _pieces_left == 0:
 		puzzle.enabled = true
@@ -53,7 +52,7 @@ func _on_puzzle_solved() -> void:
 	Sound.play("tape", -4.0)
 	play_restore_moment(drawing_on_wall.global_position)
 	drawing_on_wall.pop_in()
-	game.hud.say(restored_line, 3.0, restored_voice)
+	game.hud.say(restored_line, 3.5, restored_voice)
 	finish()
 
 
