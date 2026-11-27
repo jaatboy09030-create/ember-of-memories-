@@ -101,7 +101,7 @@ func _draw() -> void:
 	_draw_eye()
 	_draw_reticle()
 	_draw_metronome()
-	_draw_listen()
+	# (the "hold" eye glyph, _draw_listen(), is not drawn: user didn't want it on screen)
 
 
 ## The "hold your eyes shut" eye: opens, slowly shuts, stays shut while a ring fills, opens. Loops.
