@@ -180,12 +180,12 @@ func _update_faces(cam: Camera3D, delta: float) -> void:
 		var c := cam.unproject_position(p)
 		var edge := cam.unproject_position(p + cam.global_transform.basis.x * 0.13)
 		faces.append(Vector4(c.x, c.y, c.distance_to(edge), 1.0 + _face_clarity(face, c, res, delta)))
-		if faces.size() == 4:
+		if faces.size() == 8:
 			break
-	while faces.size() < 4:
+	while faces.size() < 8:
 		faces.append(Vector4.ZERO)
 	mat.set_shader_parameter("faces", faces)
-	mat.set_shader_parameter("face_count", 4)
+	mat.set_shader_parameter("face_count", 8)
 
 
 func _face_clarity(face: Node3D, screen_pos: Vector2, res: Vector2, delta: float) -> float:
