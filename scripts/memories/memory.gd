@@ -48,6 +48,7 @@ func play_restore_moment(look_at_point: Vector3) -> void:
 	game.player.glance(look_at_point, 0.45)
 	game.player.add_shake(0.15, 0.8)
 	game.screen_effects.warm_flash()
+	game.screen_effects.remember()  # the mosaic rule: every face gets a little clearer
 
 
 ## Call when the mini-game is finished. The director takes it from there.

@@ -24,6 +24,22 @@ extends CanvasLayer
 @export var resting_grain := 0.03
 ## Faces further away than this are not pixelated.
 @export var face_blur_distance := 14.0
+
+@export_group("Faces (the mosaic rule)")
+## THE RULE: faces are pixelated because the player has forgotten them.
+## How much the player remembers overall (0 = nothing .. 1). Rises with each restored memory.
+@export_range(0.0, 1.0) var memory_clarity := 0.0
+## How much memory_clarity one restored memory adds.
+@export_range(0.0, 0.5) var clarity_per_memory := 0.1
+## Looking straight at a face slowly sharpens it, by up to this much (never fully clear).
+@export_range(0.0, 1.0) var gaze_clarity := 0.35
+## Seconds of steady looking to reach gaze_clarity; it fades 3x faster when you look away.
+@export var gaze_time := 4.0
+## How close to the screen centre counts as "looking at" a face (fraction of screen height).
+@export var gaze_radius := 0.18
+## A grey (drained) world makes faces coarser: clarity is scaled by mix(this, 1, saturation).
+@export_range(0.0, 1.0) var drained_clarity_scale := 0.6
+@export_group("")
 ## Shared strength sliders (lens / grain). Empty = everything at full.
 @export var comfort: CameraComfort
 
@@ -52,6 +68,7 @@ var world_saturation := 0.3:
 			mat.set_shader_parameter("world_sat", v)
 
 var _lens := 0.0  # 0 = no lens .. 1 = full lens, eased toward its target every frame
+var _gaze := {}  # face anchor instance id -> 0..1 how long it has been looked at
 
 
 func _ready() -> void:
@@ -77,6 +94,12 @@ func tween_shader(param: String, value: float, time: float) -> Tween:
 	var tw := create_tween()
 	tw.tween_property(mat, "shader_parameter/" + param, value, time)
 	return tw
+
+
+## A memory was restored: every face in the game gets a little clearer.
+func remember(amount := -1.0) -> void:
+	var a := clarity_per_memory if amount < 0.0 else amount
+	create_tween().tween_property(self, "memory_clarity", clampf(memory_clarity + a, 0.0, 1.0), 2.0)
 
 
 ## A memory comes back: a warm flash that settles slightly warmer than before.
@@ -109,7 +132,7 @@ func _process(delta: float) -> void:
 	_update_lens(cam, delta)
 	if not cam:
 		return
-	_update_faces(cam)
+	_update_faces(cam, delta)
 
 
 ## Lens on for the player camera, softer in cutscenes, off for any other camera.
@@ -129,8 +152,13 @@ func _update_lens(cam: Camera3D, delta: float) -> void:
 ## Pixelate the memory figures' faces (nodes in the "memory_face" group).
 ## Positions are flat-screen pixels; the shader bends first, then tests them, so the
 ## mosaics stay on the faces with the lens on.
-func _update_faces(cam: Camera3D) -> void:
+## Clarity of each face (see the "Faces" group): the anchor's own "clarity" meta (a figure
+## sets it to 1 as its memory is restored) or memory_clarity + gaze, scaled down in a grey
+## world. Anchors with meta "no_gaze" don't sharpen when looked at; "no_occlusion" skips
+## the wall check (the player's own face, which sits inside the player's collider).
+func _update_faces(cam: Camera3D, delta: float) -> void:
 	var faces: Array = []
+	var res := get_viewport().get_visible_rect().size
 	for f in get_tree().get_nodes_in_group("memory_face"):
 		var face := f as Node3D
 		if not face.is_visible_in_tree():
@@ -139,15 +167,29 @@ func _update_faces(cam: Camera3D) -> void:
 		if cam.is_position_behind(p) or cam.global_position.distance_to(p) > face_blur_distance:
 			continue
 		# hidden behind a wall? then there's nothing to pixelate
-		var hit := face.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(cam.global_position, p))
-		if not hit.is_empty() and (hit.position as Vector3).distance_to(p) > 0.35:
-			continue
+		if not face.get_meta("no_occlusion", false):
+			var hit := face.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(cam.global_position, p))
+			if not hit.is_empty() and (hit.position as Vector3).distance_to(p) > 0.35:
+				continue
 		var c := cam.unproject_position(p)
 		var edge := cam.unproject_position(p + cam.global_transform.basis.x * 0.13)
-		faces.append(Vector4(c.x, c.y, c.distance_to(edge), 1.0))
+		faces.append(Vector4(c.x, c.y, c.distance_to(edge), 1.0 + _face_clarity(face, c, res, delta)))
 		if faces.size() == 4:
 			break
 	while faces.size() < 4:
 		faces.append(Vector4.ZERO)
 	mat.set_shader_parameter("faces", faces)
 	mat.set_shader_parameter("face_count", 4)
+
+
+func _face_clarity(face: Node3D, screen_pos: Vector2, res: Vector2, delta: float) -> float:
+	var own: float = face.get_meta("clarity", 0.0)
+	var id := face.get_instance_id()
+	var g: float = _gaze.get(id, 0.0)
+	if not face.get_meta("no_gaze", false):
+		var looking := screen_pos.distance_to(res * 0.5) < gaze_radius * res.y
+		g = move_toward(g, 1.0 if looking else 0.0, delta / gaze_time * (1.0 if looking else 3.0))
+		_gaze[id] = g
+	var drained := lerpf(drained_clarity_scale, 1.0, clampf(world_saturation, 0.0, 1.0))
+	var base := clampf(memory_clarity + g * gaze_clarity, 0.0, 0.97) * drained
+	return clampf(maxf(own, base), 0.0, 1.0)

@@ -32,6 +32,7 @@ const CLIP_LIBRARY := "memory"
 
 var _anim: AnimationPlayer
 var _ghost_materials: Array[ShaderMaterial] = []
+var _face: Node3D
 
 
 func _ready() -> void:
@@ -47,6 +48,9 @@ func _ready() -> void:
 func wake() -> void:
 	if _anim:
 		create_tween().tween_property(_anim, "speed_scale", 1.0, 2.0)
+	if _face:  # remembered: the face resolves before the ghost fades
+		var ft := create_tween()
+		ft.tween_method(func(v: float): _face.set_meta("clarity", v), 0.0, 1.0, 2.5)
 	for g in _ghost_materials:
 		var tw := create_tween()
 		tw.tween_property(g, "shader_parameter/strength", 1.8, 1.2)
@@ -137,6 +141,7 @@ func _add_face_anchor(skeleton: Skeleton3D) -> void:
 	face.position = Vector3(0, 0.1, 0.05)
 	face.add_to_group("memory_face")
 	att.add_child(face)
+	_face = face
 
 
 func _freeze_animation() -> void:

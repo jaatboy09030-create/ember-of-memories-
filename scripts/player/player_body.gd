@@ -186,5 +186,21 @@ func add_shake(amount: float, time_s := 0.5) -> void:
 	cam.add_shake(amount, time_s)
 
 
+## The camera turns to show the player's own face. By the mosaic rule it stays pixelated:
+## the one face the player never remembered is their own.
 func reveal_face() -> void:
 	cam.reveal_face()
+	var skel := ModelUtils.find_skeleton(pivot)
+	if not skel or skel.find_bone("mixamorig_Head") < 0 or skel.has_node("OwnFace"):
+		return
+	var att := BoneAttachment3D.new()
+	att.name = "OwnFace"
+	att.bone_name = "mixamorig_Head"
+	skel.add_child(att)
+	var face := Node3D.new()
+	face.position = Vector3(0, 0.1, 0.05)
+	face.set_meta("clarity", 0.0)
+	face.set_meta("no_gaze", true)
+	face.set_meta("no_occlusion", true)
+	face.add_to_group("memory_face")
+	att.add_child(face)
