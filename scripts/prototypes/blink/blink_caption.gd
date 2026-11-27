@@ -14,6 +14,15 @@ extends Label
 @export var voiced := true
 
 var _tw: Tween
+## Lines said here keep the blink offer (metronome / eye) away until they're said. Off for title cards.
+var holds_blink := true
+## Clock time (s) when the last line said through a caption is finished being said.
+static var talking_until := 0.0
+
+
+## Seconds until whatever is being said is finished (0 = quiet).
+static func talk_left() -> float:
+	return maxf(0.0, talking_until - Time.get_ticks_msec() / 1000.0)
 
 
 func _ready() -> void:
@@ -22,12 +31,16 @@ func _ready() -> void:
 
 ## Show `line` for `duration` seconds. duration <= 0 = stay until cut() or another say().
 func say(line: String, duration := 3.0) -> void:
+	var talk := 0.9 + 0.05 * line.length()  # no recording: time to read it
 	if voiced:
 		var v := voice_for(line)
 		if v != "":
 			var length: float = Sound.play_voice(v)
+			talk = length
 			if duration > 0.0:
 				duration = maxf(duration, length + 0.3)
+	if holds_blink:
+		talking_until = Time.get_ticks_msec() / 1000.0 + talk
 	if _tw:
 		_tw.kill()
 	text = line
@@ -58,6 +71,7 @@ static func voice_length(line: String) -> float:
 ## was coming) stay up with a dash, dim, then fade - so you know something was left unsaid.
 ## heard = 0..1 how much of the line was spoken; < 0 = it hadn't started (a snatch of it plays).
 func interrupt(line: String, heard := -1.0) -> void:
+	talking_until = 0.0
 	var words := line.split(" ", false)
 	var keep: int
 	if heard < 0.0:
@@ -84,6 +98,7 @@ func interrupt(line: String, heard := -1.0) -> void:
 
 ## Gone, right now (text and voice).
 func cut() -> void:
+	talking_until = 0.0
 	Sound.stop_voice()
 	if _tw:
 		_tw.kill()

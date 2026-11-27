@@ -77,6 +77,7 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	Sound.voice_speed = voice_speed
+	title_card.holds_blink = false  # "Nine." etc. don't hold up the blink
 	for b in beats_root.get_children():
 		if b is MemoryBeat:
 			beats.append(b)
@@ -229,7 +230,11 @@ func _process(delta: float) -> void:
 	if b.wait_for_closed_lines and _closed_index < b.closed_eyes_lines.size():
 		eye_done = false
 	# never offer the blink while someone is still talking (ok in the last ~0.35 s of the last line)
-	var talk_done := beat_time >= _talk_end - 0.35 and Sound.voice_time_left() <= 0.35
+	# no blink offer (metronome or eye) until every line is said: beat lines, the eye's own line,
+	# unrecorded lines (by reading time). Only the last ~0.2 s may overlap.
+	var talk_done := beat_time >= _talk_end - 0.2 and Sound.voice_time_left() <= 0.2 \
+		and BlinkCaption.talk_left() <= 0.2 and caption.modulate.a <= 0.4  # and the words have faded
+	blink_ui.hotspot = b.hotspot if talk_done else null
 	_update_listen_hint(b, talk_done)
 	if not armed and talk_done and beat_time >= b.protect_time and (eye_done or beat_time >= b.max_wait):
 		armed = true
@@ -569,6 +574,8 @@ func _autoplay() -> void:
 			_shot("%d_%s_m%d_montage" % [i, b.name, k])
 		if b.hotspot:
 			await _wait(maxf(0.0, b.hotspot.appear_after - 2.4) + 0.3)
+			while blink_ui.hotspot == null and not armed:  # the eye waits for the talking
+				await _wait(0.2)
 			# the view leans toward the reticle, so keep re-aiming until it settles
 			for k in 40:
 				blink_ui.cursor = memory_camera.unproject_position(b.hotspot.global_position)
