@@ -78,6 +78,8 @@ func _exit_tree() -> void:
 func _ready() -> void:
 	Sound.voice_speed = voice_speed
 	title_card.holds_blink = false  # "Nine." etc. don't hold up the blink
+	# no mosaic floating in the black for someone outside the memory
+	game.screen_effects.face_filter = func(p: Vector3) -> bool: return memory_void.point_visible(p)
 	for b in beats_root.get_children():
 		if b is MemoryBeat:
 			beats.append(b)
@@ -315,7 +317,6 @@ func _montage_step(b: MemoryBeat) -> void:
 ## Blinked at the eye: the memory comes back while the lids are shut.
 func _look_closer(h: EyeHotspot) -> void:
 	h.trigger()
-	game.screen_effects.remember()
 	if h.voice != "":
 		Sound.play(h.voice)
 	if h.caption != "":

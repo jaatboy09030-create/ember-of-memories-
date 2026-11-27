@@ -4,6 +4,12 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Ghosts solid, not X-ray:** `ghost_depth.gdshader` writes depth first, then `ghost.gdshader` draws, so no body through clothes / eyeballs through faces (`memory_figure.gd`).
+- **Ghosts drawn over the void, clipped to islands** (`MemoryFigure.clip_to_islands`, pushed by `MemoryVoid.show_islands`; void material priority 100, ghosts 105/106). The void can't see see-through ghosts, so it used to black out a head/body against a far wall (grandma's head, the boy in the drawing scene). Face mosaics of figures outside the islands are skipped (`ScreenEffects.face_filter`).
+- **Faces:** an eye blink clears a face only to clarity 0.88 (`wake(0.88)`): a very slight blur always stays. The demo no longer calls `remember()`.
+- **Blink offer waits for talk** (`BlinkCaption.talk_left()` + caption faded), metronome and eye both. Hold glyph not drawn.
+- **Lines cut** (user): "Someone was standing in the front window..." (Gate) and the porch eye's "Dad's coat" caption.
+- **Grandma beat:** the boy's island is hidden until the eye blink.
 - **Kitchen (Dad) beat had no visible change on the eye blink** (no island to bloom, saturation 0.6 to 0.7 only). Now the `Dad` island is `hidden_at_start` and the eye blooms it; saturation 0.35 to 0.85. Every eye must change something you can SEE.
 - **Reset to cc3d676** (user asked): later face/talk-gate/ghost-clip/ink-edge experiments reverted (f551ca1).
 - **Cursor focus is radial and slight:** the depth-of-field rack to the reticle made a sharp horizontal depth band that read as a bug. `MemoryCamera.rack_focus = false` (DOF off); new `shaders/cursor_focus.gdshader` (made by `BlinkUI`) keeps a soft circle around the reticle sharp and blurs the rest only slightly (`max_blur` 1.1 mip). Keep it SLIGHT.

@@ -23,6 +23,7 @@ extends Node3D
 @export var vanish_after := 13.5
 
 const GHOST_SHADER := preload("res://shaders/ghost.gdshader")
+const GHOST_DEPTH_SHADER := preload("res://shaders/ghost_depth.gdshader")
 ## Bone names to look for: retargeted (humanoid) first, then original Mixamo.
 const HEAD_BONES := ["Head", "mixamorig_Head"]
 const HIPS_BONES := ["Hips", "mixamorig_Hips"]
@@ -32,10 +33,27 @@ const CLIP_LIBRARY := "memory"
 
 var _anim: AnimationPlayer
 var _ghost_materials: Array[ShaderMaterial] = []
+var _depth_materials: Array[ShaderMaterial] = []
 var _face: Node3D
 
 
+## Blink demo: clip this ghost to the memory islands and draw it over the black void
+## (priority > the void's). count 0 = normal drawing, no clipping.
+func clip_to_islands(centres: Array, shapes: Array, count: int, over_void_priority: int) -> void:
+	for m in _depth_materials:
+		m.render_priority = over_void_priority if count > 0 else -1
+		m.set_shader_parameter("islands", centres)
+		m.set_shader_parameter("island_shape", shapes)
+		m.set_shader_parameter("island_count", count)
+	for m in _ghost_materials:
+		m.render_priority = over_void_priority + 1 if count > 0 else 0
+		m.set_shader_parameter("islands", centres)
+		m.set_shader_parameter("island_shape", shapes)
+		m.set_shader_parameter("island_count", count)
+
+
 func _ready() -> void:
+	add_to_group("memory_figure")
 	ModelUtils.fix_cull(character)
 	_make_ghost(character)
 	var skeleton := ModelUtils.find_skeleton(character)
@@ -45,12 +63,14 @@ func _ready() -> void:
 		_sit_on_seat(skeleton)
 
 
-func wake() -> void:
+## face_clarity: how clear the face gets (1 = fully clear; the blink demo stops short, so a
+## very slight blur always stays on the face).
+func wake(face_clarity := 1.0) -> void:
 	if _anim:
 		create_tween().tween_property(_anim, "speed_scale", 1.0, 2.0)
-	if _face:  # remembered: the face resolves before the ghost fades
+	if _face and face_clarity > 0.0:  # remembered: the face resolves before the ghost fades
 		var ft := create_tween()
-		ft.tween_method(func(v: float): _face.set_meta("clarity", v), 0.0, 1.0, 2.5)
+		ft.tween_method(func(v: float): _face.set_meta("clarity", v), 0.0, face_clarity, 2.5)
 	for g in _ghost_materials:
 		var tw := create_tween()
 		tw.tween_property(g, "shader_parameter/strength", 1.8, 1.2)
@@ -76,8 +96,14 @@ func _make_ghost(n: Node) -> void:
 				if (src as BaseMaterial3D).albedo_texture:
 					gm.set_shader_parameter("albedo_tex", (src as BaseMaterial3D).albedo_texture)
 					gm.set_shader_parameter("has_tex", true)
-			mi.set_surface_override_material(i, gm)
+			# depth first (invisible), then the faded ghost: only the outer surface shows
+			var depth := ShaderMaterial.new()
+			depth.shader = GHOST_DEPTH_SHADER
+			depth.render_priority = -1
+			depth.next_pass = gm
+			mi.set_surface_override_material(i, depth)
 			_ghost_materials.append(gm)
+			_depth_materials.append(depth)
 	for c in n.get_children():
 		_make_ghost(c)
 

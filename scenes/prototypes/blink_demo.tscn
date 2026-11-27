@@ -35,7 +35,7 @@ dof_blur_amount = 0.06
 size = Vector2(2, 2)
 
 [sub_resource type="ShaderMaterial" id="VoidMaterial"]
-render_priority = 127
+render_priority = 100
 shader = ExtResource("5_void_shader")
 shader_parameter/island_count = 0
 shader_parameter/edge_amp = 0.35
@@ -380,9 +380,9 @@ rng_seed = 3
 
 [node name="GateBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("first_blink_hide")]
 script = ExtResource("6_beat")
-lines = Array[String](["The porch light was on.", "Someone was standing in the front window. Watching the lane."])
-line_times = Array[float]([1.5, 5.5])
-protect_time = 7.0
+lines = Array[String](["The porch light was on."])
+line_times = Array[float]([1.5])
+protect_time = 4.5
 saturation = 0.25
 closed_eyes_sound = "house_creak"
 closed_eyes_caption = "A floorboard, inside. Then nothing."
@@ -497,7 +497,6 @@ call_target = NodePath("../../../Main/HouseLevel/House/Doors/FrontDoor")
 call_method = "swing"
 call_args = [true]
 islands_to_bloom = [NodePath("../Islands/Hall")]
-caption = "It wasn't locked. On the hook inside, Dad's coat. Snow on the shoulders, gone grey."
 saturation_after = 0.3
 appear_after = 3.0
 
@@ -597,6 +596,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.9, -3.55)
 script = ExtResource("7_island")
 radius = 0.6
 blend = 0.0
+hidden_at_start = true
 
 [node name="RoomGlow" type="Marker3D" parent="Beats/LivingBeat/Islands"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 1.1, -2.9)
@@ -611,7 +611,7 @@ bloom_time = 2.2
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.9, -2.45)
 script = ExtResource("8_eye")
 figures_to_wake = [NodePath("../../../Main/Memories/ScarfMemory/GrandmaKnitting"), NodePath("../../../Main/Memories/ScarfMemory/BoyWatching")]
-islands_to_bloom = [NodePath("../Islands/RoomGlow")]
+islands_to_bloom = [NodePath("../Islands/RoomGlow"), NodePath("../Islands/Boy")]
 sound = "memory_restore"
 voice = "v_scarf"
 caption = "\"There. Now you won't get cold.\" She'd made it far too long. \"You'll grow,\" she said."

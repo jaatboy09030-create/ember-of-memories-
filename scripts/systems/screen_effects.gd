@@ -46,6 +46,8 @@ extends CanvasLayer
 ## Off = no face mosaics (memory 5 turns it off: the mosaic of a figure behind the photo
 ## would land on the glass, which has no collision to hide it).
 @export var pixelate_faces := true
+## Optional: func(world_pos) -> bool. False = this face isn't shown, so no mosaic on it.
+var face_filter: Callable
 
 @export_group("Lens")
 ## Barrel bend (k1). 0 = flat. ~0.1 = gentle worn-camera curve; 0.3+ = fisheye.
@@ -170,6 +172,8 @@ func _update_faces(cam: Camera3D, delta: float) -> void:
 		if not face.is_visible_in_tree():
 			continue
 		var p := face.global_position
+		if face_filter.is_valid() and not face_filter.call(p):  # e.g. hidden in the blink demo's void
+			continue
 		if cam.is_position_behind(p) or cam.global_position.distance_to(p) > face_blur_distance:
 			continue
 		# hidden behind a wall? then there's nothing to pixelate
