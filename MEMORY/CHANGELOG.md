@@ -4,6 +4,7 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Kitchen (Dad) beat had no visible change on the eye blink** (no island to bloom, saturation 0.6 to 0.7 only). Now the `Dad` island is `hidden_at_start` and the eye blooms it; saturation 0.35 to 0.85. Every eye must change something you can SEE.
 - **Reset to cc3d676** (user asked): later face/talk-gate/ghost-clip/ink-edge experiments reverted (f551ca1).
 - **Cursor focus is radial and slight:** the depth-of-field rack to the reticle made a sharp horizontal depth band that read as a bug. `MemoryCamera.rack_focus = false` (DOF off); new `shaders/cursor_focus.gdshader` (made by `BlinkUI`) keeps a soft circle around the reticle sharp and blurs the rest only slightly (`max_blur` 1.1 mip). Keep it SLIGHT.
 - **Blink to begin:** demo waits on black ("Blink to begin.") for one blink before the intro starts (`blink_demo.gd` `start_prompt`).

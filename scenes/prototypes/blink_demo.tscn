@@ -682,7 +682,7 @@ time_card = "Nine."
 lines = Array[String](["Three plates. Dad nearest the stove, so he could reach the kettle without getting up.", "His keys on the nail by the door. \"A man should be able to leave in the dark without looking,\" he said."])
 line_times = Array[float]([1.2, 7.5])
 protect_time = 6.0
-saturation = 0.6
+saturation = 0.35
 closed_eyes_sound = "floor_creak"
 closed_eyes_caption = "The radio. The kettle. Mum laughing at something he said."
 
@@ -707,14 +707,17 @@ script = ExtResource("7_island")
 radius = 1.4
 stretch = Vector3(1.2, 1.4, 1)
 blend = 0.5
+hidden_at_start = true
+bloom_time = 2.0
 
-[node name="EyeHotspot" type="Marker3D" parent="Beats/KitchenBeat"]
+[node name="EyeHotspot" type="Marker3D" parent="Beats/KitchenBeat" node_paths=PackedStringArray("islands_to_bloom")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0.95, -2.05)
 script = ExtResource("8_eye")
 sound = "pack_item"
 caption = "When I spilled mine he'd slide his across without looking up. \"Plenty more where that came from.\""
-saturation_after = 0.7
+saturation_after = 0.85
 appear_after = 3.0
+islands_to_bloom = [NodePath("../Islands/Dad")]
 
 [node name="MemoryLight" type="OmniLight3D" parent="Beats/KitchenBeat"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.4, -1.4)
