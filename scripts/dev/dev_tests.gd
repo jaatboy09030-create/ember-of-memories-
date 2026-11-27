@@ -15,7 +15,7 @@ extends Node
 ##                                   window: no --headless)
 ## Add --headless before --path to run without a window. Lines starting with TEST are results.
 
-const FLAGS := ["--storytest", "--walktest", "--doortest", "--embershot", "--tour", "--titleshot", "--phototest"]
+const FLAGS := ["--storytest", "--walktest", "--doortest", "--knittest", "--figuretest", "--embershot", "--tour", "--titleshot", "--phototest"]
 
 var game: GameDirector
 
@@ -42,6 +42,10 @@ func run(game_director: GameDirector) -> void:
 		await _walk_test("--gate" in args)
 	elif "--doortest" in args:
 		await _door_test()
+	elif "--knittest" in args:
+		await _knit_test()
+	elif "--figuretest" in args:
+		await _figure_test()
 	elif "--embershot" in args:
 		await _ember_shot()
 	elif "--tour" in args:
@@ -59,10 +63,9 @@ func _wait(seconds: float) -> void:
 func _check_ray(stand: Vector3, target: Vector3, expected: String) -> void:
 	var player: PlayerBody = game.player
 	player.global_position = stand
-	player.face_towards(target)
-	var d := target - player.head_position()
-	player.target_pitch = atan2(d.y, Vector2(d.x, d.z).length())
-	player.pitch = player.target_pitch
+	# physics may nudge the player out of furniture first: aim from where they end up
+	await _wait(0.2)
+	player.look_at_point(target)
 	await _wait(0.3)
 	var ray: RayCast3D = player.interaction_raycast
 	var t: Interactable = ray.current_target
@@ -153,6 +156,140 @@ func _walk_test(from_gate: bool) -> void:
 		var front: InteriorDoor = game.doors["front"]
 		var shut := front.locked and not front.is_open
 		print("TEST front door shut and locked behind the player: ", "PASS" if shut else "FAIL (locked=%s open=%s)" % [front.locked, front.is_open])
+
+
+## Plays the darning minigame (flick the loom, draw the needle across) with simulated input and saves
+## screenshots to res://_shots/ (needs a window: run without --headless).
+func _knit_test() -> void:
+	game.start_story()
+	game.memories[0].debug_complete()
+	await _wait(2.0)
+	var scarf: Memory = game.memories[1]
+	var mg: DarningMinigame = scarf.minigame
+	var player: PlayerBody = game.player
+	player.global_position = Vector3(0.95, 0.1, -1.6)
+	player.face_towards(Vector3(0.95, 1.0, -0.42))
+	await _wait(2.5)
+	await _shot("knit_0_hint")
+	scarf.coat_rack.on_interact()
+	await _wait(1.8)
+	await _shot("knit_1_open")
+	mg.mouse_enabled = false  # the real pointer over the window must not steer the needle
+	mg._use_mouse = false
+	# dragging across before the hooks are flicked must not weave anything
+	await _pass_row(mg, 0.5)
+	print("TEST no weaving before the flick: ", "PASS" if mg.rows_done == 0 else "FAIL")
+	# slipping out of the gap half way must not count either
+	await _flick(mg)
+	await _shot("knit_2_hooks_flicked")
+	var y := mg._row_y(0)
+	_send_interact(true)
+	await _drag(mg, Vector2(mg._start_x() - 0.02 * mg._dir(), y), 0.3)
+	await _drag(mg, Vector2(mg._start_x() + 0.04 * mg._dir(), y), 0.4)
+	await _drag(mg, Vector2(mg._start_x() + 0.04 * mg._dir(), y + 0.05), 0.3)
+	await _drag(mg, Vector2(mg._end_x() + 0.06 * mg._dir(), y + 0.05), 0.4)
+	_send_interact(false)
+	await _wait(0.3)
+	print("TEST slipping out of the gap is ignored: ", "PASS" if mg.rows_done == 0 else "FAIL")
+	# three proper rows: flick, then across and back
+	for i in 3:
+		if i > 0:
+			await _flick(mg)
+		await _pass_row(mg, 0.9, "knit_%d_row_%d_through" % [i + 3, i + 1] if i < 2 else "")
+		await _wait(0.6)
+		print("TEST row ", i + 1, ": rows=", mg.rows_done, "  next goes ", "right" if mg._dir() > 0 else "left")
+	await _shot("knit_5_three_rows")
+	print("TEST weaving rows: ", "PASS" if mg.rows_done == 3 else "FAIL (rows=%d)" % mg.rows_done)
+	print("TEST smooth needle: max eye speed=", snappedf(_max_eye_jump, 0.01), " m/s")
+	mg.debug_weave_all()
+	await _wait(0.6)
+	await _shot("knit_6_patch_done")
+	await _wait(2.6)
+	await _shot("knit_7_back_in_room")
+	await _wait(1.0)
+	await _shot("knit_8_boy_putting_it_on")
+	print("TEST darn done: rows=", mg.rows_done, " memory index=", game.current_index)
+
+
+## Press on the loom (cursor over it) to flick its hooks.
+func _flick(mg: DarningMinigame) -> void:
+	await _drag(mg, Vector2(mg.loom.position.x, mg.loom.position.y), 0.4)
+	_send_interact(true)
+	await _wait(0.1)
+	_send_interact(false)
+	await _wait(0.4)
+
+
+## Hold the needle and draw it across the current row, start side to far side.
+func _pass_row(mg: DarningMinigame, time: float, shot := "") -> void:
+	var y := mg._row_y(mg.rows_done)
+	await _drag(mg, Vector2(mg._start_x() - 0.02 * mg._dir(), y), 0.4)
+	_send_interact(true)
+	await _wait(0.15)
+	var from_x := mg._start_x() - 0.02 * mg._dir()
+	var end := Vector2(mg._end_x() + 0.07 * mg._dir(), y)
+	await _drag(mg, Vector2(lerpf(from_x, end.x, 0.5), y), time * 0.5)
+	if shot != "":
+		await _shot(shot)
+	await _drag(mg, end, time * 0.5)
+	await _wait(0.3)
+	_send_interact(false)
+	await _wait(0.1)
+
+## Press/release "interact" like a real button, so "just pressed/released" checks see it.
+func _send_interact(pressed: bool) -> void:
+	var e := InputEventAction.new()
+	e.action = "interact"
+	e.pressed = pressed
+	Input.parse_input_event(e)
+
+
+
+## Films the boy in the living room playing the retargeted "pull on a sweater" clip
+## (needs a window: run without --headless). Shots go to res://_shots/fig_*.png
+func _figure_test() -> void:
+	var scarf: Memory = game.memories[1]
+	var boy: MemoryFigure = scarf.get_node("BoyWatching")
+	game.screen_effects.world_saturation = 1.0
+	var cam: PlayerCamera = game.player.cam
+	cam.cinematic = true
+	# film him from the front: the figure faces along its local +Z
+	var front := boy.global_transform.basis.z.normalized()
+	cam.global_position = boy.global_position + front * 0.9 + Vector3(0, 0.9, 0)
+	cam.look_target = boy.global_position + Vector3(0, 0.75, 0)
+	cam.fov = 70.0
+	await _wait(1.0)
+	await _shot("fig_0_frozen")
+	var length := boy.play_clip(load("res://assets/animations/boy_pull_on_sweater.fbx"))
+	print("TEST clip length=", snappedf(length, 0.01), "s  ", "PASS" if length > 0.0 else "FAIL (nothing played)")
+	for i in 8:
+		await _wait(length / 8.0)
+		await _shot("fig_%d_clip" % (i + 1))
+
+
+var _max_eye_jump := 0.0
+var _max_tip_step := 0.0
+
+
+func _drag(mg: DarningMinigame, to: Vector2, time: float) -> void:
+	var from := mg._cursor
+	var t := 0.0
+	while t < time:
+		var eye0 := mg.needle.eye_position()
+		var tip0 := mg.needle.tip
+		await get_tree().process_frame
+		t += get_process_delta_time()
+		mg._cursor = from.lerp(to, minf(t / time, 1.0))
+		var dt := maxf(get_process_delta_time(), 0.001)
+		_max_eye_jump = maxf(_max_eye_jump, mg.needle.eye_position().distance_to(eye0) / dt)
+		_max_tip_step = maxf(_max_tip_step, mg.needle.tip.distance_to(tip0) / dt)
+
+
+func _shot(shot_name: String) -> void:
+	await RenderingServer.frame_post_draw
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://_shots"))
+	get_viewport().get_texture().get_image().save_png("res://_shots/%s.png" % shot_name)
+	print("TEST shot ", shot_name)
 
 
 func _door_test() -> void:

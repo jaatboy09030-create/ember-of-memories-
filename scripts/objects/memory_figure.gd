@@ -8,6 +8,10 @@ extends Node3D
 ## How to use: instance memory_figure.tscn, add the character (a Mixamo .fbx) as a child
 ## named "CharacterModel". Optionally add a Marker3D child and assign it to seat_point so
 ## a sitting figure's hips land exactly on the chair.
+## play_clip() makes the figure perform another animation (e.g. putting on the scarf). The
+## character and the clip must both be RETARGETED to Godot's humanoid skeleton in their FBX
+## import settings (Skeleton3D > Retarget > Bone Map, maps in assets/animations/bone_maps/),
+## so clips from other rigs (e.g. Unreal mannequin) fit. Works with either bone naming.
 ##
 ## How to change it: frozen_at = which moment of the animation it is frozen on (0..1).
 
@@ -19,13 +23,16 @@ extends Node3D
 @export var vanish_after := 13.5
 
 const GHOST_SHADER := preload("res://shaders/ghost.gdshader")
-const HEAD_BONE := "mixamorig_Head"
-const HIPS_BONE := "mixamorig_Hips"
+## Bone names to look for: retargeted (humanoid) first, then original Mixamo.
+const HEAD_BONES := ["Head", "mixamorig_Head"]
+const HIPS_BONES := ["Hips", "mixamorig_Hips"]
+const CLIP_LIBRARY := "memory"
 
 @onready var character: Node3D = $CharacterModel
 
 var _anim: AnimationPlayer
 var _ghost_materials: Array[ShaderMaterial] = []
+var _face: Node3D
 
 
 func _ready() -> void:
@@ -41,6 +48,9 @@ func _ready() -> void:
 func wake() -> void:
 	if _anim:
 		create_tween().tween_property(_anim, "speed_scale", 1.0, 2.0)
+	if _face:  # remembered: the face resolves before the ghost fades
+		var ft := create_tween()
+		ft.tween_method(func(v: float): _face.set_meta("clarity", v), 0.0, 1.0, 2.5)
 	for g in _ghost_materials:
 		var tw := create_tween()
 		tw.tween_property(g, "shader_parameter/strength", 1.8, 1.2)
@@ -72,19 +82,66 @@ func _make_ghost(n: Node) -> void:
 		_make_ghost(c)
 
 
+## Plays an animation taken from another (retargeted) FBX, e.g. putting on the scarf.
+## Tracks for bones this character doesn't have are dropped. Returns the clip's length
+## in seconds (0 if nothing could be played).
+func play_clip(clip_scene: PackedScene, blend_time := 0.4) -> float:
+	var skeleton := ModelUtils.find_skeleton(character)
+	if not _anim or not skeleton or not clip_scene:
+		return 0.0
+	var src := clip_scene.instantiate()
+	var src_anim := ModelUtils.find_animation_player(src)
+	var clip: Animation = null
+	if src_anim:
+		for a in src_anim.get_animation_list():
+			if a != "RESET":
+				clip = src_anim.get_animation(a).duplicate()
+				break
+	src.free()
+	if not clip:
+		return 0.0
+	var skeleton_path := "%" + String(skeleton.name)
+	for t in range(clip.get_track_count() - 1, -1, -1):
+		var parts := str(clip.track_get_path(t)).split(":")
+		if parts.size() < 2 or parts[0] != skeleton_path or skeleton.find_bone(parts[1]) < 0:
+			clip.remove_track(t)  # e.g. Unreal's extra spine/IK bones
+	clip.loop_mode = Animation.LOOP_NONE
+	if not _anim.has_animation_library(CLIP_LIBRARY):
+		_anim.add_animation_library(CLIP_LIBRARY, AnimationLibrary.new())
+	var lib := _anim.get_animation_library(CLIP_LIBRARY)
+	var clip_name := clip_scene.resource_path.get_file().get_basename()
+	if lib.has_animation(clip_name):
+		lib.remove_animation(clip_name)
+	lib.add_animation(clip_name, clip)
+	_anim.speed_scale = 1.0
+	_anim.play(CLIP_LIBRARY + "/" + clip_name, blend_time)
+	return clip.length
+
+
+func _find_bone(skeleton: Skeleton3D, names: Array) -> String:
+	for n in names:
+		if skeleton.find_bone(n) >= 0:
+			return n
+	return ""
+
+
 ## A point that follows the head bone; the screen effect pixelates the face around it.
 func _add_face_anchor(skeleton: Skeleton3D) -> void:
-	if not skeleton or skeleton.find_bone(HEAD_BONE) < 0:
+	if not skeleton:
+		return
+	var head := _find_bone(skeleton, HEAD_BONES)
+	if head == "":
 		return
 	var att := BoneAttachment3D.new()
 	att.name = "HeadAttachment"
-	att.bone_name = HEAD_BONE
+	att.bone_name = head
 	skeleton.add_child(att)
 	var face := Node3D.new()
 	face.name = "FaceAnchor"
 	face.position = Vector3(0, 0.1, 0.05)
 	face.add_to_group("memory_face")
 	att.add_child(face)
+	_face = face
 
 
 func _freeze_animation() -> void:
@@ -104,7 +161,7 @@ func _freeze_animation() -> void:
 
 
 func _sit_on_seat(skeleton: Skeleton3D) -> void:
-	var hb := skeleton.find_bone(HIPS_BONE)
+	var hb := skeleton.find_bone(_find_bone(skeleton, HIPS_BONES))
 	if hb < 0:
 		return
 	var hips: Vector3 = skeleton.global_transform * skeleton.get_bone_global_pose(hb).origin

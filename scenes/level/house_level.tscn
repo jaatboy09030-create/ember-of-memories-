@@ -65,6 +65,7 @@
 [ext_resource type="PackedScene" path="res://assets/sketchfab/kitchen_counter.glb" id="68_po0t0"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/electric_stove/electric_stove.gltf" id="69_1rkms"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/WoodenTable_02/WoodenTable_02.gltf" id="70_sugmt"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/round_wooden_table_01/round_wooden_table_01.gltf" id="900_roundtable"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/painted_wooden_chair_02/painted_wooden_chair_02.gltf" id="71_oqce5"]
 [ext_resource type="Material" path="res://materials/level/wallpaper_parent.tres" id="72_xhjnm"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/GothicBed_01/GothicBed_01.gltf" id="73_b7m2e"]
@@ -525,6 +526,9 @@ size = Vector3(1.6196831, 0.5488493, 0.5914572)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_2dotc"]
 size = Vector3(0.38857627, 0.9564821, 0.48584175)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_kitchentable"]
+size = Vector3(1.26, 1, 1.26)
 
 [node name="HouseLevel" type="Node3D" unique_id=975085105]
 
@@ -3325,19 +3329,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4293486, 0)
 shape = SubResource("BoxShape3D_bmod0")
 
 [node name="WoodenTable" type="Node3D" parent="Rooms/Kitchen/Props" unique_id=1882112487]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4.688613, 0.06, -1.9)
+transform = Transform3D(0.76, 0, 0, 0, 0.76, 0, 0, 0, 0.76, 4.7, 0.06, -1.9)
 
-[node name="Model" parent="Rooms/Kitchen/Props/WoodenTable" unique_id=1423640945 instance=ExtResource("70_sugmt")]
+[node name="Model" parent="Rooms/Kitchen/Props/WoodenTable" unique_id=1423640945 instance=ExtResource("900_roundtable")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.604594e-08, 1.4901161e-08)
 
 [node name="Collision" type="StaticBody3D" parent="Rooms/Kitchen/Props/WoodenTable" unique_id=675900543]
 
 [node name="Shape" type="CollisionShape3D" parent="Rooms/Kitchen/Props/WoodenTable/Collision" unique_id=82869526]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.20882852, 0)
-shape = SubResource("BoxShape3D_30nea")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("BoxShape3D_kitchentable")
 
 [node name="PaintedWoodenChair" type="Node3D" parent="Rooms/Kitchen/Props" unique_id=791542954]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4.2310486, 0.06, -1.9)
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 3.95, 0.06, -1.9)
 
 [node name="Model" parent="Rooms/Kitchen/Props/PaintedWoodenChair" unique_id=1994240614 instance=ExtResource("71_oqce5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.015172124, 3.3275537e-08, 0.03222707)
@@ -3349,7 +3353,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6318855, 0)
 shape = SubResource("BoxShape3D_gh1fq")
 
 [node name="PaintedWoodenChair2" type="Node3D" parent="Rooms/Kitchen/Props" unique_id=190095579]
-transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.2, 0.06, -1.9)
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 5.45, 0.06, -1.9)
 
 [node name="Model" parent="Rooms/Kitchen/Props/PaintedWoodenChair2" unique_id=686558225 instance=ExtResource("71_oqce5")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.015172124, 3.3275537e-08, 0.03222707)

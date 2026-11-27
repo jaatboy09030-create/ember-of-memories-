@@ -704,7 +704,7 @@ func _line_room(lining: Node3D, r: Array) -> void:
 
 func _place_props(rooms_root: Node3D) -> void:
 	# Story furniture only - kept minimal on purpose (no clutter that isn't part of a memory).
-	# [id, position, rotation (deg), collide]. Real-world scale. 0 deg = front faces +Z.
+	# [id, position, rotation (deg), collide, optional scale]. Real-world scale. 0 deg = front faces +Z.
 	# Positions are FINAL (there is no automatic shuffling any more). Memory scenes put people
 	# and objects on some of these (armchair, desk + chair, dresser, nightstands, bedroom table),
 	# so moving one means moving that memory scene's nodes too (MEMORY/04-memories.md).
@@ -722,9 +722,9 @@ func _place_props(rooms_root: Node3D) -> void:
 		["Shelf_01", Vector3(-5.95, 0.06, -4.2), 0, true],
 		# ---------------- KITCHEN - counter run (KitchenCounter is added in _build_rooms), table
 		["electric_stove", Vector3(3.45, 0.06, -4.0161896), 0, true],
-		["WoodenTable_02", Vector3(4.688613, 0.06, -1.9), 90, true],
-		["painted_wooden_chair_02", Vector3(4.2310486, 0.06, -1.9), 90, true],
-		["painted_wooden_chair_02", Vector3(5.2, 0.06, -1.9), -90, true],
+		["round_wooden_table_01", Vector3(4.7, 0.06, -1.9), 0, true, 0.76],  # dining table (WoodenTable_02 is a 42 cm side table), top at 0.82
+		["painted_wooden_chair_02", Vector3(3.95, 0.06, -1.9), 90, true],
+		["painted_wooden_chair_02", Vector3(5.45, 0.06, -1.9), -90, true],
 		# ---------------- HALLWAY - a bare corridor to the study door (no furniture)
 		# ---------------- PARENT ROOM - fireplace (memory scene), bed, the photo dresser
 		["GothicBed_01", Vector3(-5.3, 0.06, -7.82), 0, true],
@@ -741,6 +741,8 @@ func _place_props(rooms_root: Node3D) -> void:
 		var room: Array = _room_of(it[1])
 		var props_node := rooms_root.get_node("%s/Props" % room[4])
 		var p := _prop(props_node, it[0], it[1], it[2], it[3])
+		if p and it.size() > 4:  # optional 5th field: uniform scale
+			p.scale = Vector3.ONE * float(it[4])
 		if p:
 			_props.append(p)
 

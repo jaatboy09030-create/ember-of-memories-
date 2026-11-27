@@ -24,8 +24,10 @@ Last full audit: **2026-11-26**, at commit `c806893` (main). Updated the same da
 | 7 | [07-gotchas-and-learnings.md](07-gotchas-and-learnings.md) | **Before debugging anything.** Known pitfalls and their fixes. |
 | 8 | [08-conventions.md](08-conventions.md) | Before writing code. The owner's rules — non-negotiable. |
 | 9 | [09-camera.md](09-camera.md) | Touching the camera, screen look, lens, shake or comfort settings. Research + backlog. |
-| 10 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
-| 11 | [../research/00-unsent-opening-recipe.md](../research/00-unsent-opening-recipe.md) | **Before any lighting / art-direction work.** Researched recipe + index of 10 reports. |
+| 10 | [10-story-and-gameplay.md](10-story-and-gameplay.md) | Briefing someone new: story, gameplay, flow, presentation, where it's going. |
+| 11 | [11-blink-demo.md](11-blink-demo.md) | Working on the Before Your Eyes style blink prototype (scenes/prototypes/blink_demo.tscn). |
+| 12 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
+| 13 | [../research/00-unsent-opening-recipe.md](../research/00-unsent-opening-recipe.md) | **Before any lighting / art-direction work.** Researched recipe + index of 10 reports. |
 
 ---
 

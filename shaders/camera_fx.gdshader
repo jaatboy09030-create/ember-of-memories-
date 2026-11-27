@@ -8,7 +8,8 @@ uniform float vignette = 0.32;
 uniform float grain = 0.03;
 uniform float aberration = 0.0012;
 uniform float warmth = 0.0; // -1 cold .. 1 warm tint
-// Face mosaics: xy = centre (px), z = half size (px), w = 1 active.
+// Face mosaics: xy = centre (px), z = half size (px), w = 0 off, else 1 + clarity
+// (clarity 0 = coarse blocks .. 1 = clear face, no mosaic).
 // Given in the FLAT (unbent) screen pixels, as Camera3D.unproject_position returns them.
 uniform vec4 faces[4];
 uniform int face_count = 0;
@@ -38,8 +39,10 @@ void fragment() {
 	for (int i = 0; i < 4; i++) {
 		if (i >= face_count) break;
 		vec4 f = faces[i];
-		if (f.w > 0.5 && abs(px.x - f.x) < f.z && abs(px.y - f.y) < f.z * 1.15) {
-			float cell = max(f.z / 3.5, 4.0);
+		float clarity = f.w - 1.0;
+		if (f.w > 0.5 && clarity < 0.98 && abs(px.x - f.x) < f.z && abs(px.y - f.y) < f.z * 1.15) {
+			// fewer, bigger blocks when forgotten; many small ones as it comes back
+			float cell = max(f.z / mix(2.0, 14.0, clarity * clarity), 2.0);
 			vec2 q = (floor((px - f.xy) / cell) + 0.5) * cell + f.xy;
 			uv = q / res;
 		}

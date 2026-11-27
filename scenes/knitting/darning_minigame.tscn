@@ -1,0 +1,78 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/knitting/darning_minigame.gd" id="1_minigame"]
+[ext_resource type="Script" path="res://scripts/knitting/torn_scarf.gd" id="2_scarf"]
+[ext_resource type="PackedScene" path="res://scenes/knitting/darning_loom.tscn" id="3_loom"]
+[ext_resource type="Script" path="res://scripts/knitting/warp_threads.gd" id="4_warps"]
+[ext_resource type="Script" path="res://scripts/knitting/woven_patch.gd" id="5_patch"]
+[ext_resource type="PackedScene" path="res://scenes/knitting/knitting_needle.tscn" id="6_needle"]
+[ext_resource type="Script" uid="uid://d0ndqgwrjbh6x" path="res://scripts/knitting/yarn_thread.gd" id="7_yarn"]
+[ext_resource type="Material" path="res://materials/yarn_red.tres" id="8_yarn_mat"]
+
+[sub_resource type="StandardMaterial3D" id="BackingFabric"]
+cull_mode = 2
+albedo_color = Color(0.3, 0.05, 0.05, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="WarpYarn"]
+albedo_color = Color(0.86, 0.8, 0.7, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="GuideGlow"]
+transparency = 1
+shading_mode = 0
+albedo_color = Color(1, 0.85, 0.45, 0.45)
+
+[sub_resource type="QuadMesh" id="GuideQuad"]
+size = Vector2(0.13, 0.003)
+
+[node name="DarningMinigame" type="Node3D"]
+script = ExtResource("1_minigame")
+
+[node name="DarningCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.95528, 0.29571, 0, -0.29571, 0.95528, 0, 0.16, 0.42)
+fov = 40.0
+near = 0.02
+
+[node name="DarningLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.2, 0.3)
+light_color = Color(1, 0.84, 0.65, 1)
+light_energy = 1.4
+omni_range = 1.4
+
+[node name="TornScarf" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+script = ExtResource("2_scarf")
+yarn_material = ExtResource("8_yarn_mat")
+backing_material = SubResource("BackingFabric")
+
+[node name="Knitting" type="MeshInstance3D" parent="TornScarf"]
+
+[node name="Backing" type="Node3D" parent="TornScarf"]
+
+[node name="DarningLoom" parent="." instance=ExtResource("3_loom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0.008)
+
+[node name="WarpThreads" type="MeshInstance3D" parent="."]
+material_override = SubResource("WarpYarn")
+script = ExtResource("4_warps")
+
+[node name="WovenPatch" type="Node3D" parent="."]
+script = ExtResource("5_patch")
+thread_material = SubResource("WarpYarn")
+
+[node name="RowGuide" type="MeshInstance3D" parent="."]
+visible = false
+mesh = SubResource("GuideQuad")
+surface_material_override/0 = SubResource("GuideGlow")
+
+[node name="NeedleRestPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.09, -0.04, 0.014)
+
+[node name="KnittingNeedle" parent="." instance=ExtResource("6_needle")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, 0, 0)
+
+[node name="YarnThread" type="MeshInstance3D" parent="."]
+material_override = SubResource("WarpYarn")
+script = ExtResource("7_yarn")
+radius = 0.0022

@@ -225,6 +225,12 @@ func _shake_scale() -> float:
 	return comfort.shake if comfort else 1.0
 
 
+## Put the camera at the player's eyes right now (no bob, no smoothing), e.g. so a
+## cutscene can glide back to exactly where first-person view will resume.
+func snap_to_head() -> void:
+	_follow_head(0.0)
+
+
 ## Briefly turn the head toward something you interacted with.
 ## Only one glance runs at a time, and it lets go as soon as the player looks around
 ## (cancel_glance), so it never fights the mouse or stick.

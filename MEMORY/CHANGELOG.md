@@ -3,6 +3,23 @@
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
 ## 2026-11-27
+- **Blink demo rewrite + placement fixes** - story rebuilt as a psychological thriller (see 11-blink-demo.md);
+  new beat features first_blink_hide/show, montage_show, closed_eyes_line_sounds, hotspot show_nodes;
+  `--blinkcheck` placement checker. Level: kitchen dining table (round_wooden_table_01, scale 0.76), props on it,
+  chairs pulled out, kitchen fill light raised (house_level.tscn + level_builder.gd).
+- **Blink demo prototype** — `scenes/prototypes/blink_demo.tscn` + `scripts/prototypes/` (blink_demo.gd and
+  blink/*: Eyelids, MemoryCamera, MemoryVoid, MemoryIsland, MemoryBeat, EyeHotspot, BlinkUI, BlinkCaption,
+  SynthTone, BeatCue, SweepLight); shaders `blink_void`, `eyelids`. New input action `blink`. `GameDirector`
+  gains `autostart` (off = no title/story) so prototypes can reuse main.tscn. 22-beat story. See 11-blink-demo.md.
+- **Mosaic faces rule** — faces are pixelated because the player forgot them. `ScreenEffects.memory_clarity`
+  (+`clarity_per_memory` via `remember()`, called from `Memory.play_restore_moment`); looking steadily at a face
+  sharpens it up to `gaze_clarity`; a grey world coarsens faces (`drained_clarity_scale`). Woken figures' faces
+  resolve to clear before fading. `PlayerBody.reveal_face` adds an always-pixelated OwnFace anchor (photo room
+  payoff). Shader `faces[i].w` is now `1 + clarity`. Files: camera_fx.gdshader, screen_effects.gd, memory.gd,
+  memory_figure.gd, player_body.gd. Why: research/07-synthesis pillar 1.
+- **Design research** — `research/` folder (00 index … 07 synthesis): why the game feels generic, identity
+  pillars (mosaic faces as a memory rule, house reacts, shared "hold" verb, losable things), room-by-room
+  redesign and build order. No code changed. Why: owner said the game lacks identity and suspense.
 - **Merge PR #4 + PR #5** — opening/first-scene pass merged on top of the house fixes, photo memory and blur work.
   `house_level.tscn` = PR #5's rebuilt level + `tools/swap_house_exterior.gd` re-run + PR #4's hand edits re-applied
   (ExteriorShell on HouseExterior, DoorwaySpill/PathSpill/FenceShadowLight, street-lamp glow, fence SnowyProp, moved

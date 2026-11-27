@@ -79,7 +79,8 @@ InteractionRaycast mask = `1 | (1<<2)` (World + Interactable), so walls block in
 |---|---|---|
 | `room` | `Room._ready` | GameDirector |
 | `interior_door` | `InteriorDoor._ready` | GameDirector |
-| `memory_face` | `MemoryFigure._add_face_anchor` | ScreenEffects (max 4 faces) |
+| (input) `blink` | project.godot: Space, left mouse, pad A | only the blink demo (Eyelids) |
+| `memory_face` | `MemoryFigure._add_face_anchor`, `PlayerBody.reveal_face` (OwnFace) | ScreenEffects (max 4 faces). Anchor metas: `clarity` 0..1, `no_gaze`, `no_occlusion` |
 | `outdoor_only` | set in scenes (Snowfall, forest, foliage, GroundMist) | OutdoorCulling |
 | `house_exterior` | `HouseExterior._ready` | TitleSequence (lit upstairs window + figure) |
 | `colour_source` | `Ember._ready` | MemoryGrade (colour halo around the ember) |

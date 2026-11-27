@@ -1,0 +1,1623 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/prototypes/blink_demo.gd" id="1_demo"]
+[ext_resource type="PackedScene" path="res://scenes/main.tscn" id="2_main"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/memory_camera.gd" id="3_cam"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/memory_void.gd" id="4_void"]
+[ext_resource type="Shader" path="res://shaders/blink_void.gdshader" id="5_void_shader"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/memory_beat.gd" id="6_beat"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/memory_island.gd" id="7_island"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/eye_hotspot.gd" id="8_eye"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/blink_ui.gd" id="9_ui"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/eyelids.gd" id="10_lids"]
+[ext_resource type="Shader" path="res://shaders/eyelids.gdshader" id="11_lid_shader"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/blink_caption.gd" id="12_caption"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/synth_tone.gd" id="13_tone"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/beat_cue.gd" id="14_cue"]
+[ext_resource type="Script" path="res://scripts/prototypes/blink/sweep_light.gd" id="15_sweep"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/Lantern_01/Lantern_01.gltf" id="20_lantern"]
+[ext_resource type="PackedScene" path="res://scenes/objects/memory_figure.tscn" id="21_figure"]
+[ext_resource type="PackedScene" path="res://assets/mixamo/player_idle.fbx" id="22_adult"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/street_lamp_02/street_lamp_02.gltf" id="23_streetlamp"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/postcard_set_01/postcard_set_01.gltf" id="24_postcards"]
+[ext_resource type="Texture2D" path="res://assets/textures/kids_drawing/kids_drawing.png" id="25_drawing"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/tea_set_01/tea_set_01.gltf" id="26_teaset"]
+[ext_resource type="PackedScene" path="res://assets/polyhaven/carrot_cake/carrot_cake.gltf" id="27_cake"]
+
+[sub_resource type="CameraAttributesPractical" id="MemoryFocus"]
+dof_blur_far_enabled = true
+dof_blur_near_enabled = true
+dof_blur_amount = 0.16
+
+[sub_resource type="QuadMesh" id="ScreenQuad"]
+size = Vector2(2, 2)
+
+[sub_resource type="ShaderMaterial" id="VoidMaterial"]
+render_priority = 127
+shader = ExtResource("5_void_shader")
+shader_parameter/island_count = 0
+shader_parameter/edge_amp = 0.35
+shader_parameter/edge_freq = 2.2
+shader_parameter/droplet_band = 0.35
+shader_parameter/droplet_density = 0.62
+shader_parameter/boil_fps = 6.0
+shader_parameter/void_fade = 1.0
+shader_parameter/void_color = Color(0, 0, 0, 1)
+
+[sub_resource type="ShaderMaterial" id="LidMaterial"]
+shader = ExtResource("11_lid_shader")
+shader_parameter/closure = 1.0
+shader_parameter/curve = 0.55
+shader_parameter/feather = 0.035
+
+[sub_resource type="SystemFont" id="SerifFont"]
+font_names = PackedStringArray("Georgia", "Palatino Linotype", "Times New Roman", "serif")
+font_italic = true
+
+[sub_resource type="LabelSettings" id="CaptionLook"]
+font = SubResource("SerifFont")
+font_size = 30
+font_color = Color(1, 0.97, 0.92, 1)
+outline_size = 6
+outline_color = Color(0, 0, 0, 0.7)
+
+[sub_resource type="LabelSettings" id="TitleLook"]
+font = SubResource("SerifFont")
+font_size = 34
+font_color = Color(1, 0.97, 0.92, 0.9)
+line_spacing = 10.0
+
+[sub_resource type="ParticleProcessMaterial" id="DustProcess"]
+emission_shape = 3
+emission_box_extents = Vector3(1.6, 1, 1.2)
+direction = Vector3(0, 1, 0)
+spread = 180.0
+initial_velocity_min = 0.01
+initial_velocity_max = 0.05
+gravity = Vector3(0, -0.01, 0)
+scale_min = 0.5
+scale_max = 1.4
+
+[sub_resource type="StandardMaterial3D" id="DustMat"]
+transparency = 1
+blend_mode = 1
+shading_mode = 0
+albedo_color = Color(1, 0.86, 0.65, 0.35)
+billboard_mode = 3
+particles_anim_h_frames = 1
+particles_anim_v_frames = 1
+
+[sub_resource type="QuadMesh" id="DustQuad"]
+material = SubResource("DustMat")
+size = Vector2(0.01, 0.01)
+
+[sub_resource type="QuadMesh" id="PaperQuad"]
+size = Vector2(0.21, 0.28)
+
+[sub_resource type="QuadMesh" id="ScrapQuad"]
+size = Vector2(0.17, 0.12)
+
+[sub_resource type="StandardMaterial3D" id="PaperWhite"]
+albedo_color = Color(0.95, 0.93, 0.88, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="DrawingPaper"]
+albedo_texture = ExtResource("25_drawing")
+roughness = 1.0
+
+[sub_resource type="SystemFont" id="HandFont"]
+font_names = PackedStringArray("Ink Free", "Segoe Script", "Bradley Hand ITC", "cursive")
+
+[sub_resource type="BoxMesh" id="DoorGap"]
+size = Vector3(0.8, 0.01, 0.04)
+
+[sub_resource type="StandardMaterial3D" id="WarmGlow"]
+shading_mode = 0
+albedo_color = Color(1, 0.72, 0.4, 1)
+emission_enabled = true
+emission = Color(1, 0.65, 0.3, 1)
+emission_energy_multiplier = 4.0
+
+[sub_resource type="QuadMesh" id="CalendarQuad"]
+size = Vector2(0.32, 0.42)
+
+[sub_resource type="QuadMesh" id="ClippingQuad"]
+size = Vector2(0.2, 0.25)
+
+[sub_resource type="SphereMesh" id="LensDisc"]
+radius = 0.09
+height = 0.05
+
+[sub_resource type="StandardMaterial3D" id="Newsprint"]
+albedo_color = Color(0.86, 0.84, 0.76, 1)
+roughness = 1.0
+
+[sub_resource type="SystemFont" id="PrintFont"]
+font_names = PackedStringArray("Times New Roman", "Georgia", "serif")
+[node name="BlinkDemo" type="Node3D" node_paths=PackedStringArray("game", "memory_camera", "memory_void", "eyelids", "blink_ui", "caption", "title_card", "metronome_sound", "lid_sound")]
+script = ExtResource("1_demo")
+game = NodePath("Main")
+memory_camera = NodePath("MemoryCamera")
+memory_void = NodePath("MemoryCamera/MemoryVoid")
+eyelids = NodePath("BlinkOverlay/Eyelids")
+blink_ui = NodePath("BlinkOverlay/BlinkUI")
+caption = NodePath("BlinkOverlay/Caption")
+title_card = NodePath("BlinkOverlay/TitleCard")
+metronome_sound = NodePath("MetronomeTick")
+lid_sound = NodePath("LidSound")
+intro_cards = Array[String](["I was gone for twelve winters.", "I came back for one night.", "Blink: click, or press Space.\nHold it to keep your eyes closed. Some things are only said in the dark."])
+
+[node name="Main" parent="." instance=ExtResource("2_main")]
+autostart = false
+
+[node name="MemoryCamera" type="Camera3D" parent="." node_paths=PackedStringArray("cursor_source")]
+attributes = SubResource("MemoryFocus")
+current = true
+fov = 58.0
+near = 0.05
+script = ExtResource("3_cam")
+cursor_source = NodePath("../BlinkOverlay/BlinkUI")
+
+[node name="MemoryVoid" type="MeshInstance3D" parent="MemoryCamera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.2)
+cast_shadow = 0
+extra_cull_margin = 16384.0
+ignore_occlusion_culling = true
+mesh = SubResource("ScreenQuad")
+material_override = SubResource("VoidMaterial")
+script = ExtResource("4_void")
+
+[node name="BlinkOverlay" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="BlinkUI" type="Control" parent="BlinkOverlay" node_paths=PackedStringArray("camera")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("9_ui")
+camera = NodePath("../../MemoryCamera")
+
+[node name="Eyelids" type="ColorRect" parent="BlinkOverlay"]
+material = SubResource("LidMaterial")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("10_lids")
+
+[node name="Caption" type="Label" parent="BlinkOverlay"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 200.0
+offset_top = -200.0
+offset_right = -200.0
+offset_bottom = -140.0
+grow_horizontal = 2
+grow_vertical = 0
+label_settings = SubResource("CaptionLook")
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+script = ExtResource("12_caption")
+
+[node name="TitleCard" type="Label" parent="BlinkOverlay"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+label_settings = SubResource("TitleLook")
+horizontal_alignment = 1
+vertical_alignment = 1
+script = ExtResource("12_caption")
+
+[node name="MetronomeTick" type="AudioStreamPlayer" parent="."]
+volume_db = -10.0
+script = ExtResource("13_tone")
+
+[node name="LidSound" type="AudioStreamPlayer" parent="."]
+volume_db = -16.0
+script = ExtResource("13_tone")
+frequency = 90.0
+length = 0.25
+decay = 16.0
+noise = 0.55
+sweep = -60.0
+
+[node name="CarEngine" type="AudioStreamPlayer" parent="."]
+volume_db = -8.0
+script = ExtResource("13_tone")
+frequency = 42.0
+length = 3.0
+decay = 0.9
+noise = 0.75
+sweep = 8.0
+
+[node name="Skid" type="AudioStreamPlayer" parent="."]
+volume_db = -6.0
+script = ExtResource("13_tone")
+frequency = 900.0
+length = 1.4
+decay = 1.6
+noise = 0.85
+sweep = -420.0
+
+[node name="Horn" type="AudioStreamPlayer" parent="."]
+volume_db = -10.0
+script = ExtResource("13_tone")
+frequency = 415.0
+length = 3.0
+decay = 0.25
+noise = 0.04
+
+[node name="DustMotes" type="GPUParticles3D" parent="MemoryCamera"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.8)
+amount = 90
+lifetime = 9.0
+preprocess = 9.0
+local_coords = false
+visibility_aabb = AABB(-20, -20, -20, 40, 40, 40)
+process_material = SubResource("DustProcess")
+draw_pass_1 = SubResource("DustQuad")
+
+[node name="Beats" type="Node3D" parent="."]
+
+[node name="RoadBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["The driver wouldn't take the bus past the bend. \"Not in snow,\" he said. \"Not that bend.\"", "I told him someone was expecting me. I don't know why I said that."])
+line_times = Array[float]([2.0, 8.0])
+protect_time = 7.0
+max_wait = 22.0
+saturation = 0.2
+closed_eyes_sound = "step_snow"
+closed_eyes_caption = "My footsteps. Nobody else's."
+music = "theme_broken"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/RoadBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 18.5)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/RoadBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 10)
+
+[node name="EmberPoint" type="Marker3D" parent="Beats/RoadBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.6, 15)
+
+[node name="Islands" type="Node3D" parent="Beats/RoadBeat"]
+
+[node name="Ember" type="Marker3D" parent="Beats/RoadBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.6, 15)
+script = ExtResource("7_island")
+radius = 0.9
+blend = 0.6
+
+[node name="Path" type="Marker3D" parent="Beats/RoadBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.1, 15.8)
+script = ExtResource("7_island")
+radius = 1.3
+stretch = Vector3(1.2, 0.5, 2.2)
+blend = 0.8
+bloom_time = 2.4
+
+[node name="Gate" type="Marker3D" parent="Beats/RoadBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 1, 10.2)
+script = ExtResource("7_island")
+radius = 1.8
+stretch = Vector3(1.4, 1, 2.6)
+blend = 1.0
+hidden_at_start = true
+bloom_time = 2.6
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/RoadBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.65, 15)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Gate"), NodePath("../Islands/Path")]
+sound = "ember_chime"
+caption = "A light, low over the snow. About as high as a car's lamp. It drifted toward the house, and waited for me to follow."
+saturation_after = 0.25
+appear_after = 3.5
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/RoadBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.6, 0.9, 15)
+light_color = Color(1, 0.9, 0.7, 1)
+light_energy = 1.8
+omni_range = 4.0
+
+[node name="GateBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("first_blink_hide")]
+script = ExtResource("6_beat")
+lines = Array[String](["The porch light was on.", "Someone was standing in the front window. Watching the lane."])
+line_times = Array[float]([1.5, 5.5])
+protect_time = 7.0
+saturation = 0.25
+closed_eyes_sound = "floor_creak"
+closed_eyes_caption = "A floorboard, inside. Then nothing."
+first_blink_hide = [NodePath("Props/FigureInWindow")]
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/GateBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 12.8)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/GateBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.8, 1)
+
+[node name="EmberPoint" type="Marker3D" parent="Beats/GateBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 0.7, 10.4)
+
+[node name="Islands" type="Node3D" parent="Beats/GateBeat"]
+
+[node name="HouseFront" type="Marker3D" parent="Beats/GateBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.4, 0.2)
+script = ExtResource("7_island")
+radius = 2.4
+stretch = Vector3(1.7, 1.1, 1.2)
+blend = 0.8
+
+[node name="Gate" type="Marker3D" parent="Beats/GateBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 1, 10)
+script = ExtResource("7_island")
+radius = 1.4
+stretch = Vector3(1.4, 1, 1)
+blend = 0.0
+
+[node name="Porch" type="Marker3D" parent="Beats/GateBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 4)
+script = ExtResource("7_island")
+radius = 3.2
+stretch = Vector3(1, 1, 1.6)
+blend = 1.2
+hidden_at_start = true
+bloom_time = 2.4
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/GateBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.9)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Porch")]
+caption = "Twelve years, and somebody was still paying for that bulb."
+saturation_after = 0.35
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/GateBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 1.8)
+light_color = Color(1, 0.72, 0.45, 1)
+light_energy = 2.5
+omni_range = 7.0
+
+[node name="Props" type="Node3D" parent="Beats/GateBeat"]
+
+[node name="WindowLight" type="OmniLight3D" parent="Beats/GateBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 1.9, -1.2)
+light_color = Color(1, 0.75, 0.5, 1)
+light_energy = 1.5
+omni_range = 2.5
+
+[node name="FigureInWindow" parent="Beats/GateBeat/Props" instance=ExtResource("21_figure")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.0, 0.06, -0.55)
+frozen_at = 0.1
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/GateBeat/Props/FigureInWindow" instance=ExtResource("22_adult")]
+
+[node name="PorchBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["Footprints on the step, half filled with snow. One set. Going out.", "The key was under the mat. Where I'd left it."])
+line_times = Array[float]([1.2, 7.5])
+protect_time = 6.0
+saturation = 0.25
+closed_eyes_sound = "floor_creak"
+closed_eyes_caption = "The hall clock, ticking. Right to the minute. Somebody had been winding it."
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/PorchBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 1.45, 2.75)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/PorchBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 0.95, 0)
+
+[node name="Islands" type="Node3D" parent="Beats/PorchBeat"]
+
+[node name="Door" type="Marker3D" parent="Beats/PorchBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.1)
+script = ExtResource("7_island")
+radius = 0.95
+stretch = Vector3(1, 1.4, 0.8)
+blend = 0.6
+
+[node name="Step" type="Marker3D" parent="Beats/PorchBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 1.2)
+script = ExtResource("7_island")
+radius = 0.9
+stretch = Vector3(1.3, 0.5, 1.2)
+blend = 0.6
+
+[node name="Hall" type="Marker3D" parent="Beats/PorchBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -1.6)
+script = ExtResource("7_island")
+radius = 1.5
+blend = 0.9
+hidden_at_start = true
+bloom_time = 3.0
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/PorchBeat" node_paths=PackedStringArray("call_target", "islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 0.15)
+script = ExtResource("8_eye")
+call_target = NodePath("../../../Main/HouseLevel/House/Doors/FrontDoor")
+call_method = "swing"
+call_args = [true]
+islands_to_bloom = [NodePath("../Islands/Hall")]
+caption = "It wasn't locked. On the hook inside, Dad's coat. Snow on the shoulders, gone grey."
+saturation_after = 0.3
+appear_after = 3.0
+
+[node name="Props" type="Node3D" parent="Beats/PorchBeat"]
+
+[node name="Lantern" parent="Beats/PorchBeat/Props" instance=ExtResource("20_lantern")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.112, 0.75)
+
+[node name="PorchLamp" type="OmniLight3D" parent="Beats/PorchBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, 0.45, 0.8)
+light_color = Color(1, 0.7, 0.4, 1)
+light_energy = 2.2
+omni_range = 3.5
+
+[node name="DoorLamp" type="OmniLight3D" parent="Beats/PorchBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 2.3, 0.7)
+light_color = Color(1, 0.76, 0.5, 1)
+light_energy = 1.6
+omni_range = 4.0
+
+[node name="LivingBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+time_card = "The first winter I remember."
+lines = Array[String](["Grandma knitted with her eyes shut. She said her hands could see.", "I'd lie on the rug and count the stitches until I couldn't."])
+line_times = Array[float]([1.2, 6.5])
+protect_time = 5.0
+saturation = 0.3
+closed_eyes_sound = "knit_loop"
+closed_eyes_caption = "Click, click, click. I fell asleep to it every night that winter."
+music = "theme_piano"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/LivingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.4, -2.95)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/LivingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0.95, -2.42)
+
+[node name="Islands" type="Node3D" parent="Beats/LivingBeat"]
+
+[node name="Grandma" type="Marker3D" parent="Beats/LivingBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.54, 1, -2.42)
+script = ExtResource("7_island")
+radius = 0.95
+blend = 0.0
+
+[node name="Boy" type="Marker3D" parent="Beats/LivingBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.65, 0.9, -3.55)
+script = ExtResource("7_island")
+radius = 0.6
+blend = 0.0
+
+[node name="RoomGlow" type="Marker3D" parent="Beats/LivingBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.1, 1.1, -2.9)
+script = ExtResource("7_island")
+radius = 1.8
+stretch = Vector3(1.4, 1, 1.2)
+blend = 0.9
+hidden_at_start = true
+bloom_time = 2.2
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/LivingBeat" node_paths=PackedStringArray("figures_to_wake", "islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.25, 0.9, -2.45)
+script = ExtResource("8_eye")
+figures_to_wake = [NodePath("../../../Main/Memories/ScarfMemory/GrandmaKnitting"), NodePath("../../../Main/Memories/ScarfMemory/BoyWatching")]
+islands_to_bloom = [NodePath("../Islands/RoomGlow")]
+sound = "memory_restore"
+voice = "v_scarf"
+caption = "\"There. Now you won't get cold.\" She'd made it far too long. \"You'll grow,\" she said."
+saturation_after = 0.6
+warm_room_id = "living"
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/LivingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 1.9, -2.7)
+light_color = Color(1, 0.74, 0.5, 1)
+light_energy = 1.6
+omni_range = 4.5
+
+[node name="KidBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("hide_on_enter")]
+script = ExtResource("6_beat")
+time_card = "Seven."
+lines = Array[String](["I drew the house from the lane. Always with the porch light on.", "Dad said nobody walks that lane in snow. \"Not past the bend. That ditch has had two cars.\""])
+line_times = Array[float]([1.2, 7.0])
+protect_time = 6.0
+saturation = 0.45
+closed_eyes_sound = "floor_creak"
+closed_eyes_lines = Array[String](["Dad, on the stairs. Checking.", "I always pretended to be asleep. I was good at it.", "\"Leave the light on for him.\""])
+hide_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingPieces")]
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/KidBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.75, 1.25, -2.45)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/KidBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.05, -3.9)
+
+[node name="Islands" type="Node3D" parent="Beats/KidBeat"]
+
+[node name="Desk" type="Marker3D" parent="Beats/KidBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1, -3.7)
+script = ExtResource("7_island")
+radius = 0.95
+stretch = Vector3(1.3, 1, 1)
+blend = 0.0
+
+[node name="Drawing" type="Marker3D" parent="Beats/KidBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.6, -4.36)
+script = ExtResource("7_island")
+radius = 0.6
+blend = 0.5
+hidden_at_start = true
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/KidBeat" node_paths=PackedStringArray("figures_to_wake", "call_target", "islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.5, -4.25)
+script = ExtResource("8_eye")
+figures_to_wake = [NodePath("../../../Main/Memories/DrawingMemory/BoyAtDesk")]
+call_target = NodePath("../../../Main/Memories/DrawingMemory/DrawingOnWall")
+call_method = "pop_in"
+islands_to_bloom = [NodePath("../Islands/Drawing")]
+sound = "tape"
+voice = "v_artist"
+caption = "\"My little artist.\" Mum pinned it up. Far too much tape. She never could do anything neatly."
+saturation_after = 0.75
+warm_room_id = "kid"
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/KidBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.9, -3.4)
+light_color = Color(1, 0.8, 0.55, 1)
+light_energy = 1.4
+omni_range = 4.0
+
+[node name="KitchenBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+time_card = "Nine."
+lines = Array[String](["Three plates. Dad nearest the stove, so he could reach the kettle without getting up.", "His keys on the nail by the door. \"A man should be able to leave in the dark without looking,\" he said."])
+line_times = Array[float]([1.2, 7.5])
+protect_time = 6.0
+saturation = 0.6
+closed_eyes_sound = "floor_creak"
+closed_eyes_caption = "The radio. The kettle. Mum laughing at something he said."
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/KitchenBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.35, 1.5, -0.5)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/KitchenBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.7, 1.0, -2.3)
+
+[node name="Islands" type="Node3D" parent="Beats/KitchenBeat"]
+
+[node name="Table" type="Marker3D" parent="Beats/KitchenBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0.9, -2.1)
+script = ExtResource("7_island")
+radius = 1.15
+stretch = Vector3(1.2, 1.1, 1.3)
+blend = 0.4
+
+[node name="Dad" type="Marker3D" parent="Beats/KitchenBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 1.1, -3.7)
+script = ExtResource("7_island")
+radius = 1.4
+stretch = Vector3(1.2, 1.4, 1)
+blend = 0.5
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/KitchenBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0.95, -2.05)
+script = ExtResource("8_eye")
+sound = "pack_item"
+caption = "When I spilled mine he'd slide his across without looking up. \"Plenty more where that came from.\""
+saturation_after = 0.7
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/KitchenBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.4, -1.4)
+light_color = Color(1, 0.8, 0.55, 1)
+light_energy = 0.5
+omni_range = 4.0
+
+[node name="Props" type="Node3D" parent="Beats/KitchenBeat"]
+
+[node name="TeaSet" parent="Beats/KitchenBeat/Props" instance=ExtResource("26_teaset")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.8, 0.823, -2.05)
+
+[node name="Cake" parent="Beats/KitchenBeat/Props" instance=ExtResource("27_cake")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.6, 0.823, -1.65)
+
+[node name="DadAtTable" parent="Beats/KitchenBeat/Props" instance=ExtResource("21_figure")]
+transform = Transform3D(0.89, 0, -0.457, 0, 1, 0, 0.457, 0, 0.89, 4.56, 0.06, -2.86)
+frozen_at = 0.4
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/KitchenBeat/Props/DadAtTable" instance=ExtResource("22_adult")]
+
+[node name="GrandmaGoneBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("hide_on_enter")]
+script = ExtResource("6_beat")
+time_card = "Eleven."
+lines = Array[String](["After the funeral nobody sat in her chair. Not even the cat.", "Mum took Grandma's needles out of the basket and didn't put them back."])
+line_times = Array[float]([1.5, 6.5])
+protect_time = 6.0
+saturation = 0.2
+closed_eyes_sound = "knit_loop"
+closed_eyes_lines = Array[String](["Mum, in the chair, in the dark.", "Click. ... Click. Slower than Grandma. Never stopping.", "\"It's not good,\" she said, when she caught me watching. \"It's just mine.\""])
+hide_on_enter = [NodePath("../../Main/Memories/ScarfMemory/GrandmaKnitting"), NodePath("../../Main/Memories/ScarfMemory/BoyWatching")]
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/GrandmaGoneBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.45, -3.05)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/GrandmaGoneBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 0.85, -2.42)
+
+[node name="Islands" type="Node3D" parent="Beats/GrandmaGoneBeat"]
+
+[node name="EmptyChair" type="Marker3D" parent="Beats/GrandmaGoneBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.54, 0.9, -2.42)
+script = ExtResource("7_island")
+radius = 0.8
+blend = 0.0
+bloom_time = 2.4
+
+[node name="Window" type="Marker3D" parent="Beats/GrandmaGoneBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.6, 1.5, -1.6)
+script = ExtResource("7_island")
+radius = 1.4
+stretch = Vector3(1.4, 1, 1)
+blend = 0.8
+hidden_at_start = true
+bloom_time = 2.4
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/GrandmaGoneBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.35, 0.85, -2.42)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Window")]
+caption = "She'd never knitted in her life. That winter she learned. Badly. She didn't stop."
+saturation_after = 0.35
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/GrandmaGoneBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 1.8, -2.2)
+light_color = Color(0.75, 0.82, 1, 1)
+light_energy = 1.0
+omni_range = 3.5
+
+[node name="LetterBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("hide_on_enter", "show_on_enter")]
+script = ExtResource("6_beat")
+time_card = "Fifteen."
+lines = Array[String](["St. Brigid's School of Art. Forty places. One of them was mine.", "The fees were more than Dad earned in a year. I did the sum on the back of the envelope."])
+line_times = Array[float]([1.2, 7.0])
+protect_time = 6.0
+saturation = 0.55
+closed_eyes_sound = "floor_creak"
+closed_eyes_lines = Array[String](["Through the floor, the kitchen. Numbers.", "\"...if the car goes. And the overtime...\"", "\"He can't know. Not till it's sure.\""])
+hide_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingPieces"), NodePath("../../Main/Memories/DrawingMemory/BoyAtDesk")]
+show_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingOnWall")]
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/LetterBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.75, 1.4, -2.6)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/LetterBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.1, -4.0)
+
+[node name="Islands" type="Node3D" parent="Beats/LetterBeat"]
+
+[node name="Wall" type="Marker3D" parent="Beats/LetterBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.2, -4.0)
+script = ExtResource("7_island")
+radius = 1.0
+stretch = Vector3(1.4, 1, 0.9)
+blend = 0.4
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/LetterBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.45, 1.0, -4.05)
+script = ExtResource("8_eye")
+sound = "paper_pickup"
+caption = "I showed Dad. He read it twice, folded it small, and put it in his shirt pocket. \"We'll see,\" he said."
+saturation_after = 0.4
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/LetterBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.9, -3.4)
+light_color = Color(0.9, 0.85, 0.8, 1)
+light_energy = 1.2
+omni_range = 4.0
+
+[node name="Props" type="Node3D" parent="Beats/LetterBeat"]
+
+[node name="Letter" type="MeshInstance3D" parent="Beats/LetterBeat/Props"]
+transform = Transform3D(0.921, -0.389, 0, 0, 0, 1, -0.389, -0.921, 0, -4.45, 0.947, -4.05)
+mesh = SubResource("PaperQuad")
+surface_material_override/0 = SubResource("PaperWhite")
+
+[node name="LetterText" type="Label3D" parent="Beats/LetterBeat/Props/Letter"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.002)
+pixel_size = 0.0005
+modulate = Color(0.12, 0.12, 0.2, 1)
+outline_size = 0
+text = "ST. BRIGID'S SCHOOL OF ART
+
+We are delighted to offer
+you a place this autumn."
+font = SubResource("HandFont")
+font_size = 36
+
+[node name="DoorBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+time_card = "Seventeen. Three weeks before Christmas."
+lines = Array[String](["They thought I was asleep. I'd had a lot of practice.", "I'd come down for water. I didn't go back up."])
+line_times = Array[float]([1.5, 6.0])
+protect_time = 6.0
+saturation = 0.45
+closed_eyes_sound = "argument_muffled"
+closed_eyes_lines = Array[String](["\"He's seventeen—\"", "\"He's old enough to—\"", "\"Keep your voice down—\""])
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/DoorBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.5, -5.5)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/DoorBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.1, -8.8)
+
+[node name="Islands" type="Node3D" parent="Beats/DoorBeat"]
+
+[node name="StudyDoor" type="Marker3D" parent="Beats/DoorBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.1, -8.75)
+script = ExtResource("7_island")
+radius = 0.9
+stretch = Vector3(1, 1.5, 0.6)
+blend = 0.0
+
+[node name="Hallway" type="Marker3D" parent="Beats/DoorBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.6, -7)
+script = ExtResource("7_island")
+radius = 1.2
+stretch = Vector3(1, 0.6, 2.4)
+blend = 0.8
+hidden_at_start = true
+bloom_time = 0.8
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/DoorBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.15, -8.7)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Hallway")]
+sound = "door_slam"
+caption = "Dad: \"If he wants to go, then go—\""
+saturation_after = 0.15
+appear_after = 3.5
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/DoorBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.25, -8.4)
+light_color = Color(1, 0.7, 0.4, 1)
+light_energy = 1.2
+omni_range = 2.5
+
+[node name="TornBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("hide_on_enter", "show_on_enter")]
+script = ExtResource("6_beat")
+time_card = "That night."
+lines = Array[String](["I took every drawing off the wall. Every house. Every porch light.", "Paper is louder than you'd think. Nobody came up."])
+line_times = Array[float]([1.0, 6.0])
+protect_time = 5.0
+saturation = 0.1
+closed_eyes_sound = "paper_pickup"
+closed_eyes_caption = "Rip. Rip. Rip. I wanted them to hear it."
+hide_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingOnWall"), NodePath("../../Main/Memories/DrawingMemory/BoyAtDesk")]
+show_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingPieces")]
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/TornBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.7, 1.45, -2.05)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/TornBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.95, 0.1, -3.0)
+
+[node name="Islands" type="Node3D" parent="Beats/TornBeat"]
+
+[node name="Floor" type="Marker3D" parent="Beats/TornBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 0.2, -2.9)
+script = ExtResource("7_island")
+radius = 1.4
+stretch = Vector3(1.4, 0.5, 1.2)
+blend = 0.6
+
+[node name="BareWall" type="Marker3D" parent="Beats/TornBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.6, -4.36)
+script = ExtResource("7_island")
+radius = 0.7
+blend = 0.0
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/TornBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.55, -4.3)
+script = ExtResource("8_eye")
+caption = "Four little squares of tape left on the wall where it had been. I left those too."
+appear_after = 3.0
+
+[node name="Props" type="Node3D" parent="Beats/TornBeat"]
+
+[node name="Scrap1" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(0.921, -0.389, 0, 0, 0, 1, -0.389, -0.921, 0, -4.9, 0.075, -3.2)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="Scrap2" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(0.454, -0.891, 0, 0, 0, 1, -0.891, -0.454, 0, -5.2, 0.076, -2.85)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="Scrap3" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(0.765, 0.644, 0, 0, 0, 1, 0.644, -0.765, 0, -4.6, 0.077, -2.75)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="Scrap4" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(-0.589, -0.808, 0, 0, 0, 1, -0.808, 0.589, 0, -5.45, 0.078, -3.35)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="Scrap5" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(-0.029, 0.9996, 0, 0, 0, 1, 0.9996, 0.029, 0, -4.35, 0.079, -3.4)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="Scrap6" type="MeshInstance3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(0.921, 0.389, 0, 0, 0, 1, 0.389, -0.921, 0, -5.0, 0.08, -2.5)
+mesh = SubResource("ScrapQuad")
+surface_material_override/0 = SubResource("DrawingPaper")
+
+[node name="DeskLampOn" type="OmniLight3D" parent="Beats/TornBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.3, -3.6)
+light_color = Color(1, 0.78, 0.5, 1)
+light_energy = 1.8
+omni_range = 3.0
+
+[node name="LeavingBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["One bag. The rest could stay.", "Grandma's scarf was on the bed. I left it there. I wanted it to be the first thing she saw."])
+line_times = Array[float]([1.0, 6.0])
+protect_time = 4.0
+wait_for_hotspot = false
+saturation = 0.3
+drain_to = 0.05
+drain_time = 18.0
+wither_time = 16.0
+wither_to = 0.35
+closed_eyes_sound = "heartbeat"
+closed_eyes_caption = "Don't think. If you think, you'll stay."
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/LeavingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.25, 1.35, -5.85)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/LeavingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0.35, -7)
+
+[node name="Islands" type="Node3D" parent="Beats/LeavingBeat"]
+
+[node name="Suitcase" type="Marker3D" parent="Beats/LeavingBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0.45, -7)
+script = ExtResource("7_island")
+radius = 1.05
+stretch = Vector3(1.3, 1, 1)
+blend = 0.0
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/LeavingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0.6, -7)
+script = ExtResource("8_eye")
+sound = "suitcase_close"
+caption = "I closed it before I could change my mind."
+saturation_after = 0.1
+appear_after = 2.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/LeavingBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.9, 1.6, -6.5)
+light_color = Color(0.75, 0.82, 1, 1)
+light_energy = 1.2
+omni_range = 3.5
+
+[node name="GoodbyeBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["She was in the hall. In her coat. As if she'd known all along.", "\"I won't stop you.\"", "\"You forgot your scarf.\"", "\"Write to me. Just once. Just so I know you're—\""])
+line_times = Array[float]([0.8, 5.0, 9.0, 13.0])
+protect_time = 0.0
+wait_for_hotspot = false
+saturation = 0.12
+heavy_eyes_after = 8.0
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/GoodbyeBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.5, -7.8)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/GoodbyeBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.7, 1.2, -4.6)
+
+[node name="Islands" type="Node3D" parent="Beats/GoodbyeBeat"]
+
+[node name="Mum" type="Marker3D" parent="Beats/GoodbyeBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 1.1, -5.6)
+script = ExtResource("7_island")
+radius = 0.9
+stretch = Vector3(1, 1.4, 1)
+blend = 0.0
+bloom_time = 3.0
+
+[node name="Doorway" type="Marker3D" parent="Beats/GoodbyeBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.1, -4.6)
+script = ExtResource("7_island")
+radius = 0.9
+stretch = Vector3(1, 1.4, 0.6)
+blend = 0.0
+bloom_time = 3.0
+
+[node name="Props" type="Node3D" parent="Beats/GoodbyeBeat"]
+
+[node name="MumInHall" parent="Beats/GoodbyeBeat/Props" instance=ExtResource("21_figure")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.55, 0.06, -5.6)
+frozen_at = 0.2
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/GoodbyeBeat/Props/MumInHall" instance=ExtResource("22_adult")]
+
+[node name="HallLamp" type="OmniLight3D" parent="Beats/GoodbyeBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 2.3, -5.2)
+light_color = Color(1, 0.74, 0.48, 1)
+light_energy = 1.4
+omni_range = 3.5
+
+[node name="LaneBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["I didn't look back. I'd decided that on the stairs.", "Snow coming in sideways. The last bus in forty minutes."])
+line_times = Array[float]([1.0, 6.0])
+protect_time = 5.0
+saturation = 0.1
+closed_eyes_sound = "step_snow"
+closed_eyes_lines = Array[String](["Behind me, the front door.", "A car door. An engine that wouldn't catch, then did.", "Headlights on the lane. I cut across the field so they wouldn't find me.", "A long way behind me, a sound like a door slamming. I didn't turn round."])
+closed_eyes_line_sounds = Array[String](["", "@CarEngine", "", "door_slam"])
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/LaneBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 10.8)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/LaneBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0, 20)
+
+[node name="Islands" type="Node3D" parent="Beats/LaneBeat"]
+
+[node name="Lane" type="Marker3D" parent="Beats/LaneBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 15)
+script = ExtResource("7_island")
+radius = 1.6
+stretch = Vector3(1, 0.5, 3)
+blend = 0.8
+
+[node name="LampIsland" type="Marker3D" parent="Beats/LaneBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 1.2, 17)
+script = ExtResource("7_island")
+radius = 2.0
+stretch = Vector3(1.2, 1.6, 1.2)
+blend = 0.8
+
+[node name="Props" type="Node3D" parent="Beats/LaneBeat"]
+
+[node name="StreetLamp" parent="Beats/LaneBeat/Props" instance=ExtResource("23_streetlamp")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 17)
+
+[node name="LampPool" type="SpotLight3D" parent="Beats/LaneBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 1.2, 3.8, 17)
+light_color = Color(1, 0.78, 0.5, 1)
+light_energy = 22.0
+spot_range = 7.0
+spot_angle = 38.0
+
+[node name="LampGlow" type="OmniLight3D" parent="Beats/LaneBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 3.4, 17)
+light_color = Color(1, 0.76, 0.45, 1)
+light_energy = 3.0
+omni_range = 5.0
+
+[node name="PostcardsBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+time_card = "Now."
+lines = Array[String](["Her room. Bed made with hospital corners. Her coat gone from the hook.", "Slippers by the bed. Lined up. Waiting."])
+line_times = Array[float]([1.5, 7.0])
+protect_time = 6.0
+saturation = 0.15
+closed_eyes_sound = "heartbeat"
+closed_eyes_caption = "I said her name, quietly. The house didn't answer."
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/PostcardsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.85, 1.45, -7.15)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/PostcardsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 1.12, -7.75)
+
+[node name="Islands" type="Node3D" parent="Beats/PostcardsBeat"]
+
+[node name="Drawer" type="Marker3D" parent="Beats/PostcardsBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.0, 1.15, -7.8)
+script = ExtResource("7_island")
+radius = 0.75
+stretch = Vector3(1, 0.8, 1.3)
+blend = 0.0
+
+[node name="Room" type="Marker3D" parent="Beats/PostcardsBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 1.2, -7.6)
+script = ExtResource("7_island")
+radius = 1.4
+blend = 0.9
+hidden_at_start = true
+bloom_time = 2.5
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/PostcardsBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.05, 1.2, -7.7)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Room")]
+sound = "paper_pickup"
+caption = "Postcards. Forty-one. My name on every one. Under it, where the address goes: nothing."
+saturation_after = 0.3
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/PostcardsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.5, -7.6)
+light_color = Color(0.85, 0.85, 1, 1)
+light_energy = 1.0
+omni_range = 3.0
+
+[node name="Props" type="Node3D" parent="Beats/PostcardsBeat"]
+
+[node name="Postcards" parent="Beats/PostcardsBeat/Props" instance=ExtResource("24_postcards")]
+transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, -4.27, 0.93, -7.7)
+
+[node name="CardLight" type="OmniLight3D" parent="Beats/PostcardsBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.7, -7.4)
+light_color = Color(0.95, 0.88, 0.8, 1)
+light_energy = 1.2
+omni_range = 1.8
+
+[node name="WintersBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+time_card = "What the postcards said."
+protect_time = 2.0
+wait_for_hotspot = false
+saturation = 0.35
+heavy_eyes_after = 6.0
+montage_lines = Array[String](["First winter: \"Set your place at tea again. Your dad sat with it. He doesn't say much these days.\"", "Third winter: \"Your dad won't let me touch the porch light. Says you'll want it on.\"", "Fifth winter: \"Electric's gone up. He still won't let me touch the switch.\"", "Eighth winter: \"They asked again if I want his coat taken down. I said he'll want it there when he comes in.\"", "Tenth winter: \"Two cups in the morning. He lets his go cold. He always did.\"", "Twelfth winter: \"In for some tests. Back Thursday. I've told your dad to keep the fire in.\""])
+montage_sound = "paper_pickup"
+music = "theme_broken"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/WintersBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 9.4)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/WintersBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, 0.5)
+
+[node name="Islands" type="Node3D" parent="Beats/WintersBeat"]
+
+[node name="Light" type="Marker3D" parent="Beats/WintersBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 1.8, 0.9)
+script = ExtResource("7_island")
+radius = 0.9
+blend = 0.8
+
+[node name="Path" type="Marker3D" parent="Beats/WintersBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 5)
+script = ExtResource("7_island")
+radius = 1.6
+stretch = Vector3(1, 0.5, 2.6)
+blend = 0.8
+
+[node name="HouseFront" type="Marker3D" parent="Beats/WintersBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.3, 0.2)
+script = ExtResource("7_island")
+radius = 2.4
+stretch = Vector3(1.7, 1.1, 1.2)
+blend = 0.8
+
+[node name="KitchenNowBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["Two cups on the table. One drunk. One full and cold, a skin on it.", "The nail by the door was empty."])
+line_times = Array[float]([1.2, 6.5])
+protect_time = 6.0
+saturation = 0.25
+closed_eyes_sound = "floor_creak"
+closed_eyes_caption = "Thursday. She said Thursday."
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/KitchenNowBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.35, 1.5, -0.5)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/KitchenNowBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.9, 1.05, -2.1)
+
+[node name="Islands" type="Node3D" parent="Beats/KitchenNowBeat"]
+
+[node name="Table" type="Marker3D" parent="Beats/KitchenNowBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0.9, -2.0)
+script = ExtResource("7_island")
+radius = 0.95
+stretch = Vector3(1.2, 0.9, 1.2)
+blend = 0.0
+
+[node name="Calendar" type="Marker3D" parent="Beats/KitchenNowBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.95, 1.5, -1.1)
+script = ExtResource("7_island")
+radius = 0.6
+blend = 0.0
+hidden_at_start = true
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/KitchenNowBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.55, 0.9, -1.95)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Calendar")]
+sound = "paper_pickup"
+caption = "Under his cup, a receipt. St. Brigid's. Deposit: paid in full. Dated the Monday before I left."
+saturation_after = 0.35
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/KitchenNowBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0, 2.4, -1.4)
+light_color = Color(0.8, 0.85, 1, 1)
+light_energy = 0.5
+omni_range = 4.0
+
+[node name="Props" type="Node3D" parent="Beats/KitchenNowBeat"]
+
+[node name="Receipt" type="MeshInstance3D" parent="Beats/KitchenNowBeat/Props"]
+transform = Transform3D(0.454, -0.891, 0, 0, 0, 1, -0.891, -0.454, 0, 4.55, 0.826, -1.95)
+mesh = SubResource("PaperQuad")
+surface_material_override/0 = SubResource("PaperWhite")
+
+[node name="ReceiptText" type="Label3D" parent="Beats/KitchenNowBeat/Props/Receipt"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.002)
+pixel_size = 0.0005
+modulate = Color(0.12, 0.12, 0.2, 1)
+outline_size = 0
+text = "ST. BRIGID'S - RECEIPT
+Deposit: PAID IN FULL
+Mon 3rd December"
+font = SubResource("HandFont")
+font_size = 32
+
+[node name="CalendarPage" type="MeshInstance3D" parent="Beats/KitchenNowBeat/Props"]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 5.96, 1.5, -1.1)
+mesh = SubResource("CalendarQuad")
+surface_material_override/0 = SubResource("PaperWhite")
+
+[node name="CalendarText" type="Label3D" parent="Beats/KitchenNowBeat/Props/CalendarPage"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.003)
+pixel_size = 0.0011
+modulate = Color(0.15, 0.1, 0.1, 1)
+outline_size = 0
+text = "DECEMBER
+
+3  ST BRIGID'S - PAID
+14 his birthday (17!)
+24 home for Christmas"
+font = SubResource("HandFont")
+font_size = 36
+
+[node name="TapedBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("hide_on_enter", "show_on_enter")]
+script = ExtResource("6_beat")
+lines = Array[String](["My drawings were back on the wall.", "Every house. Every porch light. Taped together. Far too much tape."])
+line_times = Array[float]([1.5, 6.0])
+protect_time = 6.0
+saturation = 0.3
+closed_eyes_sound = "tape"
+closed_eyes_caption = "Nobody came up, I'd said. Somebody came up."
+hide_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingPieces"), NodePath("../../Main/Memories/DrawingMemory/BoyAtDesk")]
+show_on_enter = [NodePath("../../Main/Memories/DrawingMemory/DrawingOnWall")]
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/TapedBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.75, 1.4, -2.6)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/TapedBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.4, -4.3)
+
+[node name="Islands" type="Node3D" parent="Beats/TapedBeat"]
+
+[node name="Drawing" type="Marker3D" parent="Beats/TapedBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.55, -4.36)
+script = ExtResource("7_island")
+radius = 0.75
+blend = 0.0
+
+[node name="Room" type="Marker3D" parent="Beats/TapedBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.2, -3.6)
+script = ExtResource("7_island")
+radius = 1.6
+blend = 0.9
+hidden_at_start = true
+bloom_time = 2.5
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/TapedBeat" node_paths=PackedStringArray("islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.6, 1.5, -4.3)
+script = ExtResource("8_eye")
+islands_to_bloom = [NodePath("../Islands/Room")]
+sound = "paper_pickup"
+caption = "On the back, in Mum's writing: \"For when he's back. Don't you dare throw these out.\" The second line was underlined twice."
+saturation_after = 0.5
+warm_room_id = "kid"
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/TapedBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.2, 1.9, -3.4)
+light_color = Color(1, 0.85, 0.65, 1)
+light_energy = 1.2
+omni_range = 4.0
+
+[node name="TruthBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["The study door. Same door.", "I closed my eyes. This time I'd stay for the end of it."])
+line_times = Array[float]([1.0, 5.5])
+protect_time = 8.0
+max_wait = 70.0
+saturation = 0.2
+closed_eyes_sound = "argument_muffled"
+closed_eyes_lines = Array[String](["\"He's seventeen—\"", "\"He's old enough to make his own mistakes, and I won't—\"", "\"Keep your voice down—\"", "\"If he wants to go, then go—\"", "\"—and I'll drive him. I'm not having him walk that lane in the snow.\"", "\"Then tell him. About St. Brigid's.\"", "\"Christmas. I want to see his face.\""])
+wait_for_closed_lines = true
+closed_lines_done_caption = "He was half a sentence away."
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/TruthBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.5, -6.2)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/TruthBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.1, -8.8)
+
+[node name="Islands" type="Node3D" parent="Beats/TruthBeat"]
+
+[node name="StudyDoor" type="Marker3D" parent="Beats/TruthBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 1.1, -8.75)
+script = ExtResource("7_island")
+radius = 1.0
+stretch = Vector3(1, 1.5, 0.6)
+blend = 0.0
+
+[node name="Props" type="Node3D" parent="Beats/TruthBeat"]
+
+[node name="LightUnderDoor" type="MeshInstance3D" parent="Beats/TruthBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.066, -8.72)
+mesh = SubResource("DoorGap")
+surface_material_override/0 = SubResource("WarmGlow")
+
+[node name="GapLight" type="OmniLight3D" parent="Beats/TruthBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 0.1, -8.55)
+light_color = Color(1, 0.7, 0.4, 1)
+light_energy = 1.6
+omni_range = 2.2
+
+[node name="LaneNightBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("montage_show")]
+script = ExtResource("6_beat")
+lines = Array[String](["The lane. Where I cut across the field."])
+line_times = Array[float]([1.0])
+protect_time = 3.0
+max_wait = 70.0
+wait_for_hotspot = false
+saturation = 0.12
+heavy_eyes_after = 5.0
+closed_eyes_sound = "step_snow"
+closed_eyes_lines = Array[String](["Headlights behind me. Slowing at the bend.", "Tyres on ice. A long scrape.", "Then the horn. One long note.", "It wasn't a door."])
+closed_eyes_line_sounds = Array[String](["@CarEngine", "@Skid", "@Horn", ""])
+wait_for_closed_lines = true
+montage_lines = Array[String](["Someone in the lane.", "Closer.", "I knew that coat.", "The bend. The ditch. One headlight, still on."])
+montage_show = [NodePath("Props/FigureFar"), NodePath("Props/FigureMid"), NodePath("Props/FigureNear"), NodePath("Props/Wreck")]
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/LaneNightBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 10.8)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/LaneNightBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.3, 1.0, 20)
+
+[node name="Islands" type="Node3D" parent="Beats/LaneNightBeat"]
+
+[node name="Lane" type="Marker3D" parent="Beats/LaneNightBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 15)
+script = ExtResource("7_island")
+radius = 1.8
+stretch = Vector3(1.2, 1.2, 3)
+blend = 0.8
+
+[node name="Ditch" type="Marker3D" parent="Beats/LaneNightBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.2, 0.5, 18.5)
+script = ExtResource("7_island")
+radius = 1.4
+blend = 0.8
+
+[node name="Props" type="Node3D" parent="Beats/LaneNightBeat"]
+
+[node name="FigureFar" parent="Beats/LaneNightBeat/Props" instance=ExtResource("21_figure")]
+visible = false
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0.3, 0.06, 18)
+frozen_at = 0.3
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/LaneNightBeat/Props/FigureFar" instance=ExtResource("22_adult")]
+
+[node name="FigureMid" parent="Beats/LaneNightBeat/Props" instance=ExtResource("21_figure")]
+visible = false
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0.15, 0.06, 15)
+frozen_at = 0.3
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/LaneNightBeat/Props/FigureMid" instance=ExtResource("22_adult")]
+
+[node name="FigureNear" parent="Beats/LaneNightBeat/Props" instance=ExtResource("21_figure")]
+visible = false
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0.05, 0.06, 12.6)
+frozen_at = 0.3
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/LaneNightBeat/Props/FigureNear" instance=ExtResource("22_adult")]
+
+[node name="Wreck" type="Node3D" parent="Beats/LaneNightBeat/Props"]
+visible = false
+
+[node name="Headlight" type="SpotLight3D" parent="Beats/LaneNightBeat/Props/Wreck"]
+transform = Transform3D(0.5, 0, -0.86, 0, 1, 0, 0.86, 0, 0.5, -2.2, 0.4, 18.6)
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 12.0
+spot_range = 9.0
+spot_angle = 24.0
+
+[node name="Lens" type="MeshInstance3D" parent="Beats/LaneNightBeat/Props/Wreck"]
+transform = Transform3D(0.5, 0, -0.86, 0, 1, 0, 0.86, 0, 0.5, -2.2, 0.4, 18.6)
+mesh = SubResource("LensDisc")
+surface_material_override/0 = SubResource("WarmGlow")
+
+[node name="PhotoBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["One photo on her dresser, face down.", "Something tucked into the back of the frame."])
+line_times = Array[float]([1.5, 6.0])
+protect_time = 5.0
+saturation = 0.3
+closed_eyes_sound = "paper_pickup"
+closed_eyes_lines = Array[String](["\"Dear Mum.\"", "\"I'm fine. I've got a room. A job. I still draw, sometimes.\"", "\"Tell Dad I—\"", "I wrote it every winter. I never once sent it."])
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/PhotoBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.0, 1.5, -7.5)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/PhotoBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 1.0, -8.0)
+
+[node name="Islands" type="Node3D" parent="Beats/PhotoBeat"]
+
+[node name="Photo" type="Marker3D" parent="Beats/PhotoBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 1.05, -8.0)
+script = ExtResource("7_island")
+radius = 0.7
+blend = 0.0
+
+[node name="ParentRoom" type="Marker3D" parent="Beats/PhotoBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.5, 1.3, -7.8)
+script = ExtResource("7_island")
+radius = 1.9
+stretch = Vector3(1.4, 1, 1.2)
+blend = 0.9
+hidden_at_start = true
+bloom_time = 3.0
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/PhotoBeat" node_paths=PackedStringArray("call_target", "show_nodes", "islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 1.2, -8.1)
+script = ExtResource("8_eye")
+call_target = NodePath("../../../Main/Memories/PhotoMemory/PhotoFrame")
+call_method = "flip"
+show_nodes = [NodePath("../Props/Clipping")]
+islands_to_bloom = [NodePath("../Islands/ParentRoom")]
+voice = "v_letter"
+caption = "In her writing, across the top: \"I kept the fire going, in case you came home.\""
+saturation_after = 0.3
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/PhotoBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 1.8, -7.7)
+light_color = Color(1, 0.78, 0.55, 1)
+light_energy = 1.3
+omni_range = 3.5
+
+[node name="Props" type="Node3D" parent="Beats/PhotoBeat"]
+
+[node name="Clipping" type="MeshInstance3D" parent="Beats/PhotoBeat/Props"]
+visible = false
+transform = Transform3D(0.97, 0.24, 0, 0, 0, 1, 0.24, -0.97, 0, -4.1, 1.153, -7.55)
+mesh = SubResource("ClippingQuad")
+surface_material_override/0 = SubResource("Newsprint")
+
+[node name="ClippingText" type="Label3D" parent="Beats/PhotoBeat/Props/Clipping"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.002)
+pixel_size = 0.00045
+modulate = Color(0.08, 0.08, 0.08, 1)
+outline_size = 0
+text = "THE COURIER   Saturday 15 December
+
+LOCAL MAN DIES AT FERROW BEND
+
+The car of Tom Hale, 48, was found
+in the ditch at Ferrow Bend on Friday
+night. Mr Hale had gone out in the
+snow to look for his son, 17, who
+left home earlier that evening.
+The boy has not been found."
+font = SubResource("PrintFont")
+font_size = 40
+horizontal_alignment = 0
+
+[node name="FireplaceBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["The fire was out. Nobody had kept it in.", "Her pill box on the mantel. Thursday, still full. Friday. Saturday.", "The light from the lane came in and settled by the grate. As if it had been coming here all along."])
+line_times = Array[float]([1.5, 6.5, 12.5])
+protect_time = 6.0
+max_wait = 40.0
+saturation = 0.3
+closed_eyes_sound = "floor_creak"
+closed_eyes_caption = "Nothing on the porch. Nothing in the lane. I listened anyway."
+music = "none"
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/FireplaceBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.7, 1.35, -5.3)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/FireplaceBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.65, -5.75)
+
+[node name="EmberPoint" type="Marker3D" parent="Beats/FireplaceBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 0.6, -5.3)
+
+[node name="Islands" type="Node3D" parent="Beats/FireplaceBeat"]
+
+[node name="Hearth" type="Marker3D" parent="Beats/FireplaceBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.6, 0.75, -5.75)
+script = ExtResource("7_island")
+radius = 1.0
+stretch = Vector3(0.7, 1, 1.4)
+blend = 0.0
+
+[node name="Ember" type="Marker3D" parent="Beats/FireplaceBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 0.6, -5.3)
+script = ExtResource("7_island")
+radius = 0.6
+blend = 0.6
+
+[node name="WholeHouse" type="Marker3D" parent="Beats/FireplaceBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.3, -5.5)
+script = ExtResource("7_island")
+radius = 4.0
+blend = 1.5
+hidden_at_start = true
+bloom_time = 5.0
+
+[node name="EyeHotspot" type="Marker3D" parent="Beats/FireplaceBeat" node_paths=PackedStringArray("call_target", "islands_to_bloom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0.6, -5.75)
+script = ExtResource("8_eye")
+call_target = NodePath("../../../Main/Memories/FireplaceMemory/Fireplace")
+call_method = "ignite"
+islands_to_bloom = [NodePath("../Islands/WholeHouse")]
+caption = "I gave it my letters. All twelve. The light from the bend went in after them, and didn't come out."
+saturation_after = 1.0
+warm_all_rooms = true
+music = "theme_full"
+clear_void = true
+ember_goes_here = true
+appear_after = 3.0
+
+[node name="MemoryLight" type="OmniLight3D" parent="Beats/FireplaceBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.6, 1.4, -5.6)
+light_color = Color(1, 0.75, 0.5, 1)
+light_energy = 0.6
+omni_range = 4.0
+
+[node name="HeadlightsBeat" type="Node3D" parent="Beats"]
+script = ExtResource("6_beat")
+lines = Array[String](["Headlights in the lane.", "Slowing at the bend.", "...Past it.", "Footsteps on the porch. Slow. Careful of the ice.", "\"...Hello? Is someone—\"", "\"...Oh.\"", "\"Oh, love. Look at you. You're—\"", "\"—safe.\""])
+line_times = Array[float]([2.0, 5.5, 8.5, 11.0, 15.0, 19.0, 22.5, 28.0])
+protect_time = 0.0
+wait_for_hotspot = false
+saturation = 1.0
+heavy_eyes_after = 12.0
+final_beat = true
+auto_end_after = 32.0
+ending_lines = Array[String](["I'm home, Mum.", "Dad's coat is still on the hook. We'll take it down together. Not tonight."])
+ending_lines_if_blinked = Array[String](["I blinked.", "I never heard the end of it.", "But this time, I didn't leave."])
+
+[node name="CameraPoint" type="Marker3D" parent="Beats/HeadlightsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.55, -2.7)
+
+[node name="LookTarget" type="Marker3D" parent="Beats/HeadlightsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
+
+[node name="Islands" type="Node3D" parent="Beats/HeadlightsBeat"]
+
+[node name="DoorIsland" type="Marker3D" parent="Beats/HeadlightsBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0.2)
+script = ExtResource("7_island")
+radius = 1.4
+stretch = Vector3(1, 1.4, 1)
+blend = 0.5
+
+[node name="CloseDoorCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 0.0
+target = NodePath("../../../Main/HouseLevel/House/Doors/FrontDoor")
+method = "swing"
+args = [false]
+
+[node name="EngineCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("synth")]
+script = ExtResource("14_cue")
+delay = 1.5
+synth = NodePath("../../../CarEngine")
+
+[node name="HeadlightsCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 2.0
+target = NodePath("../Headlights")
+method = "sweep"
+
+[node name="StepCue1" type="Node" parent="Beats/HeadlightsBeat"]
+script = ExtResource("14_cue")
+delay = 10.0
+sound = "step_snow"
+volume_db = -4.0
+
+[node name="StepCue2" type="Node" parent="Beats/HeadlightsBeat"]
+script = ExtResource("14_cue")
+delay = 11.6
+sound = "step_snow"
+volume_db = -3.0
+
+[node name="StepCue3" type="Node" parent="Beats/HeadlightsBeat"]
+script = ExtResource("14_cue")
+delay = 13.2
+sound = "step_wood"
+volume_db = -2.0
+
+[node name="OpenDoorCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 14.5
+target = NodePath("../../../Main/HouseLevel/House/Doors/FrontDoor")
+method = "swing"
+args = [true]
+
+[node name="ShowMumCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 14.7
+target = NodePath("../Props/MumAtDoor")
+method = "show"
+
+[node name="DoorwayLightCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 14.5
+target = NodePath("../DoorwayLight")
+method = "set_param"
+args = [0, 1.6]
+
+[node name="FaceClearsCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
+script = ExtResource("14_cue")
+delay = 27.5
+target = NodePath("../Props/MumAtDoor")
+method = "wake"
+
+[node name="Headlights" type="SpotLight3D" parent="Beats/HeadlightsBeat"]
+transform = Transform3D(1, 0, 0, 0, 0.98, 0.2, 0, -0.2, 0.98, 4, 1.2, 8)
+light_color = Color(1, 0.95, 0.85, 1)
+spot_range = 18.0
+spot_angle = 22.0
+script = ExtResource("15_sweep")
+travel = Vector3(-8, 0, 0)
+
+[node name="DoorwayLight" type="OmniLight3D" parent="Beats/HeadlightsBeat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0.8)
+light_color = Color(1, 0.85, 0.7, 1)
+light_energy = 0.0
+omni_range = 4.0
+
+[node name="Props" type="Node3D" parent="Beats/HeadlightsBeat"]
+
+[node name="MumAtDoor" parent="Beats/HeadlightsBeat/Props" instance=ExtResource("21_figure")]
+visible = false
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0.2, 0.6)
+frozen_at = 0.5
+vanish_after = 600.0
+
+[node name="CharacterModel" parent="Beats/HeadlightsBeat/Props/MumAtDoor" instance=ExtResource("22_adult")]
