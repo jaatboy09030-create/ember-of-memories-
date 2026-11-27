@@ -4,6 +4,7 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Ink edge: keep the chaotic world-space one.** A cleaner, smoother splat edge (d3d7bee) was tried and reverted: the user found it smooth and bad. Pulling the camera back was rejected too. Don't smooth the void edge.
 - **Blink to begin:** demo waits on black ("Blink to begin.") for one blink before the intro starts (`blink_demo.gd` `start_prompt`).
 - **Blink demo pacing:** voices 1.12x at same pitch, line timings x0.85; blink offer (metronome) only once the last line is nearly said; blinking over a line leaves "words—" on screen; blinking before a line plays a snatch of it.
 - **"Hold your eyes shut" cue:** closing-eye glyph + "hold" (first 3 times) + faint leak of the hidden sound, whenever a beat hides something behind closed eyes.
