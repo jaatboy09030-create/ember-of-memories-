@@ -66,7 +66,8 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **OneDrive**: repo is inside OneDrive; sync can lock files or create conflicted copies during heavy imports.
   If Godot reports a file locked, pause OneDrive sync. Never commit `* (1).tscn`-style conflict copies.
 - **`.godot/` is gitignored** — first open re-imports ~4k files (slow). `.import` / `.uid` files ARE tracked; commit them with assets.
-- **Godot not on PATH** — use `C:\Program Files\Godot\Godot.exe`.
+- **Godot not on PATH** — use `C:\Program Files\Godot\Godot.exe`. On the TLSB machine the file is
+  `C:\Program Files\Godot\Godot_v4.7.2-stable_win64.exe` (no `Godot.exe`); check with `Get-ChildItem "C:\Program Files\Godot"`.
 - **Unused content** (safe to ignore, ask before deleting): `assets/characters/*.glb`, Medieval Village MegaKit,
   `shaders/memory_surface.gdshader`, `shaders/face_blur.gdshader`.
 
