@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/objects/study_door.gd" id="1_door"]
+[ext_resource type="Script" path="res://scripts/objects/panel_door_model.gd" id="2_model"]
 
 [sub_resource type="BoxShape3D" id="InteractBox"]
 size = Vector3(1.2, 2.2, 0.6)
@@ -39,27 +40,23 @@ prompt_text = "hold the door"
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0.15)
 shape = SubResource("InteractBox")
 
-[node name="DoorLeaf" type="MeshInstance3D" parent="."]
+[node name="DoorLeaf" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
-mesh = SubResource("LeafMesh")
-surface_material_override/0 = SubResource("LeafMaterial")
+
+[node name="LeafModel" type="Node3D" parent="DoorLeaf"]
+script = ExtResource("2_model")
+leaf_size = Vector3(1, 2.1, 0.06)
+wood_tint = Color(0.72, 0.52, 0.36, 1)
 
 [node name="StudyDoorFrame" type="Node3D" parent="."]
 
-[node name="FrameLeft" type="MeshInstance3D" parent="StudyDoorFrame"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.58, 1.12, -0.02)
-mesh = SubResource("FrameSideMesh")
-surface_material_override/0 = SubResource("FrameMaterial")
-
-[node name="FrameRight" type="MeshInstance3D" parent="StudyDoorFrame"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.58, 1.12, -0.02)
-mesh = SubResource("FrameSideMesh")
-surface_material_override/0 = SubResource("FrameMaterial")
-
-[node name="FrameHeader" type="MeshInstance3D" parent="StudyDoorFrame"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, -0.02)
-mesh = SubResource("FrameHeaderMesh")
-surface_material_override/0 = SubResource("FrameMaterial")
+[node name="FrameModel" type="Node3D" parent="StudyDoorFrame"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+script = ExtResource("2_model")
+leaf_size = Vector3(1, 2.1, 0.06)
+with_leaf = false
+with_frame = true
+wall_depth = 0.12
 
 [node name="LightLeakUnderDoor" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0.05)

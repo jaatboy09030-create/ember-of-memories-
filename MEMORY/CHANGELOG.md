@@ -3,6 +3,12 @@
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
 
+## 2026-11-27 (blink feel pass)
+- **Blink demo pacing:** voices 1.12x at same pitch, line timings x0.85; blink offer (metronome) only once the last line is nearly said; blinking over a line leaves "words—" on screen; blinking before a line plays a snatch of it.
+- **"Hold your eyes shut" cue:** closing-eye glyph + "hold" (first 3 times) + faint leak of the hidden sound, whenever a beat hides something behind closed eyes.
+- **Doors:** new `PanelDoorModel` six-panel door + frame (Poly Haven fine_grained_wood) on all interior/front doors and the study door; old box frame hidden.
+- **Snow:** `SnowTrack` decal footprints on porch (half filled, with a snow patch), road and lane; Dad's coat on the hook visible when the front door opens.
+
 ## 2026-11-27 (VFX + sound pass)
 - **Blink demo voiced:** 119 lines with a 3-voice cast (son / Mum / new "Dad - Unsent"), lines found by text hash, blink cuts the voice, line timing waits for speech; better eyes-closed sounds. Blink autoplay runs to the ending; storytest PASS. See 12-vfx-and-audio.md.
 - **XMavrik + AI (Claude, idiot-vfx skill)** — See `12-vfx-and-audio.md`.

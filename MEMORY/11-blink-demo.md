@@ -70,6 +70,28 @@ Seated figures may touch their chair. Run it after moving any figure or prop.
   then fades. Blinking just before the next line plays a 0.45 s snatch of it + its first two words with
   a dash, so the player knows something was left unsaid. `Sound.voice_progress()` gives 0..1 of the line.
 
+## "Keep your eyes shut" cue
+- `BlinkUI.listen_on`: a small eye at the bottom slowly shuts and STAYS shut while a ring fills
+  (loops), with the word "hold" under it for the first 3 beats that use it (`listen_words`).
+- `blink_demo._update_listen_hint()` turns it on when the beat has something behind closed eyes
+  (`closed_eyes_sound` / `_caption` / `_lines`) that hasn't been heard yet, once nobody is talking.
+  The first time it shows in a beat, a faint leak of the hidden sound (or the first hidden line's
+  voice) plays at -26 dB - the murmur you'd have to close your eyes to hear properly.
+
+## Doors, snow, footprints
+- Doors: `scripts/objects/panel_door_model.gd` (`PanelDoorModel`, @tool) builds a six-panel door
+  (stiles, rails, raised fields, beads, lever handles, hinges) and optionally its frame (jamb lining,
+  stop, architrave, plinth blocks) from meshes, textured with Poly Haven `fine_grained_wood`.
+  Used by `interior_door.tscn` (LeafModel + FrameModel) and `study_door.tscn`. The old box
+  FrontDoorFrame in the house is hidden.
+- `scripts/objects/snow_track.gd` (`SnowTrack`, @tool): footprints as Decals with generated
+  textures, walking along local -Z; `fill` = half-snowed-over, `snow_patch` lays snow first (porch).
+  Used: PorchBeat/StepPrints ("one set, going out"), RoadBeat/MyPrints, LaneBeat/OneSetOut.
+  Keep prints where the camera focuses: depth of field blurs the near ground and the world is
+  desaturated, so faint prints vanish.
+- PorchBeat/Props/DadsCoat: coat rack + a hanging coat (meshes) with grey snow on the shoulders,
+  lit by CoatLight, so the hotspot line "On the hook inside, Dad's coat" shows when the door opens.
+
 ## Voice-over
 Every caption is voiced (narrator / Mum / Dad), found by a hash of its text: see `12-vfx-and-audio.md`. Edit a line → re-run `tools/blink_voice_over.py` or it plays silent.
 

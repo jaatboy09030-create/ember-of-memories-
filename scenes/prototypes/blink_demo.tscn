@@ -23,6 +23,8 @@
 [ext_resource type="Texture2D" path="res://assets/textures/kids_drawing/kids_drawing.png" id="25_drawing"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/tea_set_01/tea_set_01.gltf" id="26_teaset"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/carrot_cake/carrot_cake.gltf" id="27_cake"]
+[ext_resource type="Script" path="res://scripts/objects/snow_track.gd" id="30_snow"]
+[ext_resource type="PackedScene" path="res://assets/sketchfab/coat_rack_scarf.glb" id="31_rack"]
 
 [sub_resource type="CameraAttributesPractical" id="MemoryFocus"]
 dof_blur_far_enabled = true
@@ -107,6 +109,40 @@ roughness = 1.0
 
 [sub_resource type="SystemFont" id="HandFont"]
 font_names = PackedStringArray("Ink Free", "Segoe Script", "Bradley Hand ITC", "cursive")
+
+[sub_resource type="CylinderMesh" id="CoatBody"]
+top_radius = 0.12
+bottom_radius = 0.2
+height = 0.95
+radial_segments = 24
+
+[sub_resource type="SphereMesh" id="CoatShoulder"]
+radius = 0.16
+height = 0.2
+radial_segments = 24
+rings = 12
+
+[sub_resource type="CylinderMesh" id="CoatSleeve"]
+top_radius = 0.055
+bottom_radius = 0.065
+height = 0.7
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="CoatWool"]
+albedo_color = Color(0.17, 0.17, 0.19, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="OldSnow"]
+albedo_color = Color(0.72, 0.72, 0.7, 1)
+roughness = 1.0
+
+[sub_resource type="QuadMesh" id="NightQuad"]
+size = Vector2(5, 3.2)
+
+[sub_resource type="StandardMaterial3D" id="NightMat"]
+shading_mode = 0
+albedo_color = Color(0.05, 0.06, 0.1, 1)
+cull_mode = 2
 
 [sub_resource type="BoxMesh" id="DoorGap"]
 size = Vector3(0.8, 0.01, 0.04)
@@ -330,6 +366,18 @@ light_color = Color(1, 0.9, 0.7, 1)
 light_energy = 1.8
 omni_range = 4.0
 
+[node name="Props" type="Node3D" parent="Beats/RoadBeat"]
+
+[node name="MyPrints" type="Node3D" parent="Beats/RoadBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 0, 18.3)
+script = ExtResource("30_snow")
+length = 7.2
+use_decals = false
+print_size = Vector2(0.2, 0.42)
+fill = 0.05
+shade = 0.35
+rng_seed = 3
+
 [node name="GateBeat" type="Node3D" parent="Beats" node_paths=PackedStringArray("first_blink_hide")]
 script = ExtResource("6_beat")
 lines = Array[String](["The porch light was on.", "Someone was standing in the front window. Watching the lane."])
@@ -469,6 +517,55 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 2.3, 0.7)
 light_color = Color(1, 0.76, 0.5, 1)
 light_energy = 1.6
 omni_range = 4.0
+
+[node name="StepPrints" type="Node3D" parent="Beats/PorchBeat/Props"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0.12, 0.2, 0.42)
+script = ExtResource("30_snow")
+length = 2.2
+fill = 0.55
+snow_patch = 1.1
+depth = 0.8
+
+[node name="CoatLight" type="OmniLight3D" parent="Beats/PorchBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.9, -0.3)
+light_color = Color(1, 0.8, 0.6, 1)
+light_energy = 0.9
+omni_range = 1.6
+
+[node name="DadsCoat" type="Node3D" parent="Beats/PorchBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.3, 0.06, -0.75)
+
+[node name="Rack" parent="Beats/PorchBeat/Props/DadsCoat" instance=ExtResource("31_rack")]
+
+[node name="Coat" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.55, 0, 1.1, 0.16)
+mesh = SubResource("CoatBody")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="Shoulders" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(1.55, 0, 0, 0, 1, 0, 0, 0, 0.7, 0, 1.56, 0.16)
+mesh = SubResource("CoatShoulder")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="SleeveL" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(0.996, 0.087, 0, -0.087, 0.996, 0, 0, 0, 1, -0.2, 1.2, 0.16)
+mesh = SubResource("CoatSleeve")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="SleeveR" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(0.996, -0.087, 0, 0.087, 0.996, 0, 0, 0, 1, 0.2, 1.2, 0.16)
+mesh = SubResource("CoatSleeve")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="SnowL" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(0.9, 0, 0, 0, 0.12, 0, 0, 0, 0.5, -0.12, 1.66, 0.17)
+mesh = SubResource("CoatShoulder")
+surface_material_override/0 = SubResource("OldSnow")
+
+[node name="SnowR" type="MeshInstance3D" parent="Beats/PorchBeat/Props/DadsCoat"]
+transform = Transform3D(0.8, 0, 0, 0, 0.1, 0, 0, 0, 0.45, 0.14, 1.65, 0.17)
+mesh = SubResource("CoatShoulder")
+surface_material_override/0 = SubResource("OldSnow")
 
 [node name="LivingBeat" type="Node3D" parent="Beats"]
 script = ExtResource("6_beat")
@@ -1000,6 +1097,16 @@ stretch = Vector3(1.2, 1.6, 1.2)
 blend = 0.8
 
 [node name="Props" type="Node3D" parent="Beats/LaneBeat"]
+
+[node name="OneSetOut" type="Node3D" parent="Beats/LaneBeat/Props"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -0.15, 0, 12.6)
+script = ExtResource("30_snow")
+length = 7.0
+use_decals = false
+print_size = Vector2(0.2, 0.42)
+fill = 0.15
+shade = 0.35
+rng_seed = 11
 
 [node name="StreetLamp" parent="Beats/LaneBeat/Props" instance=ExtResource("23_streetlamp")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 17)
@@ -1536,6 +1643,13 @@ radius = 1.4
 stretch = Vector3(1, 1.4, 1)
 blend = 0.5
 
+[node name="PorchBehindMum" type="Marker3D" parent="Beats/HeadlightsBeat/Islands"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.4)
+script = ExtResource("7_island")
+radius = 2.2
+stretch = Vector3(1.1, 1.4, 1.6)
+blend = 0.6
+
 [node name="CloseDoorCue" type="Node" parent="Beats/HeadlightsBeat" node_paths=PackedStringArray("target")]
 script = ExtResource("14_cue")
 delay = 0.0
@@ -1613,6 +1727,35 @@ light_energy = 0.0
 omni_range = 4.0
 
 [node name="Props" type="Node3D" parent="Beats/HeadlightsBeat"]
+
+[node name="NightBehindMum" type="MeshInstance3D" parent="Beats/HeadlightsBeat/Props"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 3.6)
+cast_shadow = 0
+mesh = SubResource("NightQuad")
+surface_material_override/0 = SubResource("NightMat")
+
+[node name="DadsCoatOnHook" type="Node3D" parent="Beats/HeadlightsBeat/Props"]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0.95, 0.06, -0.42)
+
+[node name="Coat" type="MeshInstance3D" parent="Beats/HeadlightsBeat/Props/DadsCoatOnHook"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.55, 0, 1.1, 0.2)
+mesh = SubResource("CoatBody")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="Shoulders" type="MeshInstance3D" parent="Beats/HeadlightsBeat/Props/DadsCoatOnHook"]
+transform = Transform3D(1.55, 0, 0, 0, 1, 0, 0, 0, 0.7, 0, 1.56, 0.2)
+mesh = SubResource("CoatShoulder")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="SleeveL" type="MeshInstance3D" parent="Beats/HeadlightsBeat/Props/DadsCoatOnHook"]
+transform = Transform3D(0.996, 0.087, 0, -0.087, 0.996, 0, 0, 0, 1, -0.2, 1.2, 0.2)
+mesh = SubResource("CoatSleeve")
+surface_material_override/0 = SubResource("CoatWool")
+
+[node name="SleeveR" type="MeshInstance3D" parent="Beats/HeadlightsBeat/Props/DadsCoatOnHook"]
+transform = Transform3D(0.996, -0.087, 0, 0.087, 0.996, 0, 0, 0, 1, 0.2, 1.2, 0.2)
+mesh = SubResource("CoatSleeve")
+surface_material_override/0 = SubResource("CoatWool")
 
 [node name="MumAtDoor" parent="Beats/HeadlightsBeat/Props" instance=ExtResource("21_figure")]
 visible = false

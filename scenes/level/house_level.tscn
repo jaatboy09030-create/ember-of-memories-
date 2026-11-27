@@ -2751,6 +2751,7 @@ material_override = ExtResource("40_p3wei")
 mesh = SubResource("BoxMesh_viyuy")
 
 [node name="FrontDoorFrame" type="Node3D" parent="House" unique_id=1641947938]
+visible = false
 
 [node name="FrameLeft" type="MeshInstance3D" parent="House/FrontDoorFrame" unique_id=867186158]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.76, 1.15, 0)

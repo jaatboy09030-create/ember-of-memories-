@@ -58,6 +58,8 @@ var _can_restart := false
 var _line_tween: Tween
 var _said := 0  # how many of the current beat's lines have started
 var _talk_end := 0.0  # beat_time when the current beat's last line ends
+var _listen_leaked := false  # this beat's hidden sound has leaked through once
+var _listen_hints_shown := 0  # beats that showed the "hold" eye so far
 var _colour_tween: Tween
 var _closed_tween: Tween
 var _closed_index := 0
@@ -142,6 +144,8 @@ func _enter_beat(i: int) -> void:
 	_armed_time = 0.0
 	_closed_played = false
 	_closed_index = 0
+	_listen_leaked = false
+	blink_ui.listen_on = false
 	_montage_index = 0
 	_first_blink_done = false
 	for n in b.montage_show:
@@ -176,8 +180,13 @@ func _play_lines(b: MemoryBeat) -> void:
 	var t := 0.0
 	var free_at := 0.0  # when the previous spoken line ends
 	_said = 0
+	# beats with timed cues (door, steps, engine) keep their written timing so lines stay in sync
+	var pace := line_pace
+	for c in b.get_children():
+		if c is BeatCue:
+			pace = 1.0
 	for k in b.lines.size():
-		var at: float = (b.line_times[k] if k < b.line_times.size() else t + 3.5) * line_pace
+		var at: float = (b.line_times[k] if k < b.line_times.size() else t + 3.5) * pace
 		at = maxf(at, free_at)  # never talk over the previous line
 		_line_tween.tween_interval(maxf(0.0, at - t))
 		_line_tween.tween_callback(func():
@@ -210,6 +219,7 @@ func _process(delta: float) -> void:
 		eye_done = false
 	# never offer the blink while someone is still talking (ok in the last ~0.35 s of the last line)
 	var talk_done := beat_time >= _talk_end - 0.35 and Sound.voice_time_left() <= 0.35
+	_update_listen_hint(b, talk_done)
 	if not armed and talk_done and beat_time >= b.protect_time and (eye_done or beat_time >= b.max_wait):
 		armed = true
 		blink_ui.metronome_on = true
@@ -218,6 +228,27 @@ func _process(delta: float) -> void:
 		var heavy := b.heavy_eyes_after if b.heavy_eyes_after >= 0.0 else heavy_eyes_after
 		if _armed_time > heavy:
 			eyelids.set_flutter(0.22 * (0.5 + 0.5 * sin(_armed_time * 1.7)))
+
+
+## Something is waiting behind closed eyes in this beat and hasn't been heard yet: show the
+## "hold" eye, and let a faint leak of it through (the murmur behind the door, steps outside).
+func _update_listen_hint(b: MemoryBeat, talk_done: bool) -> void:
+	var hidden := b.closed_eyes_sound != "" or b.closed_eyes_caption != "" or b.closed_eyes_lines.size() > 0
+	var unheard := not _closed_played or _closed_index < b.closed_eyes_lines.size()
+	var show := hidden and unheard and talk_done and eyelids.closure < 0.5 \
+		and beat_time >= minf(b.protect_time, 4.0)
+	blink_ui.listen_on = show
+	blink_ui.listen_words = _listen_hints_shown < 3  # the word only until you've got it
+	if show and not _listen_leaked:
+		_listen_leaked = true
+		_listen_hints_shown += 1
+		var leak := b.closed_eyes_sound
+		if b.closed_eyes_lines.size() > 0:
+			var v := BlinkCaption.voice_for(b.closed_eyes_lines[0])
+			if v != "":
+				leak = v
+		if leak != "" and not leak.begins_with("@"):
+			Sound.play(leak, -26.0)  # barely there: you'd have to close your eyes to hear it
 
 
 ## The lids just closed fully. Decide what this blink does.
@@ -295,6 +326,7 @@ func _look_closer(h: EyeHotspot) -> void:
 func _cut() -> void:
 	_cutting = true
 	blink_ui.metronome_on = false
+	blink_ui.listen_on = false
 	eyelids.set_flutter(0.0)
 	eyelids.forced_closed = true
 	if _line_tween:

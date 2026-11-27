@@ -31,6 +31,11 @@ var hotspot: EyeHotspot
 var hovering := false
 var hotspot_position := Vector3.ZERO
 var metronome_on := false
+## Something is waiting behind closed eyes: a small eye at the bottom slowly shuts and STAYS shut
+## (a ring fills while it's shut) - "hold your eyes closed". listen_words adds the word "hold".
+var listen_on := false
+var listen_words := true
+var _listen_alpha := 0.0
 
 var _r := 30.0
 var _time := 0.0
@@ -68,6 +73,7 @@ func _process(delta: float) -> void:
 	_eye_alpha = move_toward(_eye_alpha, 1.0 if eye_visible else 0.0, delta * 1.5)
 	_r = lerpf(_r, reticle_radius * (0.55 if hovering else 1.0), 1.0 - exp(-10.0 * delta))
 	_metro_alpha = move_toward(_metro_alpha, 1.0 if metronome_on else 0.0, delta * 2.5)
+	_listen_alpha = move_toward(_listen_alpha, 1.0 if listen_on else 0.0, delta * (1.2 if listen_on else 3.0))
 	if metronome_on:
 		var before := floori(_swing)
 		_swing += delta / metronome_beat
@@ -80,6 +86,61 @@ func _draw() -> void:
 	_draw_eye()
 	_draw_reticle()
 	_draw_metronome()
+	_draw_listen()
+
+
+## The "hold your eyes shut" eye: opens, slowly shuts, stays shut while a ring fills, opens. Loops.
+func _draw_listen() -> void:
+	if _listen_alpha <= 0.01:
+		return
+	var s := get_viewport_rect().size
+	# beside the metronome (left of it), below the caption line
+	var p := Vector2(s.x * 0.5 - (95.0 if _metro_alpha > 0.01 else 0.0), s.y - 95.0)
+	var w := 26.0
+	var cycle := fmod(_time, 3.6)
+	var open := 1.0
+	var hold := 0.0
+	if cycle < 0.8:
+		open = 1.0
+	elif cycle < 1.4:
+		open = 1.0 - smoothstep(0.8, 1.4, cycle)
+	elif cycle < 3.0:
+		open = 0.0
+		hold = (cycle - 1.4) / 1.6
+	else:
+		open = smoothstep(3.0, 3.6, cycle)
+	var c := ink
+	c.a = _listen_alpha * 0.8
+	var upper := PackedVector2Array()
+	var lower := PackedVector2Array()
+	for i in 21:
+		var x := lerpf(-w, w, i / 20.0)
+		var y := w * 0.5 * (1.0 - pow(x / w, 2.0))
+		lower.append(p + Vector2(x, y * 0.35))
+		upper.append(p + Vector2(x, lerpf(y * 0.35, -y, open)))  # the lid comes down onto the lower lid
+	draw_polyline(lower, c, 2.0, true)
+	draw_polyline(upper, c, 2.0, true)
+	if open > 0.35:
+		var pc := c
+		pc.a *= (open - 0.35) / 0.65
+		draw_circle(p + Vector2(0, -w * 0.12), w * 0.16, pc)
+	else:
+		for k in 5:  # lashes, pointing down
+			var x := lerpf(-w * 0.6, w * 0.6, k / 4.0)
+			var base := p + Vector2(x, w * 0.5 * (1.0 - pow(x / w, 2.0)) * 0.35)
+			draw_line(base, base + Vector2(x * 0.12, 7.0), c, 1.5, true)
+	if hold > 0.0:  # time kept shut
+		var rc := c
+		rc.a *= 0.6
+		draw_arc(p, w + 10.0, -PI * 0.5, -PI * 0.5 + TAU * hold, 40, rc, 1.5, true)
+	if listen_words:
+		var f := ThemeDB.fallback_font
+		var t := "hold"
+		var fs := 15
+		var tw := f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		var tc := c
+		tc.a *= 0.7
+		draw_string(f, p + Vector2(-tw * 0.5, w + 30.0), t, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, tc)
 
 
 func _draw_reticle() -> void:

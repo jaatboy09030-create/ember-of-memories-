@@ -547,6 +547,7 @@ func _build_house(house: Node3D) -> void:
 	var frame_m := _col_mat("door_frame_wood", Color(0.32, 0.2, 0.13))
 	_box(frame, "FrameLeft", Vector3(0.12, 2.3, 0.3), Vector3(-0.76, 1.15, 0), frame_m)
 	_box(frame, "FrameRight", Vector3(0.12, 2.3, 0.3), Vector3(0.76, 1.15, 0), frame_m)
+	frame.visible = false  # the door scene's PanelDoorModel builds a proper frame now
 	var windows := _group(house, "Windows")
 	var window_scene: PackedScene = load(WINDOW_SCENE)
 	for w in WINDOWS:
