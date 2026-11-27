@@ -20,9 +20,14 @@ extends Camera3D
 ## How quickly focus racks to a new depth.
 @export var focus_speed := 6.0
 ## Sharp zone either side of the focus point (metres).
-@export var focus_band := 0.45
-## Blur strength out of focus.
-@export var blur_amount := 0.16
+## (wide on purpose: the spot under the reticle is only SLIGHTLY sharper than the rest -
+## a strong rack read as a bug)
+@export var focus_band := 1.1
+## Blur strength out of focus (keep low: a hint, not a spotlight).
+@export var blur_amount := 0.06
+## Depth-of-field that racks to whatever is under the reticle. Off: the radial focus around
+## the reticle (shaders/cursor_focus.gdshader) does the "a little clearer where you look".
+@export var rack_focus := false
 ## Slow breathing drift (metres).
 @export var breathing := 0.008
 
@@ -57,6 +62,10 @@ func _process(delta: float) -> void:
 func _update_focus(delta: float) -> void:
 	if not attrs:
 		return
+	if not rack_focus:  # the depth rack read as a bug (a sharp horizontal strip): BlinkUI's radial focus instead
+		attrs.dof_blur_far_enabled = false
+		attrs.dof_blur_near_enabled = false
+		return
 	var cur := cursor_source.cursor if cursor_source else get_viewport().get_visible_rect().size * 0.5
 	var target := _focus
 	var from := project_ray_origin(cur)
@@ -78,7 +87,7 @@ func _update_focus(delta: float) -> void:
 	attrs.dof_blur_far_enabled = true
 	attrs.dof_blur_near_enabled = true
 	attrs.dof_blur_far_distance = _focus + focus_band
-	attrs.dof_blur_far_transition = maxf(0.8, _focus * 0.45)
+	attrs.dof_blur_far_transition = maxf(2.0, _focus)
 	attrs.dof_blur_near_distance = maxf(0.05, _focus - focus_band)
-	attrs.dof_blur_near_transition = maxf(0.3, _focus * 0.35)
+	attrs.dof_blur_near_transition = maxf(0.6, _focus * 0.5)
 	attrs.dof_blur_amount = blur_amount

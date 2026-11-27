@@ -29,7 +29,7 @@
 [sub_resource type="CameraAttributesPractical" id="MemoryFocus"]
 dof_blur_far_enabled = true
 dof_blur_near_enabled = true
-dof_blur_amount = 0.16
+dof_blur_amount = 0.06
 
 [sub_resource type="QuadMesh" id="ScreenQuad"]
 size = Vector2(2, 2)

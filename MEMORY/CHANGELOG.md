@@ -4,6 +4,8 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Reset to cc3d676** (user asked): later face/talk-gate/ghost-clip/ink-edge experiments reverted (f551ca1).
+- **Cursor focus is radial and slight:** the depth-of-field rack to the reticle made a sharp horizontal depth band that read as a bug. `MemoryCamera.rack_focus = false` (DOF off); new `shaders/cursor_focus.gdshader` (made by `BlinkUI`) keeps a soft circle around the reticle sharp and blurs the rest only slightly (`max_blur` 1.1 mip). Keep it SLIGHT.
 - **Blink to begin:** demo waits on black ("Blink to begin.") for one blink before the intro starts (`blink_demo.gd` `start_prompt`).
 - **Blink demo pacing:** voices 1.12x at same pitch, line timings x0.85; blink offer (metronome) only once the last line is nearly said; blinking over a line leaves "words—" on screen; blinking before a line plays a snatch of it.
 - **"Hold your eyes shut" cue:** closing-eye glyph + "hold" (first 3 times) + faint leak of the hidden sound, whenever a beat hides something behind closed eyes.

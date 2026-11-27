@@ -37,6 +37,8 @@ var listen_on := false
 var listen_words := true
 var _listen_alpha := 0.0
 
+var _focus: ColorRect
+var _focus_pos := Vector2.ZERO
 var _r := 30.0
 var _time := 0.0
 var _swing := 0.0
@@ -47,6 +49,16 @@ var _eye_alpha := 0.0
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	cursor = get_viewport_rect().size * 0.5
+	# where you look is a little clearer: a soft radial focus around the reticle, drawn under this UI
+	_focus = ColorRect.new()
+	_focus.name = "CursorFocus"
+	_focus.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_focus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var m := ShaderMaterial.new()
+	m.shader = preload("res://shaders/cursor_focus.gdshader")
+	_focus.material = m
+	get_parent().add_child.call_deferred(_focus)
+	get_parent().move_child.call_deferred(_focus, 0)
 
 
 func _input(event: InputEvent) -> void:
@@ -73,6 +85,9 @@ func _process(delta: float) -> void:
 	_eye_alpha = move_toward(_eye_alpha, 1.0 if eye_visible else 0.0, delta * 1.5)
 	_r = lerpf(_r, reticle_radius * (0.55 if hovering else 1.0), 1.0 - exp(-10.0 * delta))
 	_metro_alpha = move_toward(_metro_alpha, 1.0 if metronome_on else 0.0, delta * 2.5)
+	if _focus and _focus.material:
+		_focus_pos = _focus_pos.lerp(cursor, 1.0 - exp(-4.0 * delta))  # eases after the reticle
+		(_focus.material as ShaderMaterial).set_shader_parameter("cursor", _focus_pos / get_viewport_rect().size)
 	_listen_alpha = move_toward(_listen_alpha, 1.0 if listen_on else 0.0, delta * (1.2 if listen_on else 3.0))
 	if metronome_on:
 		var before := floori(_swing)
