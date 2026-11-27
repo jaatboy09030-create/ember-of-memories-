@@ -102,7 +102,27 @@ func _ready() -> void:
 	elif _shots_dir != "":
 		_autoplay()
 	else:
-		_intro()
+		var start_at := ""
+		for a in OS.get_cmdline_user_args():
+			if a.begins_with("--blinkstart="):  # play from this beat (by node name), no intro
+				start_at = a.trim_prefix("--blinkstart=")
+		if start_at != "":
+			_start_at(start_at)
+		else:
+			_intro()
+
+
+## Debug: skip the intro and open the eyes straight onto one beat (`-- --blinkstart=WintersBeat`).
+func _start_at(beat_name: String) -> void:
+	var first := 0
+	for k in beats.size():
+		if beats[k].name == beat_name:
+			first = k
+	eyelids.forced_closed = true
+	_enter_beat(first)
+	await _wait(0.6)
+	eyelids.enabled = true
+	eyelids.open_slowly(first_open_time)
 
 
 ## The main scene is used only as the place: no story, no player, no HUD, no title.
