@@ -628,7 +628,10 @@ func _build_rooms(rooms_root: Node3D) -> void:
 			_box(beams, "Beam", Vector3(0.16, 0.2, dpt - 0.25), Vector3(bx, WALL_H - 0.12, cz), beam_m)
 			bx += 1.5
 		_line_room(_group(room, "WallLining"), r)
-		var fill := _light(room, "RoomFillLight", Vector3(cx, 1.5, cz), Color(0.6, 0.65, 0.8), 0.66, 6.0)
+		# Kitchen: the dining table sits right under the room centre, so its fill light goes up
+		# near the ceiling or the cups on the table blow out to white.
+		var fill_y := 2.5 if r[0] == "Kitchen" else 1.5
+		var fill := _light(room, "RoomFillLight", Vector3(cx, fill_y, cz), Color(0.6, 0.65, 0.8), 0.66, 6.0)
 		fill.omni_attenuation = 1.4
 		fill.light_size = 0.4
 		fill.light_specular = 0.2
@@ -703,7 +706,7 @@ func _line_room(lining: Node3D, r: Array) -> void:
 # ================================================================ props
 
 func _place_props(rooms_root: Node3D) -> void:
-	# [id, position, rotation (deg), collide]. Real-world scale. 0 deg = front faces +Z.
+	# [id, position, rotation (deg), collide, optional scale]. Real-world scale. 0 deg = front faces +Z.
 	var L := [
 		# ---------------- LIVING — focal: grandma's armchair facing the TV
 		["painted_wooden_sofa", Vector3(1.5, 0.06, -4.05), 0, true],
@@ -760,12 +763,12 @@ func _place_props(rooms_root: Node3D) -> void:
 		["wine_bottles_01", Vector3(5.7, 0.95, -4.2), 0, false],
 		["metal_jug", Vector3(4.1, 0.95, -4.2), 0, false],
 		["pot_enamel_01", Vector3(3.45, 0.96, -4.1), 0, false],
-		["WoodenTable_02", Vector3(4.5, 0.06, -1.9), 90, true],
-		["painted_wooden_chair_02", Vector3(3.8, 0.06, -1.9), 90, true],
-		["painted_wooden_chair_02", Vector3(5.2, 0.06, -1.9), -90, true],
-		["tea_set_01", Vector3(4.5, 0.8, -2.1), 0, false],
-		["carrot_cake", Vector3(4.5, 0.8, -1.6), 0, false],
-		["food_pears_asian_01", Vector3(4.4, 0.8, -2.4), 0, false],
+		["round_wooden_table_01", Vector3(4.7, 0.06, -1.9), 0, true, 0.76],  # dining table, top at 0.82
+		["painted_wooden_chair_02", Vector3(3.95, 0.06, -1.9), 90, true],
+		["painted_wooden_chair_02", Vector3(5.45, 0.06, -1.9), -90, true],
+		["tea_set_01", Vector3(4.8, 0.823, -2.05), 0, false],
+		["carrot_cake", Vector3(4.6, 0.823, -1.65), 0, false],
+		["food_pears_asian_01", Vector3(4.95, 0.823, -1.7), 0, false],
 		["painted_wooden_cabinet_02", Vector3(5.65, 0.06, -2.85), -90, true],
 		["wooden_bucket_01", Vector3(5.65, 0.06, -0.4), 0, false],
 		["wooden_crate_02", Vector3(3.45, 0.06, -0.4), 20, true],
@@ -821,6 +824,8 @@ func _place_props(rooms_root: Node3D) -> void:
 		var props_node := rooms_root.get_node("%s/Props" % room[4])
 		var p := _prop(props_node, it[0], it[1], it[2], it[3])
 		if p:
+			if it.size() > 4:  # optional 5th field: uniform scale
+				p.scale = Vector3.ONE * float(it[4])
 			_props.append(p)
 
 
