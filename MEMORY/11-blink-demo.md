@@ -13,6 +13,8 @@ Controls: input action **`blink`** (Space / left mouse / pad A). Tap = blink. Ho
 Mouse or right stick (`look_*`) moves the reticle; the view leans toward it.
 
 ## How it works
+- **Start:** black screen with `start_prompt` ("Blink to begin.", export on the demo root); nothing
+  runs (no intro cards, no first memory) until one press of `blink`. "" = start at once. Autoplay skips it.
 - `scenes/prototypes/blink_demo.tscn` instances `main.tscn` with **`GameDirector.autostart = false`**
   (no title, no story, player disabled, HUD hidden). The house, figures, doors, fire are reused.
 - **Beats** (`MemoryBeat`, `scripts/prototypes/blink/memory_beat.gd`): one remembered moment, one

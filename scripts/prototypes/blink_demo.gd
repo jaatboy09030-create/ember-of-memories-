@@ -29,6 +29,8 @@ extends Node3D
 @export var metronome_sound: AudioStreamPlayer
 @export var lid_sound: AudioStreamPlayer
 ## Cards shown one after another on black before the first memory.
+## Shown on black at the very start; the demo waits for one blink ("" = start at once).
+@export var start_prompt := "Blink to begin."
 @export_multiline var intro_cards: Array[String] = []
 ## Seconds each intro card stays.
 @export var intro_card_time := 4.0
@@ -114,6 +116,15 @@ func _quiet_the_game() -> void:
 func _intro() -> void:
 	eyelids.forced_closed = true
 	await _wait(1.0)
+	# nothing starts until you blink once
+	if start_prompt != "":
+		title_card.say(start_prompt, 0.0)
+		await _wait(0.6)
+		while not Input.is_action_just_pressed("blink"):
+			await get_tree().process_frame
+		lid_sound.play()
+		title_card.cut()
+		await _wait(1.2)
 	for card in intro_cards:
 		title_card.say(card, intro_card_time - 1.5)
 		await _wait(intro_card_time)

@@ -4,6 +4,7 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Blink to begin:** demo waits on black ("Blink to begin.") for one blink before the intro starts (`blink_demo.gd` `start_prompt`).
 - **Blink demo pacing:** voices 1.12x at same pitch, line timings x0.85; blink offer (metronome) only once the last line is nearly said; blinking over a line leaves "words—" on screen; blinking before a line plays a snatch of it.
 - **"Hold your eyes shut" cue:** closing-eye glyph + "hold" (first 3 times) + faint leak of the hidden sound, whenever a beat hides something behind closed eyes.
 - **Doors:** new `PanelDoorModel` six-panel door + frame (Poly Haven fine_grained_wood) on all interior/front doors and the study door; old box frame hidden.
