@@ -23,6 +23,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.3, 0.06, -7)
 [node name="AlarmClock" parent="PackableItems" instance=ExtResource("3_item")]
 transform = Transform3D(0.866025, 0, 0.5, 0, 1, 0, -0.5, 0, 0.866025, 4.55, 0.76, -8.63)
 memory_line = "The clock she set for my first day of school."
+memory_voice = "v_clock"
 
 [node name="ItemModel" parent="PackableItems/AlarmClock" instance=ExtResource("4_clock")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001228, -0.009132)
@@ -30,6 +31,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.001228, -0.009132)
 [node name="SchoolNotes" parent="PackableItems" instance=ExtResource("3_item")]
 transform = Transform3D(-0.173648, 0, 0.984808, 0, 1, 0, -0.984808, 0, -0.173648, 2.6, 0.61, -4.99)
 memory_line = "My old school notes. She kept every one."
+memory_voice = "v_notes"
 
 [node name="ItemModel" parent="PackableItems/SchoolNotes" instance=ExtResource("5_notes")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.135203, 0.002095, -0.000365)
@@ -37,6 +39,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.135203, 0.002095, -0.00036
 [node name="Gamepad" parent="PackableItems" instance=ExtResource("3_item")]
 transform = Transform3D(-0.939693, 0, -0.34202, 0, 1, 0, 0.34202, 0, -0.939693, 4.2, 0.06, -5.8)
 memory_line = "She saved for months to buy me this."
+memory_voice = "v_gamepad"
 
 [node name="ItemModel" parent="PackableItems/Gamepad" instance=ExtResource("6_gamepad")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.008479, 0.000592, -0.003176)
@@ -44,6 +47,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.008479, 0.000592, -0.003176
 [node name="Postcards" parent="PackableItems" instance=ExtResource("3_item")]
 transform = Transform3D(0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 1.8, 0.06, -7.9)
 memory_line = "Postcards. All addressed to me. Never sent."
+memory_voice = "v_postcards"
 
 [node name="ItemModel" parent="PackableItems/Postcards" instance=ExtResource("7_postcards")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.255, 0.2725, -0.22)

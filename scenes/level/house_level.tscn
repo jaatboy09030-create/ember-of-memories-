@@ -79,6 +79,8 @@
 [ext_resource type="PackedScene" path="res://assets/polyhaven/WoodenTable_01/WoodenTable_01.gltf" id="81_kvev0"]
 [ext_resource type="PackedScene" path="res://assets/polyhaven/painted_wooden_chair_01/painted_wooden_chair_01.gltf" id="82_dmede"]
 
+[ext_resource type="Script" path="res://scripts/vfx/flicker_light.gd" id="fx_flicker"]
+[ext_resource type="Script" path="res://scripts/vfx/light_motes.gd" id="fx_motes"]
 [sub_resource type="BoxMesh" id="BoxMesh_kum2i"]
 size = Vector3(80, 0.2, 60)
 
@@ -559,6 +561,11 @@ shape = SubResource("BoxShape3D_21y0v")
 
 [node name="PorchLanternLight" type="OmniLight3D" parent="Exterior/Porch" unique_id=1320581441]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.1, 1.85, 0.4)
+script = ExtResource("fx_flicker")
+base_energy = 2.4
+flicker = 0.08
+speed = 0.9
+jitter = 0.01
 light_color = Color(1, 0.6, 0.3, 1)
 light_energy = 2.4
 shadow_enabled = true
@@ -1037,6 +1044,11 @@ omni_range = 6.0
 
 [node name="FenceShadowLight" type="OmniLight3D" parent="Exterior/StreetLamp" unique_id=237961686]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 1.65, 9.72)
+script = ExtResource("fx_flicker")
+base_energy = 9.0
+flicker = 0.06
+speed = 0.8
+jitter = 0.0
 light_color = Color(1, 0.68, 0.36, 1)
 light_energy = 9.0
 light_volumetric_fog_energy = 1.5
@@ -1044,6 +1056,19 @@ light_size = 0.06
 shadow_enabled = true
 omni_range = 6.0
 omni_attenuation = 2.2
+
+[node name="LampMotes" type="Node3D" parent="Exterior/StreetLamp"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.1, 1.3, 10.3)
+script = ExtResource("fx_motes")
+extents = Vector3(0.9, 0.8, 0.9)
+count = 14
+
+[node name="DoorwayMotes" type="Node3D" parent="Exterior/Porch"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0.9)
+script = ExtResource("fx_motes")
+extents = Vector3(0.7, 0.9, 0.8)
+count = 12
+brightness = 0.8
 
 [node name="GardenProps" type="Node3D" parent="Exterior" unique_id=1582316463]
 
@@ -2878,7 +2903,7 @@ mesh = SubResource("BoxMesh_p53sd")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/KidRoom" unique_id=898728017]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 2.18, -2.25)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true
@@ -3107,7 +3132,7 @@ mesh = SubResource("BoxMesh_p53sd")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/LivingRoom" unique_id=258177206]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.18, -2.25)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true
@@ -3267,7 +3292,7 @@ mesh = SubResource("BoxMesh_lws6r")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/Kitchen" unique_id=365469763]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.5, 2.18, -2.25)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true
@@ -3446,7 +3471,7 @@ mesh = SubResource("BoxMesh_p53sd")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/ParentRoom" unique_id=126772578]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 2.18, -6.75)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true
@@ -3648,7 +3673,7 @@ mesh = SubResource("BoxMesh_p53sd")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/Hallway" unique_id=2144973087]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.75, 2.18, -6.75)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true
@@ -3772,7 +3797,7 @@ mesh = SubResource("BoxMesh_lws6r")
 [node name="RoomFillLight" type="OmniLight3D" parent="Rooms/Bedroom" unique_id=293668268]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 2.18, -6.75)
 light_color = Color(0.62, 0.68, 0.86, 1)
-light_energy = 0.9
+light_energy = 0.5
 light_volumetric_fog_energy = 0.0
 light_specular = 0.25
 shadow_enabled = true

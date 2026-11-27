@@ -1,5 +1,7 @@
 [gd_scene format=3]
 
+[ext_resource type="Texture2D" path="res://assets/textures/window_cookie.png" id="cookie"]
+
 [ext_resource type="Material" path="res://materials/window_frame.tres" id="1_frame"]
 [ext_resource type="Material" path="res://materials/window_glass_night.tres" id="2_glass"]
 [ext_resource type="Material" path="res://materials/snow_white.tres" id="3_snow"]
@@ -126,3 +128,16 @@ surface_material_override/0 = ExtResource("4_cloth")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.93, -0.2)
 mesh = SubResource("RodMesh")
 surface_material_override/0 = ExtResource("5_rod")
+
+[node name="Moonlight" type="SpotLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.788, 0.616, 0, -0.616, 0.788, 0, 0.35, -0.22)
+light_color = Color(0.6, 0.68, 0.9, 1)
+light_energy = 4.0
+light_projector = ExtResource("cookie")
+light_size = 0.15
+light_volumetric_fog_energy = 0.4
+shadow_enabled = true
+spot_range = 6.5
+spot_attenuation = 0.9
+spot_angle = 34.0
+spot_angle_attenuation = 1.4

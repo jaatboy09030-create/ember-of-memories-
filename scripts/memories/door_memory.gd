@@ -8,6 +8,7 @@ extends Memory
 
 @export var struggle_prompt := "keep pressing interact to hold it"
 @export var slam_line := "\"...then go!\""
+@export var slam_voice := "v_slam"
 
 @onready var study_door: StudyDoor = $StudyDoor
 @onready var argument_point: Marker3D = $ArgumentSoundPoint
@@ -44,7 +45,7 @@ func _on_slammed() -> void:
 	game.screen_effects.pulse(0.7, 0.012)
 	var flash := game.hud.fade_to(0.6, 0.05)
 	flash.tween_property(game.hud.screen_fade, "color:a", 0.0, 0.6)
-	game.hud.say(slam_line, 2.5)
+	game.hud.say(slam_line, 2.5, slam_voice)
 	game.player.can_move = true
 	finish()
 

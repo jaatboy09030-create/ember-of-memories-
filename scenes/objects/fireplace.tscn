@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/objects/fireplace.gd" id="1_fireplace"]
 [ext_resource type="PackedScene" path="res://assets/sketchfab/fireplace_rustic.glb" id="2_model"]
 
+[ext_resource type="Script" path="res://scripts/vfx/flicker_light.gd" id="fx_flicker"]
+[ext_resource type="Script" path="res://scripts/vfx/fire_vfx.gd" id="fx_fire"]
 [sub_resource type="BoxShape3D" id="InteractBox"]
 size = Vector3(1.4, 1, 0.8)
 
@@ -80,7 +82,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.96, 0)
 shape = SubResource("FireplaceBox")
 
 [node name="HearthFire" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.26, -0.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, -0.3)
 
 [node name="Flames" type="GPUParticles3D" parent="HearthFire"]
 amount = 46
@@ -89,7 +91,15 @@ local_coords = false
 process_material = SubResource("FlameMotion")
 draw_pass_1 = SubResource("FlameQuad")
 
+[node name="FireLayers" type="Node3D" parent="HearthFire"]
+script = ExtResource("fx_fire")
+
 [node name="FireLight" type="OmniLight3D" parent="."]
+script = ExtResource("fx_flicker")
+base_energy = 0.0
+flicker = 0.35
+speed = 1.2
+jitter = 0.04
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64, 0.6)
 light_color = Color(1, 0.5, 0.2, 1)
 light_energy = 0.0

@@ -336,7 +336,7 @@ lines = Array[String](["The porch light was on.", "Someone was standing in the f
 line_times = Array[float]([1.5, 5.5])
 protect_time = 7.0
 saturation = 0.25
-closed_eyes_sound = "floor_creak"
+closed_eyes_sound = "house_creak"
 closed_eyes_caption = "A floorboard, inside. Then nothing."
 first_blink_hide = [NodePath("Props/FigureInWindow")]
 
@@ -409,7 +409,7 @@ lines = Array[String](["Footprints on the step, half filled with snow. One set. 
 line_times = Array[float]([1.2, 7.5])
 protect_time = 6.0
 saturation = 0.25
-closed_eyes_sound = "floor_creak"
+closed_eyes_sound = "clock_tick"
 closed_eyes_caption = "The hall clock, ticking. Right to the minute. Somebody had been winding it."
 
 [node name="CameraPoint" type="Marker3D" parent="Beats/PorchBeat"]
@@ -1122,7 +1122,7 @@ lines = Array[String](["Two cups on the table. One drunk. One full and cold, a s
 line_times = Array[float]([1.2, 6.5])
 protect_time = 6.0
 saturation = 0.25
-closed_eyes_sound = "floor_creak"
+closed_eyes_sound = "house_creak"
 closed_eyes_caption = "Thursday. She said Thursday."
 music = "none"
 
@@ -1452,7 +1452,7 @@ line_times = Array[float]([1.5, 6.5, 12.5])
 protect_time = 6.0
 max_wait = 40.0
 saturation = 0.3
-closed_eyes_sound = "floor_creak"
+closed_eyes_sound = "wind_gust"
 closed_eyes_caption = "Nothing on the porch. Nothing in the lane. I listened anyway."
 music = "none"
 

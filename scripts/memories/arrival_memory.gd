@@ -7,6 +7,7 @@ extends Memory
 ## How to change it: move/resize GateTrigger and PorchTrigger; edit home_line.
 
 @export var home_line := "...home."
+@export var home_voice := "v_home"
 ## Where the camera glances when the front door opens.
 @export var glance_point := Vector3(0, 1.2, -3.0)
 
@@ -38,7 +39,8 @@ func _on_gate_trigger_body_entered(body: Node3D) -> void:
 	game.ember.lead_to(porch_point)
 	gate.arm()
 	Sound.play("ember_chime", -4.0)
-	game.hud.say(home_line, 2.5)
+	Sound.play_at("ember_whoosh", game.ember.global_position, -6.0)
+	game.hud.say(home_line, 2.5, home_voice)
 
 
 func _on_porch_trigger_body_entered(body: Node3D) -> void:

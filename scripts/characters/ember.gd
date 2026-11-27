@@ -53,3 +53,5 @@ func wait_at(point: Vector3) -> void:
 func lead_to(node: Node3D) -> void:
 	follow = true
 	target = node
+	if is_inside_tree() and visible:
+		Sound.play_at("ember_whoosh", global_position, -12.0, false)  # a soft fwoomp as it sets off

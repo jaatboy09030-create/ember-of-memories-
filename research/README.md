@@ -23,3 +23,7 @@ Target image: [reference_target.webp](reference_target.webp). It shows a snowy h
 - The shared web-search budget ran out partway through, so Reddit and X threads are thin. Community practice comes mostly from the Godot, Unreal and Polycount forums.
 - Claims backed only by a search snippet, or by the researcher's own analysis, are marked in each file.
 - Godot values are starting points from the docs, not measurements from this project.
+
+## VFX research
+
+A separate 10-report study on VFX (combat, environmental, stylised, shaders, Godot tooling, performance, integration, workflow): start at [vfx/VFX-RESEARCH.md](vfx/VFX-RESEARCH.md).
