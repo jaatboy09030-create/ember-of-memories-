@@ -62,7 +62,7 @@ func trigger() -> void:
 	used = true
 	for f in figures_to_wake:
 		if f:
-			f.wake(false)  # faces stay pixelated in the blink demo: you never get them back
+			f.wake()
 	if call_target and call_method != "" and call_target.has_method(call_method):
 		call_target.callv(call_method, call_args)
 	for n in show_nodes:

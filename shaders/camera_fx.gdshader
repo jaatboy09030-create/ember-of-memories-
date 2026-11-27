@@ -11,7 +11,7 @@ uniform float warmth = 0.0; // -1 cold .. 1 warm tint
 // Face mosaics: xy = centre (px), z = half size (px), w = 0 off, else 1 + clarity
 // (clarity 0 = coarse blocks .. 1 = clear face, no mosaic).
 // Given in the FLAT (unbent) screen pixels, as Camera3D.unproject_position returns them.
-uniform vec4 faces[8];
+uniform vec4 faces[4];
 uniform int face_count = 0;
 // Lens bend (Brown-Conrady radial k1, k2). 0 = flat image. The bent image is scaled so the
 // corners stay filled: no black or smeared edges, at the cost of a slight zoom.
@@ -36,7 +36,7 @@ void fragment() {
 	vec2 res = 1.0 / SCREEN_PIXEL_SIZE;
 	vec2 uv = lens_uv(SCREEN_UV, res.x / res.y);
 	vec2 px = uv * res;
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 4; i++) {
 		if (i >= face_count) break;
 		vec4 f = faces[i];
 		float clarity = f.w - 1.0;

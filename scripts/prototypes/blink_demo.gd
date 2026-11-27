@@ -309,7 +309,8 @@ func _montage_step(b: MemoryBeat) -> void:
 
 ## Blinked at the eye: the memory comes back while the lids are shut.
 func _look_closer(h: EyeHotspot) -> void:
-	h.trigger()  # (no screen_effects.remember(): faces must stay pixelated all demo long)
+	h.trigger()
+	game.screen_effects.remember()
 	if h.voice != "":
 		Sound.play(h.voice)
 	if h.caption != "":

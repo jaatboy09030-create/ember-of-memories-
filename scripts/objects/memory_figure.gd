@@ -45,11 +45,10 @@ func _ready() -> void:
 		_sit_on_seat(skeleton)
 
 
-## clear_face = false: the ghost wakes but its face stays pixelated (blink demo: faces never clear).
-func wake(clear_face := true) -> void:
+func wake() -> void:
 	if _anim:
 		create_tween().tween_property(_anim, "speed_scale", 1.0, 2.0)
-	if _face and clear_face:  # remembered: the face resolves before the ghost fades
+	if _face:  # remembered: the face resolves before the ghost fades
 		var ft := create_tween()
 		ft.tween_method(func(v: float): _face.set_meta("clarity", v), 0.0, 1.0, 2.5)
 	for g in _ghost_materials:
