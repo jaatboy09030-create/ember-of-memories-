@@ -242,6 +242,7 @@ func _process(delta: float) -> void:
 		armed = true
 		blink_ui.metronome_on = true
 	if armed:
+		blink_ui.metronome_on = talk_done  # hides again while a line (e.g. the eye's) is being said
 		_armed_time += delta
 		var heavy := b.heavy_eyes_after if b.heavy_eyes_after >= 0.0 else heavy_eyes_after
 		if _armed_time > heavy:
@@ -287,7 +288,7 @@ func _on_eyes_shut() -> void:
 		_look_closer(b.hotspot)
 	elif b.montage_lines.size() > 0 and _montage_index < b.montage_lines.size() and beat_time >= b.protect_time:
 		_montage_step(b)
-	elif armed:
+	elif armed and blink_ui.metronome_on:  # never cut someone off mid-line
 		_cut()
 
 

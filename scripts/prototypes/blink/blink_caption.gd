@@ -43,13 +43,61 @@ func say(line: String, duration := 3.0) -> void:
 		talking_until = Time.get_ticks_msec() / 1000.0 + talk
 	if _tw:
 		_tw.kill()
-	text = line
+	# a quote and the narration around it are separate lines on screen, one after another,
+	# timed across the recording - never one paragraph
+	var parts := split_spoken(line)
+	text = parts[0]
 	modulate.a = 0.0
 	_tw = create_tween()
 	_tw.tween_property(self, "modulate:a", 1.0, fade_time)
-	if duration > 0.0:
+	if parts.size() > 1:
+		var total := 0
+		for p in parts:
+			total += p.length()
+		for k in range(1, parts.size()):
+			var next: String = parts[k]
+			_tw.tween_interval(maxf(0.4, talk * float(parts[k - 1].length()) / float(total) - fade_time * 0.5))
+			_tw.tween_property(self, "modulate:a", 0.0, 0.15)
+			_tw.tween_callback(func(): text = next)
+			_tw.tween_property(self, "modulate:a", 1.0, 0.18)
+		if duration > 0.0:
+			_tw.tween_interval(maxf(1.2, talk * float(parts[-1].length()) / float(total) + 0.6))
+			_tw.tween_property(self, "modulate:a", 0.0, fade_time + 0.3)
+	elif duration > 0.0:
 		_tw.tween_interval(duration)
 		_tw.tween_property(self, "modulate:a", 0.0, fade_time + 0.3)
+
+
+## Splits a caption into what's said aloud ("...") and the narration around it, so each shows
+## as its own line. A short tag after a quote (`she said.`) stays with the quote.
+static func split_spoken(line: String) -> Array[String]:
+	var raw: Array[String] = []
+	var cur := ""
+	var in_quote := false
+	for ch in line:
+		if ch == "\"":
+			if not in_quote and cur.strip_edges() != "":
+				raw.append(cur.strip_edges())
+				cur = ""
+			cur += ch
+			if in_quote:
+				raw.append(cur.strip_edges())
+				cur = ""
+			in_quote = not in_quote
+		else:
+			cur += ch
+	if cur.strip_edges() != "":
+		raw.append(cur.strip_edges())
+	var out: Array[String] = []
+	for p in raw:
+		var tag := not p.begins_with("\"") and p.split(" ", false).size() <= 3
+		if tag and out.size() > 0 and out[-1].begins_with("\""):  # "...," she said.
+			out[-1] += " " + p
+		else:
+			out.append(p)
+	if out.is_empty():
+		out.append(line)
+	return out
 
 
 ## The recording for a line ("" if none).

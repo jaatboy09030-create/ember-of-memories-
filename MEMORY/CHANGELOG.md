@@ -4,6 +4,8 @@ Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn'
 
 
 ## 2026-11-27 (blink feel pass)
+- **Quote and narration on separate caption lines:** `BlinkCaption.split_spoken()` splits a caption into the spoken quote and the narration ("...," she said. stays with its quote); `say()` shows them one after another across the one recording. No caption shows as a paragraph.
+- **Metronome hides while anyone talks**, even after it was armed (e.g. during the eye's line), and a blink only lets go while it shows.
 - **Ghosts solid, not X-ray:** `ghost_depth.gdshader` writes depth first, then `ghost.gdshader` draws, so no body through clothes / eyeballs through faces (`memory_figure.gd`).
 - **Ghosts drawn over the void, clipped to islands** (`MemoryFigure.clip_to_islands`, pushed by `MemoryVoid.show_islands`; void material priority 100, ghosts 105/106). The void can't see see-through ghosts, so it used to black out a head/body against a far wall (grandma's head, the boy in the drawing scene). Face mosaics of figures outside the islands are skipped (`ScreenEffects.face_filter`).
 - **Faces:** an eye blink clears a face only to clarity 0.88 (`wake(0.88)`): a very slight blur always stays. The demo no longer calls `remember()`.
