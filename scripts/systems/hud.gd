@@ -57,10 +57,11 @@ func set_progress(value: float) -> void:
 	_manual_progress = value
 
 
-## Show a caption for `duration` seconds. voice = optional audio clip name to play with it.
+## Show a caption for `duration` seconds. voice = optional audio clip name to play with it;
+## the caption then stays up at least as long as the line is spoken.
 func say(text: String, duration := 3.0, voice := "") -> void:
 	if voice != "":
-		Sound.play(voice, 0.0)
+		duration = maxf(duration, Sound.play_voice(voice) + 0.4)
 	if _caption_tween:
 		_caption_tween.kill()
 	caption.text = text

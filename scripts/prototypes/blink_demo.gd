@@ -164,11 +164,14 @@ func _play_lines(b: MemoryBeat) -> void:
 		_line_tween.kill()
 	_line_tween = create_tween()
 	var t := 0.0
+	var free_at := 0.0  # when the previous spoken line ends
 	for k in b.lines.size():
 		var at: float = b.line_times[k] if k < b.line_times.size() else t + 3.5
+		at = maxf(at, free_at)  # never talk over the previous line
 		_line_tween.tween_interval(maxf(0.0, at - t))
 		_line_tween.tween_callback(caption.say.bind(b.lines[k], 3.2))
 		t = at
+		free_at = at + BlinkCaption.voice_length(b.lines[k]) + 0.5
 	_line_tween.tween_interval(3.0)
 	_line_tween.tween_callback(func(): _lines_done = true)
 
@@ -320,7 +323,7 @@ func _on_eyes_held_closed() -> void:
 			if k < b.closed_eyes_line_sounds.size():
 				_play_sound(b.closed_eyes_line_sounds[k], -3.0)
 			_closed_index = k + 1)
-		_closed_tween.tween_interval(3.0)
+		_closed_tween.tween_interval(maxf(3.0, BlinkCaption.voice_length(b.closed_eyes_lines[k]) + 0.4))
 	if b.closed_lines_done_caption != "":
 		_closed_tween.tween_callback(caption.say.bind(b.closed_lines_done_caption, 4.0))
 
@@ -351,7 +354,7 @@ func _ending(b: MemoryBeat) -> void:
 	await get_tree().create_timer(1.6).timeout
 	for line in (b.ending_lines_if_blinked if blinked else b.ending_lines):
 		caption.say(line, 2.6)
-		await get_tree().create_timer(3.8).timeout
+		await get_tree().create_timer(maxf(3.8, BlinkCaption.voice_length(line) + 0.8)).timeout
 	title_card.say("UNSENT", 0.0)
 	await get_tree().create_timer(3.0).timeout
 	title_card.say("UNSENT\n\nblink to remember again", 0.0)

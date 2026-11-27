@@ -59,6 +59,9 @@ against level colliders and the floor, with a suggested free spot when it overla
 tested for resting on a surface. Room floors are visual 6 cm boxes without colliders (treated as floor).
 Seated figures may touch their chair. Run it after moving any figure or prop.
 
+## Voice-over
+Every caption is voiced (narrator / Mum / Dad), found by a hash of its text: see `12-vfx-and-audio.md`. Edit a line → re-run `tools/blink_voice_over.py` or it plays silent.
+
 ## Gotchas
 - The automatic run disables BlinkUI mouse input: a real mouse over the window would steer it.
 - `Sound.play` on a stream someone else looped with `_set_loop` loops forever — don't use

@@ -2,6 +2,19 @@
 
 Format: `YYYY-MM-DD — who/what — summary (files)`. Record *why* when it isn't obvious.
 
+
+## 2026-11-27 (VFX + sound pass)
+- **Blink demo voiced:** 119 lines with a 3-voice cast (son / Mum / new "Dad - Unsent"), lines found by text hash, blink cuts the voice, line timing waits for speech; better eyes-closed sounds. Blink autoplay runs to the ending; storytest PASS. See 12-vfx-and-audio.md.
+- **XMavrik + AI (Claude, idiot-vfx skill)** — See `12-vfx-and-audio.md`.
+  - `scripts/vfx/` kit: FlickerLight, FireVFX, MemoryMotes, LightMotes, VFXKit.
+  - The fireplace is layered and moved onto the grate; it was inside the base.
+  - Golden motes and a light pop on every memory restore; warm motes at the gate lamp and doorway.
+  - One global `wind_strength`, driven by audible gusts.
+  - Moonlight with a window cookie through every window; cold room fills lowered.
+  - Sound: variants (6 snow / 6 wood steps), Music/Voice/Memory buses, music ducking under voice, ambience beds and random sprinkles, hallway clock, door rattle, ember whoosh, fire crackles.
+  - 7 new voice lines (new voice "Child - Unsent" plus the Mother's "...then go!"), each paced and warmed individually.
+  - storytest, doortest, walktest PASS.
+
 ## 2026-11-27
 - **Blink demo rewrite + placement fixes** - story rebuilt as a psychological thriller (see 11-blink-demo.md);
   new beat features first_blink_hide/show, montage_show, closed_eyes_line_sounds, hotspot show_nodes;

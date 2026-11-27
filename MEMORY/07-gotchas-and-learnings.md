@@ -93,6 +93,14 @@ Format: **Symptom → Cause → Fix.** Add new ones at the bottom of the right s
 - **GPU particle sub-emitter** -> set `sub_emitter` on the parent; the child then emits only through it. From a custom
   `particles` shader call `emit_subparticle(xform, vel, color, custom, FLAG_EMIT_POSITION | FLAG_EMIT_VELOCITY)`.
 
+- **A light/rotation written into a .tscn points the wrong way** -> `Transform3D(...)` in .tscn lists the basis
+  row by row (transposed from basis.x/y/z columns). Probe `-global_basis.z` at runtime to confirm a light's direction.
+- **A fire glows through the wrong part of a model** -> check the emitter sits where the model's fuel is (the fireplace
+  HearthFire sat inside the stone base for months).
+- **Additive flames read white, not orange** -> too many additive particles + glow + AgX roll to white: lower shader
+  energy (~1.1), deepen the ramp, keep particle count moderate; judge at the scene's real saturation (world_sat).
+- **ffmpeg loudnorm fails on clips < 0.4 s** -> peak-match short one-shots instead of LUFS.
+
 ## Repo / tooling
 - **Push rejected: file > 100 MB** → big Poly Haven trees are gitignored (`pine_tree_01`, `pine_sapling_medium`). Check sizes before adding assets.
 - **level_builder overwrites hand edits** to `house_level.tscn` and `materials/level/`. Don't run unless asked.

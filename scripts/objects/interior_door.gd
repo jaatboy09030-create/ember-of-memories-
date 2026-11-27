@@ -33,7 +33,7 @@ extends Interactable
 ## Length of the rattle, seconds.
 @export var rattle_time := 0.42
 ## Clip from assets/audio (no extension), played twice as the latch clacks.
-@export var rattle_sound := "door_slam"
+@export var rattle_sound := "door_rattle"
 ## Shut and lock this door once the player has walked through it to the inside.
 @export var lock_behind_player := false
 ## Which side counts as "inside": true = the door's local -Z side (the front door: the house is at -Z).

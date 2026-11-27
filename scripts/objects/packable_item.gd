@@ -13,6 +13,8 @@ signal chosen(item: PackableItem)
 
 ## Caption shown while the player holds this item.
 @export_multiline var memory_line := "Something I left behind."
+## Voice clip spoken with the caption (assets/audio/<name>), "" = caption only.
+@export var memory_voice := ""
 ## Seconds the item takes to fly into the suitcase.
 @export var pack_time := 0.7
 

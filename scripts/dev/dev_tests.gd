@@ -391,6 +391,7 @@ const TOUR := [
 	["t5_living", Vector3(1.5, 0.1, -3.6), Vector3(-1.0, 1.4, 0)],
 	["t6_kidroom", Vector3(-3.6, 0.1, -3.6), Vector3(-7.5, 1.4, -1.0)],
 	["t7_fireplace", Vector3(-3.0, 0.1, -6.0), Vector3(-7.5, 1.0, -5.75)],
+	["t8_fire_lit", Vector3(-4.6, 0.1, -5.9), Vector3(-7.0, 0.7, -5.75)],
 ]
 
 
@@ -404,6 +405,15 @@ func _tour() -> void:
 		var dv: Vector3 = t[2] - player.head_position()
 		player.target_pitch = atan2(dv.y, Vector2(dv.x, dv.z).length())
 		player.pitch = player.target_pitch
+		if t[0] == "t8_fire_lit":
+			var fp := get_tree().get_first_node_in_group("fireplace")
+			if fp == null:
+				for n in get_tree().root.find_children("*", "Fireplace", true, false):
+					fp = n
+			game.screen_effects.world_saturation = 1.0  # as in the ending
+			if fp:
+				fp.ignite()
+				await _wait(3.0)
 		await _wait(1.6)
 		_save_shot(t[0])
 

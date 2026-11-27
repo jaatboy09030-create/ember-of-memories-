@@ -14,6 +14,7 @@ extends Memory
 ## Shown next to pack_prompt. Keep it in sync with the "rotate_item" bindings in the Input Map.
 @export var turn_hint := "hold R / Y to turn it"
 @export var leave_line := "I left that night. I never came back."
+@export var leave_voice := "v_left"
 ## Colour at the start of this memory (it drains to 0 as items are packed).
 @export var start_saturation := 0.3
 ## Where a held item floats, relative to the camera (x right, y up, -z forward), metres.
@@ -59,7 +60,7 @@ func _inspect(item: PackableItem) -> void:
 	_lift.tween_property(self, "_lift_t", 1.0, lift_time).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	_lift.tween_callback(func():
 		_ready_to_pack = true
-		game.hud.say(item.memory_line, 3.5)
+		game.hud.say(item.memory_line, 3.5, item.memory_voice)
 		game.hud.show_prompt(pack_prompt + "      " + turn_hint))
 	game.screen_effects.set_vignette(0.55)
 
@@ -97,7 +98,7 @@ func _on_suitcase_closed() -> void:
 	game.player.can_move = false
 	Sound.play_music("", 0.0, 3.0)
 	var tw := game.hud.fade_to(1.0, 1.5)
-	tw.tween_callback(func(): game.hud.say(leave_line, 3.5))
+	tw.tween_callback(func(): game.hud.say(leave_line, 3.5, leave_voice))
 	tw.tween_interval(3.5)
 	tw.tween_callback(func():
 		finish()

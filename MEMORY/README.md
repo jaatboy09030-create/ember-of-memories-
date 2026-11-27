@@ -26,8 +26,10 @@ Last full audit: **2026-11-26**, at commit `c806893` (main). Updated the same da
 | 9 | [09-camera.md](09-camera.md) | Touching the camera, screen look, lens, shake or comfort settings. Research + backlog. |
 | 10 | [10-story-and-gameplay.md](10-story-and-gameplay.md) | Briefing someone new: story, gameplay, flow, presentation, where it's going. |
 | 11 | [11-blink-demo.md](11-blink-demo.md) | Working on the Before Your Eyes style blink prototype (scenes/prototypes/blink_demo.tscn). |
+| 12a | [12-vfx-and-audio.md](12-vfx-and-audio.md) | **Before touching effects, lights that flicker, sounds, music mix or voice lines.** VFX kit, buses, variants, voice cast. |
 | 12 | [CHANGELOG.md](CHANGELOG.md) | To see what changed recently and why. |
 | 13 | [../research/00-unsent-opening-recipe.md](../research/00-unsent-opening-recipe.md) | **Before any lighting / art-direction work.** Researched recipe + index of 10 reports. |
+| 14 | [../research/vfx/VFX-RESEARCH.md](../research/vfx/VFX-RESEARCH.md) | **Before any VFX / particle / combat-feel work.** Master file + 10 VFX research reports. |
 
 ---
 

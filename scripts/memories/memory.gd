@@ -45,7 +45,9 @@ func wake_figures() -> void:
 ## The shared "a memory comes back" moment: sound, a glance, a breath of warmth.
 func play_restore_moment(look_at_point: Vector3) -> void:
 	Sound.play("memory_restore", -2.0)
+	Sound.play("memory_wake", -6.0)  # a breath of the people coming back, layered over the swell
 	game.player.glance(look_at_point, 0.45)
+	MemoryMotes.burst(self, look_at_point)  # golden motes + a warm light pop, same frame as the sound
 	game.player.add_shake(0.15, 0.8)
 	game.screen_effects.warm_flash()
 	game.screen_effects.remember()  # the mosaic rule: every face gets a little clearer

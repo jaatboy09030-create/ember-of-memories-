@@ -15,6 +15,7 @@ uniform float roughness_value = 0.9;
 uniform vec3 snow_color : source_color = vec3(0.72, 0.76, 0.84);  // never pure white: lets the lights colour it (research/10)
 
 varying vec3 wpos;
+global uniform float wind_strength;  // 1 = calm baseline; gusts push it up (AmbienceMixer)
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float noise(vec2 p) {
@@ -31,8 +32,10 @@ void vertex() {
 		float h = max(VERTEX.y, 0.0);
 		float ph = dot(MODEL_MATRIX[3].xz, vec2(0.37, 0.61));
 		float s = sin(TIME * 0.7 + ph + w.y * 0.4) * 0.5 + sin(TIME * 1.9 + ph * 2.0 + w.x) * 0.15;
-		VERTEX.x += s * 0.012 * h * sway;
-		VERTEX.z += s * 0.008 * h * sway;
+		// one wind for the whole world: a gust leans every tree the same way at the same time
+		float gust = max(wind_strength - 1.0, 0.0);
+		VERTEX.x += (s * 0.012 * wind_strength + gust * 0.018) * h * sway;
+		VERTEX.z += (s * 0.008 * wind_strength + gust * 0.006) * h * sway;
 	}
 	wpos = w;
 }
