@@ -63,6 +63,9 @@ Seated figures may touch their chair. Run it after moving any figure or prop.
 - `blink_demo.gd` exports `voice_speed` (1.12: voices play faster at the same pitch via
   `Sound.voice_speed` + a `<bus>_Paced` pitch-fix bus) and `line_pace` (0.85: multiplies `line_times`).
   Gap after a spoken line is 0.3 s.
+- The metronome (blink offer) never arms while a line is being said: it waits until the beat's last
+  line (and any voice still playing, e.g. a hotspot caption) has ≤ 0.35 s left (`_talk_end`,
+  `Sound.voice_time_left()`).
 - Blinking over a line (`_cut`): `BlinkCaption.interrupt()` leaves the heard words up with a dash, dim,
   then fades. Blinking just before the next line plays a 0.45 s snatch of it + its first two words with
   a dash, so the player knows something was left unsaid. `Sound.voice_progress()` gives 0..1 of the line.

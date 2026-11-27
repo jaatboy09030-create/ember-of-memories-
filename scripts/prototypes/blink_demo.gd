@@ -57,6 +57,7 @@ var _finished := false
 var _can_restart := false
 var _line_tween: Tween
 var _said := 0  # how many of the current beat's lines have started
+var _talk_end := 0.0  # beat_time when the current beat's last line ends
 var _colour_tween: Tween
 var _closed_tween: Tween
 var _closed_index := 0
@@ -184,6 +185,7 @@ func _play_lines(b: MemoryBeat) -> void:
 			caption.say(b.lines[k], 3.2))
 		t = at
 		free_at = at + BlinkCaption.voice_length(b.lines[k]) + 0.3
+	_talk_end = free_at - 0.3  # when the last line finishes being said
 	_line_tween.tween_interval(3.0)
 	_line_tween.tween_callback(func(): _lines_done = true)
 
@@ -206,7 +208,9 @@ func _process(delta: float) -> void:
 	var eye_done := b.hotspot == null or b.hotspot.used or not b.wait_for_hotspot
 	if b.wait_for_closed_lines and _closed_index < b.closed_eyes_lines.size():
 		eye_done = false
-	if not armed and beat_time >= b.protect_time and (eye_done or beat_time >= b.max_wait):
+	# never offer the blink while someone is still talking (ok in the last ~0.35 s of the last line)
+	var talk_done := beat_time >= _talk_end - 0.35 and Sound.voice_time_left() <= 0.35
+	if not armed and talk_done and beat_time >= b.protect_time and (eye_done or beat_time >= b.max_wait):
 		armed = true
 		blink_ui.metronome_on = true
 	if armed:

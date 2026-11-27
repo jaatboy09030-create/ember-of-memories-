@@ -193,6 +193,13 @@ func voice_progress() -> float:
 	return -1.0
 
 
+## Seconds left in the line being spoken (0 = nothing speaking).
+func voice_time_left() -> float:
+	if _voice_player and is_instance_valid(_voice_player) and _voice_player.playing and _voice_player.stream:
+		return (_voice_player.stream.get_length() - _voice_player.get_playback_position()) / voice_speed
+	return 0.0
+
+
 ## A bus that undoes the pitch rise of voice_speed, then sends to `target`.
 func _pitch_fix_bus(target: StringName) -> StringName:
 	var bus_name := String(target) + "_Paced"
