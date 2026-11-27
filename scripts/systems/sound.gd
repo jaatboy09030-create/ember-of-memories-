@@ -41,6 +41,8 @@ var _last_variant := {}   # name -> index played last
 var _duck_tween: Tween
 var _duck_until := 0.0
 var _voice_player: AudioStreamPlayer  # the dialogue channel: one voice at a time
+## Voice lines play this much faster, same pitch (1 = as recorded). Set it before the first line.
+var voice_speed := 1.0
 
 
 func _ready() -> void:
@@ -172,12 +174,37 @@ func play_voice(voice_name: String, volume_db := 0.0) -> float:
 	p.stream = stream
 	p.volume_db = volume_db
 	p.bus = _bus_for(voice_name)
+	if not is_equal_approx(voice_speed, 1.0):
+		p.pitch_scale = voice_speed           # faster...
+		p.bus = _pitch_fix_bus(p.bus)         # ...but the same pitch
 	add_child(p)
 	p.play()
 	p.finished.connect(p.queue_free)
 	_voice_player = p
-	duck_music(stream.get_length())
-	return stream.get_length()
+	var length := stream.get_length() / voice_speed
+	duck_music(length)
+	return length
+
+
+## 0..1 how far the line being spoken has got (-1 = nothing speaking).
+func voice_progress() -> float:
+	if _voice_player and is_instance_valid(_voice_player) and _voice_player.playing and _voice_player.stream:
+		return _voice_player.get_playback_position() / maxf(0.01, _voice_player.stream.get_length())
+	return -1.0
+
+
+## A bus that undoes the pitch rise of voice_speed, then sends to `target`.
+func _pitch_fix_bus(target: StringName) -> StringName:
+	var bus_name := String(target) + "_Paced"
+	if AudioServer.get_bus_index(bus_name) == -1:
+		AudioServer.add_bus()
+		var i := AudioServer.bus_count - 1
+		AudioServer.set_bus_name(i, bus_name)
+		AudioServer.set_bus_send(i, target)
+		var ps := AudioEffectPitchShift.new()
+		ps.pitch_scale = 1.0 / voice_speed
+		AudioServer.add_bus_effect(i, ps)
+	return StringName(bus_name)
 
 
 ## Cuts the line being spoken (a blink, a scene cut) with a 40 ms fade so it doesn't click.
@@ -193,7 +220,7 @@ func stop_voice() -> void:
 ## Length of a voice clip in seconds (0 if there is none).
 func voice_length(voice_name: String) -> float:
 	var s := get_stream(voice_name)
-	return s.get_length() if s else 0.0
+	return s.get_length() / voice_speed if s else 0.0
 
 
 ## Dips the Music bus for `seconds`, then brings it back slowly.

@@ -59,6 +59,14 @@ against level colliders and the floor, with a suggested free spot when it overla
 tested for resting on a surface. Room floors are visual 6 cm boxes without colliders (treated as floor).
 Seated figures may touch their chair. Run it after moving any figure or prop.
 
+## Dialogue pace and cut-off cue
+- `blink_demo.gd` exports `voice_speed` (1.12: voices play faster at the same pitch via
+  `Sound.voice_speed` + a `<bus>_Paced` pitch-fix bus) and `line_pace` (0.85: multiplies `line_times`).
+  Gap after a spoken line is 0.3 s.
+- Blinking over a line (`_cut`): `BlinkCaption.interrupt()` leaves the heard words up with a dash, dim,
+  then fades. Blinking just before the next line plays a 0.45 s snatch of it + its first two words with
+  a dash, so the player knows something was left unsaid. `Sound.voice_progress()` gives 0..1 of the line.
+
 ## Voice-over
 Every caption is voiced (narrator / Mum / Dad), found by a hash of its text: see `12-vfx-and-audio.md`. Edit a line → re-run `tools/blink_voice_over.py` or it plays silent.
 

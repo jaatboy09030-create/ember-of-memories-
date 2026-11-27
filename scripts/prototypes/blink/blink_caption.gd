@@ -54,6 +54,34 @@ static func voice_length(line: String) -> float:
 	return Sound.voice_length(v) if v != "" else 0.0
 
 
+## Cut off mid-sentence by a blink: the words already heard (or the first words of the line that
+## was coming) stay up with a dash, dim, then fade - so you know something was left unsaid.
+## heard = 0..1 how much of the line was spoken; < 0 = it hadn't started (a snatch of it plays).
+func interrupt(line: String, heard := -1.0) -> void:
+	var words := line.split(" ", false)
+	var keep: int
+	if heard < 0.0:
+		keep = clampi(2, 1, words.size())
+		if voiced:
+			var v := voice_for(line)
+			if v != "":
+				Sound.play_voice(v)
+				var snatch := line
+				get_tree().create_timer(0.45).timeout.connect(func():
+					if text.ends_with("—") and snatch.begins_with(text.trim_suffix("—")):
+						Sound.stop_voice())  # only if a new line hasn't started meanwhile
+	else:
+		Sound.stop_voice()
+		keep = clampi(int(ceil(words.size() * heard)), 1, maxi(1, words.size() - 1))
+	text = " ".join(words.slice(0, keep)).rstrip(".,;:!?-") + "—"
+	if _tw:
+		_tw.kill()
+	modulate.a = 0.75
+	_tw = create_tween()
+	_tw.tween_interval(0.9)
+	_tw.tween_property(self, "modulate:a", 0.0, 0.8)
+
+
 ## Gone, right now (text and voice).
 func cut() -> void:
 	Sound.stop_voice()

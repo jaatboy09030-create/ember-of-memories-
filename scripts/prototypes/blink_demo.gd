@@ -36,6 +36,9 @@ extends Node3D
 @export var first_open_time := 3.0
 ## Seconds of black between two memories.
 @export var cut_black_time := 0.4
+## Dialogue pace: voice playback speed (same pitch) and line timing multiplier (< 1 = sooner).
+@export var voice_speed := 1.12
+@export var line_pace := 0.85
 ## After this long with the metronome ticking, the eyes start to get heavy.
 @export var heavy_eyes_after := 14.0
 ## Music under the demo (assets/audio name, "" = none).
@@ -53,6 +56,7 @@ var _closed_played := false
 var _finished := false
 var _can_restart := false
 var _line_tween: Tween
+var _said := 0  # how many of the current beat's lines have started
 var _colour_tween: Tween
 var _closed_tween: Tween
 var _closed_index := 0
@@ -62,7 +66,12 @@ var _first_blink_done := false
 var _shots_dir := ""
 
 
+func _exit_tree() -> void:
+	Sound.voice_speed = 1.0
+
+
 func _ready() -> void:
+	Sound.voice_speed = voice_speed
 	for b in beats_root.get_children():
 		if b is MemoryBeat:
 			beats.append(b)
@@ -165,13 +174,16 @@ func _play_lines(b: MemoryBeat) -> void:
 	_line_tween = create_tween()
 	var t := 0.0
 	var free_at := 0.0  # when the previous spoken line ends
+	_said = 0
 	for k in b.lines.size():
-		var at: float = b.line_times[k] if k < b.line_times.size() else t + 3.5
+		var at: float = (b.line_times[k] if k < b.line_times.size() else t + 3.5) * line_pace
 		at = maxf(at, free_at)  # never talk over the previous line
 		_line_tween.tween_interval(maxf(0.0, at - t))
-		_line_tween.tween_callback(caption.say.bind(b.lines[k], 3.2))
+		_line_tween.tween_callback(func():
+			_said = k + 1
+			caption.say(b.lines[k], 3.2))
 		t = at
-		free_at = at + BlinkCaption.voice_length(b.lines[k]) + 0.5
+		free_at = at + BlinkCaption.voice_length(b.lines[k]) + 0.3
 	_line_tween.tween_interval(3.0)
 	_line_tween.tween_callback(func(): _lines_done = true)
 
@@ -283,8 +295,16 @@ func _cut() -> void:
 	eyelids.forced_closed = true
 	if _line_tween:
 		_line_tween.kill()
-	caption.cut()
 	var b := beats[index]
+	var heard := Sound.voice_progress()
+	if b.final_beat:
+		caption.cut()
+	elif _said > 0 and heard >= 0.0 and heard < 0.9:  # blinked over someone talking
+		caption.interrupt(b.lines[_said - 1], heard)
+	elif _said < b.lines.size():  # blinked just before the next line
+		caption.interrupt(b.lines[_said])
+	else:
+		caption.cut()
 	if b.final_beat:
 		_ending(b)
 		return
